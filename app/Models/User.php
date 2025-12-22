@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'affiliate_code',
+        'sponsor_id',
     ];
 
     /**
@@ -44,5 +47,48 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Relationships
+    public function sponsor()
+    {
+        return $this->belongsTo(User::class, 'sponsor_id');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'sponsor_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'sponsor_id');
+    }
+
+    // Helper methods
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isSponsor(): bool
+    {
+        return $this->role === 'sponsor';
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->role === 'customer';
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            if (empty($user->affiliate_code) && ($user->role === 'sponsor' || $user->role === 'customer')) {
+                $user->affiliate_code = strtoupper(substr(md5($user->email . time()), 0, 8));
+            }
+        });
     }
 }

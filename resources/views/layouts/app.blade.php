@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="bn" class="h-full">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    @php
+        $siteName = \App\Models\Setting::get('site_name', config('app.name', 'Shop'));
+        $canonicalUrl = url()->current();
+        $ogImage = \App\Models\Setting::get('og_image') ?: asset('favicon.ico');
+    @endphp
+    
+    <!-- Primary Meta Tags -->
+    @php
+        $metaDesc = \App\Models\Setting::get('meta_description', 'আমাদের অনলাইন শপ থেকে সেরা পণ্য কিনুন। ফ্রি ডেলিভারি ও ক্যাশ অন ডেলিভারি সুবিধা।');
+    @endphp
+    <title>{{ $siteName }} - @yield('title', 'হোম')</title>
+    <meta name="title" content="{{ $siteName }} - @yield('title', 'হোম')">
+    <meta name="description" content="{{ $metaDesc }}">
+    <meta name="keywords" content="@yield('keywords', 'অনলাইন শপ, ই-কমার্স, পণ্য, ডেলিভারি')">
+    <meta name="author" content="{{ $siteName }}">
+    <meta name="language" content="bn">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:title" content="{{ $siteName }} - @yield('title', 'হোম')">
+    <meta property="og:description" content="{{ $metaDesc }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:locale" content="bn_BD">
+    <meta property="og:site_name" content="{{ $siteName }}">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ $canonicalUrl }}">
+    <meta property="twitter:title" content="{{ $siteName }} - @yield('title', 'হোম')">
+    <meta property="twitter:description" content="{{ $metaDesc }}">
+    <meta property="twitter:image" content="{{ $ogImage }}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+Bengali:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Slick CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    @php
+        $structuredData = [
+            "@context" => "https://schema.org",
+            "@type" => "Organization",
+            "name" => $siteName,
+            "url" => url('/'),
+            "logo" => $ogImage,
+            "description" => $metaDesc,
+            "address" => [
+                "@type" => "PostalAddress",
+                "addressCountry" => "BD"
+            ],
+            "contactPoint" => [
+                "@type" => "ContactPoint",
+                "telephone" => \App\Models\Setting::get('contact_phone', ''),
+                "contactType" => "Customer Service",
+                "areaServed" => "BD",
+                "availableLanguage" => "bn"
+            ]
+        ];
+    @endphp
+    {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+    </script>
+        
+    <!-- Settings: FB Pixel & GA -->
+    @if(\App\Models\Setting::get('fb_pixel_id'))
+    <!-- Facebook Pixel Code -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ \App\Models\Setting::get("fb_pixel_id") }}');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id={{ \App\Models\Setting::get('fb_pixel_id') }}&ev=PageView&noscript=1"
+    /></noscript>
+    @endif
+    
+    @if(\App\Models\Setting::get('ga_tracking_id'))
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ \App\Models\Setting::get('ga_tracking_id') }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ \App\Models\Setting::get("ga_tracking_id") }}');
+    </script>
+    @endif
+    <!-- Vite -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    
+    @stack('styles')
+    
+    <!-- Dynamic Color Injection from Settings -->
+    <style>
+        :root {
+            @php
+                $colorPalette = json_decode(\App\Models\Setting::get('color_palette', '{}'), true);
+                $primaryColor = $colorPalette['primary'] ?? '#2563EB';
+                $secondaryColor = $colorPalette['secondary'] ?? '#64748B';
+                $accentColor = $colorPalette['accent'] ?? '#10B981';
+            @endphp
+            --color-primary: {{ $primaryColor }};
+            --color-secondary: {{ $secondaryColor }};
+            --color-accent: {{ $accentColor }};
+        }
+    </style>
+</head>
+<body class="h-full bg-white font-sans" style="font-family: var(--font-family-base, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif);">
+    <div class="min-h-full flex flex-col">
+        <!-- Marquee Banner -->
+        @php
+            $marqueeText = \App\Models\Setting::get('marquee_text', '');
+        @endphp
+        @if($marqueeText)
+            <div class="bg-primary text-white py-2 overflow-hidden" style="background-color: var(--color-primary);">
+                <div class="marquee-container">
+                    <div class="marquee-content font-bangla text-sm font-medium whitespace-nowrap">
+                        {{ $marqueeText }}
+                    </div>
+                </div>
+            </div>
+        @endif
+        
+        <!-- Header -->
+        <header x-data="{ mobileMenuOpen: false }" class="bg-white border-b border-gray-200 shadow-sm">
+            @php
+                $categories = \App\Models\Category::where('is_active', true)->orderBy('sort_order')->get();
+            @endphp
+            
+            <!-- Top Bar -->
+            <div class="bg-white border-b border-gray-100">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-10 text-sm text-gray-600">
+                        <div class="flex items-center gap-4 font-bangla">
+                            <span>🚚 ফ্রি ডেলিভারি</span>
+                            <span>💳 ক্যাশ অন ডেলিভারি</span>
+                        </div>
+                        <div class="hidden md:flex items-center gap-4">
+                            <a href="tel:{{ \App\Models\Setting::get('contact_phone', '') }}" class="hover:text-primary transition">📞 {{ \App\Models\Setting::get('contact_phone', '') }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Navigation -->
+            <nav class="bg-white">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex items-center justify-between h-16 gap-4">
+                        <!-- Logo -->
+                        <div class="flex-shrink-0">
+                            <a href="{{ route('home') }}" class="text-2xl font-bold" style="color: var(--color-primary);">
+                                {{ $siteName }}
+                            </a>
+                        </div>
+                        
+                        <!-- Search Bar (Centered) -->
+                        <div class="hidden md:flex flex-1 max-w-2xl mx-8">
+                            <form action="{{ route('products.index') }}" method="GET" class="w-full">
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        name="search" 
+                                        value="{{ request('search') }}"
+                                        placeholder="পণ্য খুঁজুন..." 
+                                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
+                                        style="transition: all var(--transition-fast);"
+                                    >
+                                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1 rounded-md font-bangla" style="background-color: var(--color-primary); color: white;">
+                                        খুঁজুন
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Right Menu -->
+                        <div class="flex items-center gap-4">
+                            <a href="{{ route('products.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
+                            
+                            @if(auth()->check())
+                                @if(auth()->user()->isAdmin())
+                                    <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-primary transition">Admin</a>
+                                @elseif(auth()->user()->isSponsor())
+                                    <a href="{{ route('sponsor.dashboard') }}" class="text-gray-700 hover:text-primary transition">Dashboard</a>
+                                @endif
+                                <form method="POST" action="{{ route('logout') }}" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-gray-700 hover:text-primary transition font-bangla">লগআউট</button>
+                                </form>
+                            @else
+                                <a href="{{ route('login') }}" class="text-gray-700 hover:text-primary transition font-bangla">লগইন</a>
+                            @endif
+                            
+                            <!-- Mobile menu button -->
+                            <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-gray-700">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Categories Menu -->
+                @if($categories->count() > 0)
+                <div class="border-t border-gray-100 bg-gray-50">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <nav class="flex items-center gap-6 overflow-x-auto py-3 hide-scrollbar">
+                            <a href="{{ route('products.index') }}" class="flex-shrink-0 font-bangla font-medium {{ request()->routeIs('home') || (request()->routeIs('products.index') && !request('category')) ? 'text-primary' : 'text-gray-700 hover:text-primary' }} transition whitespace-nowrap">
+                                সব পণ্য
+                            </a>
+                            @foreach($categories as $category)
+                            <a href="{{ route('products.index', ['category' => $category->id]) }}" class="flex-shrink-0 font-bangla font-medium {{ request('category') == $category->id ? 'text-primary' : 'text-gray-700 hover:text-primary' }} transition whitespace-nowrap">
+                                {{ $category->name }}
+                            </a>
+                            @endforeach
+                        </nav>
+                    </div>
+                </div>
+                @endif
+            </nav>
+            
+            <!-- Mobile Menu -->
+            <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" x-transition class="md:hidden bg-white border-t border-gray-200 shadow-lg">
+                <div class="px-4 py-4 space-y-3">
+                    <!-- Mobile Search -->
+                    <form action="{{ route('products.index') }}" method="GET" class="mb-4">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                name="search" 
+                                value="{{ request('search') }}"
+                                placeholder="পণ্য খুঁজুন..." 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
+                            >
+                            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </form>
+                    
+                    <a href="{{ route('home') }}" class="block text-gray-700 hover:text-primary font-bangla">হোম</a>
+                    <a href="{{ route('products.index') }}" class="block text-gray-700 hover:text-primary font-bangla">পণ্য</a>
+                    @if($categories->count() > 0)
+                        @foreach($categories as $category)
+                        <a href="{{ route('products.index', ['category' => $category->id]) }}" class="block text-gray-700 hover:text-primary font-bangla pl-4">{{ $category->name }}</a>
+                        @endforeach
+                    @endif
+                    @if(auth()->check())
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('admin.dashboard') }}" class="block text-gray-700 hover:text-primary">Admin</a>
+                        @elseif(auth()->user()->isSponsor())
+                            <a href="{{ route('sponsor.dashboard') }}" class="block text-gray-700 hover:text-primary">Dashboard</a>
+                        @endif
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="block text-gray-700 hover:text-primary font-bangla">লগআউট</button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="block text-gray-700 hover:text-primary font-bangla">লগইন</a>
+                    @endif
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="flex-1">
+            @yield('content')
+        </main>
+        
+        <!-- Footer -->
+        <footer class="bg-gray-50 border-t border-gray-200 mt-16 pattern-dots">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <!-- About -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">আমাদের সম্পর্কে</h3>
+                        <p class="text-gray-600 text-sm font-bangla leading-relaxed">{{ \App\Models\Setting::get('footer_about', 'আমাদের অনলাইন শপে আপনাকে স্বাগতম। আমরা গুণগত মানসম্পন্ন পণ্য সরবরাহ করি।') }}</p>
+                    </div>
+                    
+                    <!-- Quick Links -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">দ্রুত লিংক</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li><a href="{{ route('home') }}" class="text-gray-600 hover:text-primary transition font-bangla">হোম</a></li>
+                            <li><a href="{{ route('products.index') }}" class="text-gray-600 hover:text-primary transition font-bangla">সব পণ্য</a></li>
+                            @if($categories->count() > 0)
+                                @foreach($categories->take(5) as $category)
+                                <li><a href="{{ route('products.index', ['category' => $category->id]) }}" class="text-gray-600 hover:text-primary transition font-bangla">{{ $category->name }}</a></li>
+                                @endforeach
+                            @endif
+                        </ul>
+                    </div>
+                    
+                    <!-- Customer Service -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">গ্রাহক সেবা</h3>
+                        <ul class="space-y-2 text-sm text-gray-600 font-bangla">
+                            <li>📞 {{ \App\Models\Setting::get('contact_phone', '') }}</li>
+                            <li>✉️ {{ \App\Models\Setting::get('contact_email', 'info@example.com') }}</li>
+                            <li>🚚 ফ্রি ডেলিভারি</li>
+                            <li>💳 ক্যাশ অন ডেলিভারি</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Trust Badges -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">আমাদের প্রতিশ্রুতি</h3>
+                        <ul class="space-y-2 text-sm text-gray-600 font-bangla">
+                            <li>✅ ৩০ দিনের মানি-ব্যাক গ্যারান্টি</li>
+                            <li>✅ ১০০% অরিজিনাল পণ্য</li>
+                            <li>✅ নিরাপদ পেমেন্ট</li>
+                            <li>✅ ২৪/৭ গ্রাহক সেবা</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-8 pt-8 border-t border-gray-200 text-center">
+                    <p class="text-sm text-gray-600 font-bangla">
+                        &copy; {{ date('Y') }} {{ \App\Models\Setting::get('site_name', config('app.name')) }}। সর্বস্বত্ব সংরক্ষিত।
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- jQuery (required for Slick) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Slick JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+    
+    @stack('scripts')
+    
+    <!-- Scroll to Top Button -->
+    <button 
+        id="scrollToTopBtn" 
+        onclick="window.scrollTo({ top: 0, behavior: 'smooth' });"
+        class="fixed bottom-8 right-8 bg-primary text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 opacity-0 pointer-events-none z-50"
+        style="background-color: var(--color-primary);"
+        aria-label="Scroll to top"
+    >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+        </svg>
+    </button>
+    
+    <script>
+        // Show/hide scroll to top button
+        window.addEventListener('scroll', function() {
+            const scrollBtn = document.getElementById('scrollToTopBtn');
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
+                scrollBtn.classList.add('opacity-100', 'pointer-events-auto');
+            } else {
+                scrollBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                scrollBtn.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+    </script>
+    
+    <style>
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        /* Marquee Animation */
+        .marquee-container {
+            overflow: hidden;
+            width: 100%;
+        }
+        .marquee-content {
+            display: inline-block;
+            animation: marquee-scroll 30s linear infinite;
+            padding-right: 50px;
+        }
+        @keyframes marquee-scroll {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+        .marquee-content:hover {
+            animation-play-state: paused;
+        }
+    </style>
+</body>
+</html>
+

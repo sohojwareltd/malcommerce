@@ -1,7 +1,70 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Sponsor\DashboardController as SponsorDashboardController;
+use App\Http\Middleware\TrackReferral;
 
-Route::get('/', function () {
-    return view('welcome');
+// Public routes with referral tracking
+Route::middleware([TrackReferral::class])->group(function () {
+    Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
+    
+    // Order routes
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/success/{orderNumber}', [OrderController::class, 'success'])->name('orders.success');
+});
+
+// Authentication routes (no referral tracking needed)
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
+
+// Logout (requires auth)
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    
+    // Admin routes
+    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::resource('products', AdminProductController::class);
+        Route::get('/products/{product}/builder', [AdminProductController::class, 'builder'])->name('products.builder');
+        Route::post('/products/{product}/builder', [AdminProductController::class, 'saveBuilder'])->name('products.builder.save');
+        Route::post('/upload-image', [\App\Http\Controllers\Admin\ImageUploadController::class, 'upload'])->name('upload.image');
+        Route::get('/categories', [AdminDashboardController::class, 'categories'])->name('categories.index');
+        Route::get('/categories/create', [AdminDashboardController::class, 'createCategory'])->name('categories.create');
+        Route::post('/categories', [AdminDashboardController::class, 'storeCategory'])->name('categories.store');
+        Route::get('/categories/{category}/edit', [AdminDashboardController::class, 'editCategory'])->name('categories.edit');
+        Route::put('/categories/{category}', [AdminDashboardController::class, 'updateCategory'])->name('categories.update');
+        Route::delete('/categories/{category}', [AdminDashboardController::class, 'destroyCategory'])->name('categories.destroy');
+        
+        Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index');
+        Route::get('/orders/{order}', [AdminDashboardController::class, 'showOrder'])->name('orders.show');
+        Route::put('/orders/{order}/status', [AdminDashboardController::class, 'updateOrderStatus'])->name('orders.updateStatus');
+        
+        Route::get('/sponsors', [AdminDashboardController::class, 'sponsors'])->name('sponsors.index');
+        Route::get('/sponsors/create', [AdminDashboardController::class, 'createSponsor'])->name('sponsors.create');
+        Route::post('/sponsors', [AdminDashboardController::class, 'storeSponsor'])->name('sponsors.store');
+        Route::get('/sponsors/{sponsor}', [AdminDashboardController::class, 'showSponsor'])->name('sponsors.show');
+        Route::get('/sponsors/{sponsor}/edit', [AdminDashboardController::class, 'editSponsor'])->name('sponsors.edit');
+        Route::put('/sponsors/{sponsor}', [AdminDashboardController::class, 'updateSponsor'])->name('sponsors.update');
+        Route::delete('/sponsors/{sponsor}', [AdminDashboardController::class, 'destroySponsor'])->name('sponsors.destroy');
+        
+        Route::get('/reports/sales', [AdminDashboardController::class, 'salesReport'])->name('reports.sales');
+        Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
+        Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
+    });
+    
+    // Sponsor/Affiliate routes
+    Route::middleware('sponsor')->prefix('sponsor')->name('sponsor.')->group(function () {
+        Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
+    });
 });
