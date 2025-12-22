@@ -1,0 +1,39 @@
+{
+  "_index-BQ86FjIf.js": {
+    "file": "assets/index-BQ86FjIf.js",
+    "name": "index"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-pTjHLFPk.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-CiZ6hk-B.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/builder.js": {
+    "file": "assets/builder-CNU3kYdO.js",
+    "name": "builder",
+    "src": "resources/js/builder.js",
+    "isEntry": true,
+    "imports": [
+      "_index-BQ86FjIf.js"
+    ]
+  },
+  "resources/js/product-sections.js": {
+    "file": "assets/product-sections-uOdz2Wjp.js",
+    "name": "product-sections",
+    "src": "resources/js/product-sections.js",
+    "isEntry": true,
+    "imports": [
+      "_index-BQ86FjIf.js"
+    ]
+  }
+}
