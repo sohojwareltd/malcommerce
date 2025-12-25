@@ -1,0 +1,192 @@
+{
+  "sectionName": "BannerTwoLineText",
+  "sectionPurpose": "Horizontal banner with two-line text messaging, suitable for social proof, callout statements, or promotional messages. Features customizable gradient backgrounds and flexible typography options.",
+  
+  "contentSchema": {
+    "topLine": {
+      "type": "string",
+      "label": "Top Line Text",
+      "required": true,
+      "default": ""
+    },
+    "bottomLine": {
+      "type": "string",
+      "label": "Bottom Line Text",
+      "required": true,
+      "default": ""
+    }
+  },
+  
+  "styleOptions": {
+    "backgroundType": {
+      "type": "select",
+      "label": "Background Type",
+      "options": ["color", "gradient", "image"],
+      "default": "gradient"
+    },
+    "backgroundColor": {
+      "type": "color",
+      "label": "Background Color",
+      "default": "#1e1b4b",
+      "showWhen": { "backgroundType": "color" }
+    },
+    "gradientDirection": {
+      "type": "select",
+      "label": "Gradient Direction",
+      "options": [
+        "to right",
+        "to left",
+        "to bottom",
+        "to top",
+        "to bottom right",
+        "to bottom left",
+        "to top right",
+        "to top left"
+      ],
+      "default": "to right",
+      "showWhen": { "backgroundType": "gradient" }
+    },
+    "gradientStart": {
+      "type": "color",
+      "label": "Gradient Start Color",
+      "default": "#7c3aed",
+      "showWhen": { "backgroundType": "gradient" }
+    },
+    "gradientEnd": {
+      "type": "color",
+      "label": "Gradient End Color",
+      "default": "#000000",
+      "showWhen": { "backgroundType": "gradient" }
+    },
+    "backgroundImage": {
+      "type": "image",
+      "label": "Background Image URL",
+      "default": "",
+      "showWhen": { "backgroundType": "image" }
+    },
+    "topLineColor": {
+      "type": "color",
+      "label": "Top Line Text Color",
+      "default": "#ffffff"
+    },
+    "bottomLineColor": {
+      "type": "color",
+      "label": "Bottom Line Text Color",
+      "default": "#a78bfa"
+    },
+    "topLineSize": {
+      "type": "select",
+      "label": "Top Line Size",
+      "options": ["sm", "md", "lg", "xl", "2xl", "3xl", "4xl"],
+      "default": "xl"
+    },
+    "bottomLineSize": {
+      "type": "select",
+      "label": "Bottom Line Size",
+      "options": ["sm", "md", "lg", "xl", "2xl", "3xl", "4xl"],
+      "default": "xl"
+    },
+    "fontWeight": {
+      "type": "select",
+      "label": "Font Weight",
+      "options": ["normal", "semibold", "bold"],
+      "default": "bold"
+    },
+    "alignment": {
+      "type": "select",
+      "label": "Text Alignment",
+      "options": ["left", "center", "right"],
+      "default": "center"
+    },
+    "padding": {
+      "type": "select",
+      "label": "Vertical Padding",
+      "options": ["normal", "large"],
+      "default": "normal"
+    },
+    "borderRadius": {
+      "type": "select",
+      "label": "Border Radius",
+      "options": ["none", "sm", "md", "lg", "xl", "full"],
+      "default": "lg"
+    },
+    "cornerStyle": {
+      "type": "select",
+      "label": "Corner Style",
+      "options": ["all", "sides"],
+      "default": "all",
+      "description": "'all' applies to all corners, 'sides' applies only to left/right corners"
+    }
+  },
+  
+  "tailwindTokens": [
+    "w-full",
+    "py-8",
+    "md:py-12",
+    "max-w-6xl",
+    "mx-auto",
+    "px-4",
+    "sm:px-6",
+    "lg:px-8",
+    "py-4",
+    "md:py-6",
+    "py-6",
+    "md:py-8",
+    "px-6",
+    "md:px-8",
+    "rounded-none",
+    "rounded-sm",
+    "rounded-md",
+    "rounded-lg",
+    "rounded-xl",
+    "rounded-full",
+    "rounded-l-lg",
+    "rounded-r-lg",
+    "space-y-2",
+    "text-left",
+    "text-center",
+    "text-right",
+    "text-sm",
+    "md:text-base",
+    "text-base",
+    "md:text-lg",
+    "text-lg",
+    "md:text-xl",
+    "text-xl",
+    "md:text-2xl",
+    "text-2xl",
+    "md:text-3xl",
+    "text-3xl",
+    "md:text-4xl",
+    "text-4xl",
+    "md:text-5xl",
+    "font-normal",
+    "font-semibold",
+    "font-bold",
+    "leading-tight"
+  ],
+  
+  "usageExample": {
+    "sectionType": "BannerTwoLineText",
+    "content": {
+      "topLine": "এই সিক্রেট ফলো করে",
+      "bottomLine": "যারা ইতিমধ্যে সফল হয়েছে"
+    },
+    "style": {
+      "backgroundType": "gradient",
+      "gradientDirection": "to right",
+      "gradientStart": "#7c3aed",
+      "gradientEnd": "#000000",
+      "topLineColor": "#ffffff",
+      "bottomLineColor": "#a78bfa",
+      "topLineSize": "xl",
+      "bottomLineSize": "xl",
+      "fontWeight": "bold",
+      "alignment": "center",
+      "padding": "normal",
+      "borderRadius": "lg",
+      "cornerStyle": "sides"
+    }
+  }
+}
+

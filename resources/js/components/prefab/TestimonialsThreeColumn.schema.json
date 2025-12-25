@@ -1,0 +1,294 @@
+{
+  "sectionName": "TestimonialsThreeColumn",
+  "sectionPurpose": "Responsive testimonials/reviews grid displaying social media-style recommendation cards. Desktop: 3 columns, Tablet: 2 columns, Mobile: 1 column. Supports unlimited number of testimonials.",
+  
+  "contentSchema": {
+    "testimonials": {
+      "type": "array",
+      "label": "Testimonials",
+      "required": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "profileImage": {
+            "type": "url",
+            "label": "Profile Image URL",
+            "required": false
+          },
+          "name": {
+            "type": "string",
+            "label": "Name",
+            "required": true
+          },
+          "recommendsName": {
+            "type": "string",
+            "label": "Recommends Name",
+            "required": false,
+            "description": "Name of the person/company being recommended"
+          },
+          "date": {
+            "type": "string",
+            "label": "Date",
+            "required": false,
+            "description": "Date of the recommendation (e.g., 'Dec 13, 2024' or '2h')"
+          },
+          "reviewText": {
+            "type": "string",
+            "label": "Review Text",
+            "required": true
+          },
+          "likes": {
+            "type": "number",
+            "label": "Likes Count",
+            "required": false
+          },
+          "comments": {
+            "type": "number",
+            "label": "Comments Count",
+            "required": false
+          }
+        }
+      },
+      "default": []
+    }
+  },
+  
+  "styleOptions": {
+    "backgroundColor": {
+      "type": "color",
+      "label": "Section Background Color",
+      "default": "#ffffff"
+    },
+    "cardBackgroundColor": {
+      "type": "color",
+      "label": "Card Background Color",
+      "default": "#ffffff"
+    },
+    "cardBorderColor": {
+      "type": "color",
+      "label": "Card Border Color",
+      "default": "#fbbf24"
+    },
+    "cardBorderWidth": {
+      "type": "text",
+      "label": "Card Border Width",
+      "default": "1px"
+    },
+    "cardBorderRadius": {
+      "type": "select",
+      "label": "Card Border Radius",
+      "options": ["none", "sm", "md", "lg", "xl"],
+      "default": "md"
+    },
+    "nameSize": {
+      "type": "select",
+      "label": "Name Size",
+      "options": ["sm", "base", "lg", "xl"],
+      "default": "base"
+    },
+    "nameColor": {
+      "type": "color",
+      "label": "Name Color",
+      "default": "#1f2937"
+    },
+    "nameWeight": {
+      "type": "select",
+      "label": "Name Font Weight",
+      "options": ["normal", "semibold", "bold"],
+      "default": "semibold"
+    },
+    "reviewTextSize": {
+      "type": "select",
+      "label": "Review Text Size",
+      "options": ["xs", "sm", "base", "lg"],
+      "default": "sm"
+    },
+    "reviewTextColor": {
+      "type": "color",
+      "label": "Review Text Color",
+      "default": "#374151"
+    },
+    "reviewTextLineHeight": {
+      "type": "select",
+      "label": "Review Text Line Height",
+      "options": ["normal", "relaxed", "loose"],
+      "default": "relaxed"
+    },
+    "dateSize": {
+      "type": "select",
+      "label": "Date Size",
+      "options": ["xs", "sm"],
+      "default": "xs"
+    },
+    "dateColor": {
+      "type": "color",
+      "label": "Date Color",
+      "default": "#6b7280"
+    },
+    "recommendsTextColor": {
+      "type": "color",
+      "label": "Recommends Text Color",
+      "default": "#6b7280"
+    },
+    "recommendsTextSize": {
+      "type": "select",
+      "label": "Recommends Text Size",
+      "options": ["xs", "sm", "base"],
+      "default": "sm"
+    },
+    "spacing": {
+      "type": "select",
+      "label": "Grid Spacing",
+      "options": ["normal", "large"],
+      "default": "normal"
+    },
+    "cardPadding": {
+      "type": "select",
+      "label": "Card Padding",
+      "options": ["normal", "large"],
+      "default": "normal"
+    },
+    "profileImageSize": {
+      "type": "select",
+      "label": "Profile Image Size",
+      "options": ["small", "medium", "large"],
+      "default": "medium",
+      "description": "small: 40px, medium: 48px, large: 64px"
+    },
+    "profileImageShape": {
+      "type": "select",
+      "label": "Profile Image Shape",
+      "options": ["circle", "square", "rounded"],
+      "default": "circle"
+    },
+    "showEngagement": {
+      "type": "boolean",
+      "label": "Show Engagement Icons",
+      "default": true
+    },
+    "engagementIconColor": {
+      "type": "color",
+      "label": "Engagement Icon Color",
+      "default": "#6b7280",
+      "showWhen": { "showEngagement": true }
+    },
+    "sectionPadding": {
+      "type": "select",
+      "label": "Section Padding",
+      "options": ["normal", "large"],
+      "default": "normal"
+    }
+  },
+  
+  "tailwindTokens": [
+    "w-full",
+    "py-12",
+    "md:py-16",
+    "py-16",
+    "md:py-24",
+    "max-w-6xl",
+    "mx-auto",
+    "px-4",
+    "sm:px-6",
+    "lg:px-8",
+    "grid",
+    "grid-cols-1",
+    "md:grid-cols-2",
+    "lg:grid-cols-3",
+    "gap-4",
+    "md:gap-6",
+    "gap-6",
+    "md:gap-8",
+    "p-4",
+    "md:p-6",
+    "p-6",
+    "md:p-8",
+    "rounded-none",
+    "rounded-sm",
+    "rounded-md",
+    "rounded-lg",
+    "rounded-xl",
+    "flex",
+    "items-center",
+    "gap-3",
+    "mb-3",
+    "flex-1",
+    "min-w-0",
+    "truncate",
+    "mb-4",
+    "pt-3",
+    "border-t",
+    "w-10",
+    "h-10",
+    "w-12",
+    "h-12",
+    "w-16",
+    "h-16",
+    "rounded-full",
+    "rounded-lg",
+    "object-cover",
+    "flex-shrink-0",
+    "text-xs",
+    "text-sm",
+    "text-base",
+    "text-lg",
+    "text-xl",
+    "font-normal",
+    "font-semibold",
+    "font-bold",
+    "leading-normal",
+    "leading-relaxed",
+    "leading-loose"
+  ],
+  
+  "usageExample": {
+    "sectionType": "TestimonialsThreeColumn",
+    "content": {
+      "testimonials": [
+        {
+          "profileImage": "https://example.com/profile1.jpg",
+          "name": "K. Nayeem",
+          "recommendsName": "Ifte Rahman",
+          "date": "May 5",
+          "reviewText": "We've worked with him on several client projects, and the process has always been smooth, efficient, and stress-free. So when it came to building our own official website, we didn't think twice—and he truly exceeded our expectations. Clean design, well-structured, and everything functions just as it should. He's easy to communicate with, quick to understand what's needed, and follows through without complications. Highly appreciated. 😊💕",
+          "likes": 2,
+          "comments": 1
+        },
+        {
+          "profileImage": "https://example.com/profile2.jpg",
+          "name": "Md. Mahir",
+          "recommendsName": "Ifte Rahman",
+          "date": "Dec 13, 2024",
+          "reviewText": "ওয়েবসাইট তৈরি করা সহ সব ধরনের ই-কমার্স বিজনেস সাপোর্ট এর জন্য One Stop Solution। এক কথায় অসাধারণ সার্ভিস। উনার কাস্টমার সার্ভিসটা যে কাউকে ইমপ্রেস করতে বাধ্য। তাই সকলের জন্য 100% Recomended 😊💕",
+          "likes": 2,
+          "comments": 0
+        }
+      ]
+    },
+    "style": {
+      "backgroundColor": "#ffffff",
+      "cardBackgroundColor": "#ffffff",
+      "cardBorderColor": "#fbbf24",
+      "cardBorderWidth": "1px",
+      "cardBorderRadius": "md",
+      "nameSize": "base",
+      "nameColor": "#1f2937",
+      "nameWeight": "semibold",
+      "reviewTextSize": "sm",
+      "reviewTextColor": "#374151",
+      "reviewTextLineHeight": "relaxed",
+      "dateSize": "xs",
+      "dateColor": "#6b7280",
+      "recommendsTextColor": "#6b7280",
+      "recommendsTextSize": "sm",
+      "spacing": "normal",
+      "cardPadding": "normal",
+      "profileImageSize": "medium",
+      "profileImageShape": "circle",
+      "showEngagement": true,
+      "engagementIconColor": "#6b7280",
+      "sectionPadding": "normal"
+    }
+  }
+}
+

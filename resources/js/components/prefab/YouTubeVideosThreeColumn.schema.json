@@ -1,0 +1,148 @@
+{
+  "sectionName": "YouTubeVideosThreeColumn",
+  "sectionPurpose": "Responsive YouTube video embed section displaying 3 videos in a row on desktop and stacked vertically on smaller devices. Perfect for client reviews, testimonials, or promotional video content.",
+  
+  "contentSchema": {
+    "videos": {
+      "type": "array",
+      "label": "YouTube Videos",
+      "required": true,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "url",
+            "label": "YouTube Video URL",
+            "required": true,
+            "description": "Full YouTube URL (e.g., https://www.youtube.com/watch?v=VIDEO_ID)"
+          },
+          "title": {
+            "type": "string",
+            "label": "Video Title (Optional)",
+            "required": false,
+            "description": "Title to display below the video"
+          }
+        }
+      },
+      "default": []
+    }
+  },
+  
+  "styleOptions": {
+    "backgroundColor": {
+      "type": "color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    "spacing": {
+      "type": "select",
+      "label": "Video Spacing",
+      "options": ["normal", "large"],
+      "default": "normal"
+    },
+    "videoAspectRatio": {
+      "type": "select",
+      "label": "Video Aspect Ratio",
+      "options": ["16:9", "4:3", "1:1"],
+      "default": "16:9"
+    },
+    "sectionPadding": {
+      "type": "select",
+      "label": "Section Padding",
+      "options": ["normal", "large"],
+      "default": "normal"
+    },
+    "showTitles": {
+      "type": "boolean",
+      "label": "Show Video Titles",
+      "default": false
+    },
+    "titleSize": {
+      "type": "select",
+      "label": "Title Size",
+      "options": ["sm", "base", "lg", "xl"],
+      "default": "base",
+      "showWhen": { "showTitles": true }
+    },
+    "titleColor": {
+      "type": "color",
+      "label": "Title Color",
+      "default": "#1f2937",
+      "showWhen": { "showTitles": true }
+    },
+    "titleWeight": {
+      "type": "select",
+      "label": "Title Font Weight",
+      "options": ["normal", "semibold", "bold"],
+      "default": "semibold",
+      "showWhen": { "showTitles": true }
+    }
+  },
+  
+  "tailwindTokens": [
+    "w-full",
+    "py-12",
+    "md:py-16",
+    "py-16",
+    "md:py-24",
+    "max-w-6xl",
+    "mx-auto",
+    "px-4",
+    "sm:px-6",
+    "lg:px-8",
+    "grid",
+    "grid-cols-1",
+    "lg:grid-cols-3",
+    "gap-4",
+    "md:gap-6",
+    "gap-6",
+    "md:gap-8",
+    "relative",
+    "aspect-video",
+    "aspect-[4/3]",
+    "aspect-square",
+    "rounded-lg",
+    "overflow-hidden",
+    "shadow-lg",
+    "absolute",
+    "inset-0",
+    "h-full",
+    "mt-3",
+    "text-sm",
+    "text-base",
+    "text-lg",
+    "text-xl",
+    "font-normal",
+    "font-semibold",
+    "font-bold"
+  ],
+  
+  "usageExample": {
+    "sectionType": "YouTubeVideosThreeColumn",
+    "content": {
+      "videos": [
+        {
+          "url": "https://www.youtube.com/watch?v=VIDEO_ID_1",
+          "title": "Client Review - Shahed Ahamed"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=VIDEO_ID_2",
+          "title": "Client Review - Happy Client"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=VIDEO_ID_3",
+          "title": "Client Review - Landing Page"
+        }
+      ]
+    },
+    "style": {
+      "backgroundColor": "#ffffff",
+      "spacing": "normal",
+      "videoAspectRatio": "16:9",
+      "sectionPadding": "normal",
+      "showTitles": false
+    }
+  }
+}
+

@@ -1,0 +1,155 @@
+{
+  "name": "ProblemsSolutionBenefitsThreeColumn",
+  "displayName": "Problems/Solution/Benefits",
+  "description": "Three-column comparison section showing problems on left, solution in middle, and benefits on right",
+  "category": "comparison",
+  "content": {
+    "leftTitle": {
+      "type": "string",
+      "label": "Left Panel Title",
+      "default": ""
+    },
+    "leftList": {
+      "type": "array",
+      "label": "Left Panel Items (Problems)",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "centerImage": {
+      "type": "string",
+      "label": "Center Image URL",
+      "default": ""
+    },
+    "centerTitle": {
+      "type": "string",
+      "label": "Center Title",
+      "default": ""
+    },
+    "centerButtonText": {
+      "type": "string",
+      "label": "Center Button Text",
+      "default": ""
+    },
+    "centerButtonLink": {
+      "type": "string",
+      "label": "Center Button Link",
+      "default": "#"
+    },
+    "rightTitle": {
+      "type": "string",
+      "label": "Right Panel Title",
+      "default": ""
+    },
+    "rightList": {
+      "type": "array",
+      "label": "Right Panel Items (Benefits)",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "style": {
+    "leftPanelBgColor": {
+      "type": "color",
+      "label": "Left Panel Background",
+      "default": "#f3e8ff"
+    },
+    "middlePanelBgColor": {
+      "type": "color",
+      "label": "Middle Panel Background",
+      "default": "#7c3aed"
+    },
+    "rightPanelBgColor": {
+      "type": "color",
+      "label": "Right Panel Background",
+      "default": "#f3e8ff"
+    },
+    "titleSize": {
+      "type": "select",
+      "label": "Title Size",
+      "options": ["lg", "xl", "2xl", "3xl"],
+      "default": "xl"
+    },
+    "titleColor": {
+      "type": "color",
+      "label": "Title Color",
+      "default": "#ffffff"
+    },
+    "titleTag": {
+      "type": "select",
+      "label": "Title HTML Tag",
+      "options": ["h1", "h2", "h3", "h4"],
+      "default": "h2"
+    },
+    "listTextSize": {
+      "type": "select",
+      "label": "List Text Size",
+      "options": ["sm", "base", "lg"],
+      "default": "base"
+    },
+    "listTextColor": {
+      "type": "color",
+      "label": "List Text Color",
+      "default": "#374151"
+    },
+    "centerTitleSize": {
+      "type": "select",
+      "label": "Center Title Size",
+      "options": ["xl", "2xl", "3xl", "4xl"],
+      "default": "2xl"
+    },
+    "centerTitleColor": {
+      "type": "color",
+      "label": "Center Title Color",
+      "default": "#ffffff"
+    },
+    "centerTitleTag": {
+      "type": "select",
+      "label": "Center Title HTML Tag",
+      "options": ["h1", "h2", "h3", "h4"],
+      "default": "h2"
+    },
+    "listIconColor": {
+      "type": "color",
+      "label": "List Icon Color",
+      "default": "#7c3aed"
+    },
+    "showListIcons": {
+      "type": "boolean",
+      "label": "Show List Icons",
+      "default": true
+    },
+    "buttonBgColor": {
+      "type": "color",
+      "label": "Button Background",
+      "default": "#7c3aed"
+    },
+    "buttonTextColor": {
+      "type": "color",
+      "label": "Button Text Color",
+      "default": "#ffffff"
+    },
+    "buttonSize": {
+      "type": "select",
+      "label": "Button Size",
+      "options": ["medium", "large", "xl"],
+      "default": "large"
+    },
+    "spacing": {
+      "type": "select",
+      "label": "Column Spacing",
+      "options": ["normal", "large"],
+      "default": "normal"
+    },
+    "sectionPadding": {
+      "type": "select",
+      "label": "Section Padding",
+      "options": ["normal", "large"],
+      "default": "normal"
+    }
+  }
+}
+

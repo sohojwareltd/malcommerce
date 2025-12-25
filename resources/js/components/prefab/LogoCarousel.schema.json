@@ -1,0 +1,146 @@
+{
+  "sectionName": "LogoCarousel",
+  "sectionPurpose": "Horizontal auto-scrolling logo carousel displaying company/client logos for trust badges, partnerships, or social proof. Features infinite scroll animation and responsive horizontal scrolling on mobile.",
+  
+  "contentSchema": {
+    "logos": {
+      "type": "array",
+      "label": "Logos",
+      "required": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "url",
+            "label": "Logo Image URL",
+            "required": true
+          },
+          "altText": {
+            "type": "string",
+            "label": "Alt Text",
+            "required": false,
+            "default": ""
+          }
+        }
+      },
+      "default": []
+    }
+  },
+  
+  "styleOptions": {
+    "backgroundColor": {
+      "type": "color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    "columns": {
+      "type": "select",
+      "label": "Desktop Columns",
+      "options": ["3", "4", "5", "6"],
+      "default": "6",
+      "description": "Fixed number of visible logos on desktop"
+    },
+    "spacing": {
+      "type": "select",
+      "label": "Logo Spacing",
+      "options": ["normal", "large"],
+      "default": "normal"
+    },
+    "logoMaxWidth": {
+      "type": "select",
+      "label": "Logo Max Width",
+      "options": ["small", "medium", "large"],
+      "default": "medium",
+      "description": "small: 120px, medium: 150px, large: 180px"
+    },
+    "autoScroll": {
+      "type": "boolean",
+      "label": "Auto Scroll",
+      "default": true,
+      "description": "Enable infinite auto-scrolling animation"
+    },
+    "scrollSpeed": {
+      "type": "select",
+      "label": "Scroll Speed",
+      "options": ["slow", "normal", "fast"],
+      "default": "normal",
+      "showWhen": { "autoScroll": true }
+    },
+    "sectionPadding": {
+      "type": "select",
+      "label": "Section Padding",
+      "options": ["normal", "large"],
+      "default": "normal"
+    }
+  },
+  
+  "tailwindTokens": [
+    "w-full",
+    "py-12",
+    "md:py-16",
+    "py-16",
+    "md:py-24",
+    "max-w-6xl",
+    "mx-auto",
+    "px-4",
+    "sm:px-6",
+    "lg:px-8",
+    "overflow-hidden",
+    "flex",
+    "gap-8",
+    "md:gap-12",
+    "gap-12",
+    "md:gap-16",
+    "items-center",
+    "flex-shrink-0",
+    "justify-center",
+    "max-w-[120px]",
+    "max-w-[150px]",
+    "max-w-[180px]",
+    "w-full",
+    "h-auto",
+    "object-contain"
+  ],
+  
+  "usageExample": {
+    "sectionType": "LogoCarousel",
+    "content": {
+      "logos": [
+        {
+          "imageUrl": "https://example.com/logo1.png",
+          "altText": "Caruso's Natural Health"
+        },
+        {
+          "imageUrl": "https://example.com/logo2.png",
+          "altText": "Hockingstuart"
+        },
+        {
+          "imageUrl": "https://example.com/logo3.png",
+          "altText": "Jim's Cleaning"
+        },
+        {
+          "imageUrl": "https://example.com/logo4.png",
+          "altText": "F45"
+        },
+        {
+          "imageUrl": "https://example.com/logo5.png",
+          "altText": "Purple Bricks"
+        },
+        {
+          "imageUrl": "https://example.com/logo6.png",
+          "altText": "Gami Chicken & Beer"
+        }
+      ]
+    },
+    "style": {
+      "backgroundColor": "#ffffff",
+      "columns": "6",
+      "spacing": "normal",
+      "logoMaxWidth": "medium",
+      "autoScroll": true,
+      "scrollSpeed": "normal",
+      "sectionPadding": "normal"
+    }
+  }
+}
+

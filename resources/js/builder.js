@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import ThemeBuilder from './components/ThemeBuilder.jsx';
+import { ThemeBuilder } from './components/prefab/index.js';
 import React from 'react';
 
 // Wait for DOM to be ready
@@ -11,7 +11,7 @@ function initBuilder() {
     }
 
     try {
-        const initialLayout = JSON.parse(container.dataset.layout || '[]');
+        const initialSections = JSON.parse(container.dataset.sections || '[]');
         const productId = container.dataset.productId;
         
         if (!productId) {
@@ -19,7 +19,7 @@ function initBuilder() {
             return;
         }
         
-        const handleSave = (layout) => {
+        const handleSave = (sections) => {
             const csrfToken = document.querySelector('meta[name="csrf-token"]');
             if (!csrfToken) {
                 alert('CSRF token not found. Please refresh the page.');
@@ -35,7 +35,7 @@ function initBuilder() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    page_layout: layout
+                    page_layout: sections
                 })
             })
             .then(response => {
@@ -75,7 +75,7 @@ function initBuilder() {
         
         const root = createRoot(container);
         root.render(React.createElement(ThemeBuilder, {
-            initialLayout,
+            initialSections,
             onSave: handleSave,
             productSlug: productSlug,
             productData: productData

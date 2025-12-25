@@ -1,0 +1,241 @@
+{
+  "sectionName": "HeroPromoVideoSplit",
+  "sectionPurpose": "Hero section with promotional text content and embedded video, designed for course/product launches with split layout (video on right, content on left). Mobile-first: video stacks on top.",
+  
+  "contentSchema": {
+    "headline": {
+      "type": "string",
+      "label": "Main Headline",
+      "required": true,
+      "default": ""
+    },
+    "subtext": {
+      "type": "string",
+      "label": "Subtext/Description",
+      "required": false,
+      "default": ""
+    },
+    "discountText": {
+      "type": "string",
+      "label": "Discount Text",
+      "required": false,
+      "default": ""
+    },
+    "primaryButtonText": {
+      "type": "string",
+      "label": "Primary Button Text",
+      "required": false,
+      "default": ""
+    },
+    "primaryButtonLink": {
+      "type": "url",
+      "label": "Primary Button Link",
+      "required": false,
+      "default": "#"
+    },
+    "secondaryButtonText": {
+      "type": "string",
+      "label": "Secondary Button Text",
+      "required": false,
+      "default": ""
+    },
+    "secondaryButtonLink": {
+      "type": "url",
+      "label": "Secondary Button Link",
+      "required": false,
+      "default": "#"
+    },
+    "videoUrl": {
+      "type": "url",
+      "label": "YouTube Video URL",
+      "required": true,
+      "default": ""
+    }
+  },
+  
+  "styleOptions": {
+    "backgroundType": {
+      "type": "select",
+      "label": "Background Type",
+      "options": ["color", "gradient", "image"],
+      "default": "gradient"
+    },
+    "backgroundColor": {
+      "type": "color",
+      "label": "Background Color",
+      "default": "#1e1b4b",
+      "showWhen": { "backgroundType": "color" }
+    },
+    "gradientStart": {
+      "type": "color",
+      "label": "Gradient Start Color",
+      "default": "#7c3aed",
+      "showWhen": { "backgroundType": "gradient" }
+    },
+    "gradientEnd": {
+      "type": "color",
+      "label": "Gradient End Color",
+      "default": "#000000",
+      "showWhen": { "backgroundType": "gradient" }
+    },
+    "backgroundImage": {
+      "type": "image",
+      "label": "Background Image URL",
+      "default": "",
+      "showWhen": { "backgroundType": "image" }
+    },
+    "textColor": {
+      "type": "color",
+      "label": "Text Color",
+      "default": "#ffffff"
+    },
+    "headingTag": {
+      "type": "select",
+      "label": "Heading Tag",
+      "options": ["h1", "h2", "h3", "h4"],
+      "default": "h1"
+    },
+    "headingSize": {
+      "type": "select",
+      "label": "Heading Size",
+      "options": ["sm", "md", "lg", "xl", "2xl", "3xl", "4xl"],
+      "default": "xl"
+    },
+    "subtextSize": {
+      "type": "select",
+      "label": "Subtext Size",
+      "options": ["xs", "sm", "base", "lg", "xl"],
+      "default": "base"
+    },
+    "discountTextSize": {
+      "type": "select",
+      "label": "Discount Text Size",
+      "options": ["sm", "base", "lg", "xl"],
+      "default": "lg"
+    },
+    "primaryButtonBgColor": {
+      "type": "color",
+      "label": "Primary Button Background",
+      "default": "#7c3aed"
+    },
+    "primaryButtonTextColor": {
+      "type": "color",
+      "label": "Primary Button Text",
+      "default": "#ffffff"
+    },
+    "secondaryButtonBgColor": {
+      "type": "color",
+      "label": "Secondary Button Background",
+      "default": "#7c3aed"
+    },
+    "secondaryButtonTextColor": {
+      "type": "color",
+      "label": "Secondary Button Text",
+      "default": "#ffffff"
+    },
+    "alignment": {
+      "type": "select",
+      "label": "Text Alignment",
+      "options": ["left", "center"],
+      "default": "left"
+    }
+  },
+  
+  "tailwindTokens": [
+    "w-full",
+    "py-16",
+    "md:py-24",
+    "max-w-6xl",
+    "mx-auto",
+    "px-4",
+    "sm:px-6",
+    "lg:px-8",
+    "grid",
+    "grid-cols-1",
+    "lg:grid-cols-2",
+    "gap-8",
+    "lg:gap-12",
+    "items-center",
+    "order-1",
+    "order-2",
+    "lg:order-1",
+    "lg:order-2",
+    "relative",
+    "rounded-lg",
+    "overflow-hidden",
+    "border-2",
+    "aspect-video",
+    "space-y-6",
+    "font-bold",
+    "leading-tight",
+    "mb-4",
+    "text-left",
+    "text-center",
+    "text-2xl",
+    "md:text-3xl",
+    "text-3xl",
+    "md:text-4xl",
+    "text-4xl",
+    "md:text-5xl",
+    "text-5xl",
+    "md:text-6xl",
+    "text-6xl",
+    "md:text-7xl",
+    "text-7xl",
+    "md:text-8xl",
+    "text-8xl",
+    "md:text-9xl",
+    "text-xs",
+    "md:text-sm",
+    "text-sm",
+    "md:text-base",
+    "text-base",
+    "md:text-lg",
+    "text-lg",
+    "md:text-xl",
+    "text-xl",
+    "md:text-2xl",
+    "font-semibold",
+    "flex",
+    "flex-col",
+    "sm:flex-row",
+    "gap-4",
+    "justify-start",
+    "justify-center",
+    "inline-block",
+    "px-8",
+    "py-3",
+    "transition-transform",
+    "hover:scale-105"
+  ],
+  
+  "usageExample": {
+    "sectionType": "HeroPromoVideoSplit",
+    "content": {
+      "headline": "গ্যারান্টি সহকারে খরচ কমান, বিক্রি বাড়ান!",
+      "subtext": "বিশ্ব ব্যাপি ১০০০০+ সফল ব্যবসায়ী দ্বারা প্রমানিত",
+      "discountText": "প্রথম ১০০ জন ৯০% ছাড়ে",
+      "primaryButtonText": "এখনই জয়েন করুন",
+      "primaryButtonLink": "#join",
+      "secondaryButtonText": "কোর্স মডিউল",
+      "secondaryButtonLink": "#modules",
+      "videoUrl": "https://www.youtube.com/watch?v=VIDEO_ID"
+    },
+    "style": {
+      "backgroundType": "gradient",
+      "gradientStart": "#7c3aed",
+      "gradientEnd": "#000000",
+      "textColor": "#ffffff",
+      "headingTag": "h1",
+      "headingSize": "xl",
+      "subtextSize": "base",
+      "discountTextSize": "lg",
+      "primaryButtonBgColor": "#7c3aed",
+      "primaryButtonTextColor": "#ffffff",
+      "secondaryButtonBgColor": "#7c3aed",
+      "secondaryButtonTextColor": "#ffffff",
+      "alignment": "left"
+    }
+  }
+}
+

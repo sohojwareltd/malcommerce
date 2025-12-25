@@ -16,7 +16,7 @@
 @section('content')
 <!-- Theme Builder Container - Full Width -->
 <div id="theme-builder-container" 
-     data-layout="{{ json_encode($product->page_layout ?? []) }}" 
+     data-sections="{{ json_encode($product->page_layout ?? []) }}" 
      data-product-id="{{ $product->id }}"
      data-product-slug="{{ $product->slug }}"
      data-product-name="{{ $product->name }}"

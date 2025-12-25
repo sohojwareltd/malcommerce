@@ -1,0 +1,107 @@
+{
+  "name": "CourseModulesSection",
+  "displayName": "Course Modules",
+  "description": "Expandable course modules section with collapsible content",
+  "category": "education",
+  "content": {
+    "title": {
+      "type": "string",
+      "label": "Section Title",
+      "default": ""
+    },
+    "subtitle": {
+      "type": "string",
+      "label": "Subtitle",
+      "default": ""
+    },
+    "modules": {
+      "type": "array",
+      "label": "Modules",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "label": "Module Title"
+          },
+          "content": {
+            "type": "array",
+            "label": "Module Content",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "default": []
+    }
+  },
+  "style": {
+    "backgroundColor": {
+      "type": "color",
+      "label": "Background Color",
+      "default": "#ffffff"
+    },
+    "titleSize": {
+      "type": "select",
+      "label": "Title Size",
+      "options": ["xl", "2xl", "3xl", "4xl"],
+      "default": "2xl"
+    },
+    "titleColor": {
+      "type": "color",
+      "label": "Title Color",
+      "default": "#1f2937"
+    },
+    "titleTag": {
+      "type": "select",
+      "label": "Title HTML Tag",
+      "options": ["h1", "h2", "h3", "h4"],
+      "default": "h2"
+    },
+    "subtitleSize": {
+      "type": "select",
+      "label": "Subtitle Size",
+      "options": ["sm", "base", "lg", "xl"],
+      "default": "lg"
+    },
+    "subtitleColor": {
+      "type": "color",
+      "label": "Subtitle Color",
+      "default": "#6b7280"
+    },
+    "moduleBgColor": {
+      "type": "color",
+      "label": "Module Background",
+      "default": "#f9fafb"
+    },
+    "moduleBorderColor": {
+      "type": "color",
+      "label": "Module Border Color",
+      "default": "#e5e7eb"
+    },
+    "moduleTitleColor": {
+      "type": "color",
+      "label": "Module Title Color",
+      "default": "#1f2937"
+    },
+    "moduleTitleSize": {
+      "type": "select",
+      "label": "Module Title Size",
+      "options": ["lg", "xl", "2xl"],
+      "default": "xl"
+    },
+    "moduleTextColor": {
+      "type": "color",
+      "label": "Module Text Color",
+      "default": "#374151"
+    },
+    "sectionPadding": {
+      "type": "select",
+      "label": "Section Padding",
+      "options": ["normal", "large"],
+      "default": "normal"
+    }
+  }
+}
+
