@@ -20,6 +20,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'role',
         'affiliate_code',
@@ -86,8 +87,16 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function ($user) {
-            if (empty($user->affiliate_code) && ($user->role === 'sponsor' || $user->role === 'customer')) {
-                $user->affiliate_code = strtoupper(substr(md5($user->email . time()), 0, 8));
+            // Generate affiliate code for all users (all registered users are sponsors)
+            if (empty($user->affiliate_code)) {
+                $identifier = $user->phone ?? $user->email ?? time();
+                
+                // Generate unique affiliate code
+                do {
+                    $code = strtoupper(substr(md5($identifier . time() . rand(1000, 9999) . uniqid()), 0, 8));
+                } while (User::where('affiliate_code', $code)->exists());
+                
+                $user->affiliate_code = $code;
             }
         });
     }

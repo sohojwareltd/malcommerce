@@ -8,7 +8,7 @@
 </div>
 
 <!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-lg shadow-md p-6">
         <h3 class="text-neutral-600 text-sm font-medium mb-2">Total Referrals</h3>
         <p class="text-3xl font-bold text-primary">{{ $stats['total_referrals'] }}</p>
@@ -18,12 +18,24 @@
         <p class="text-3xl font-bold text-primary">{{ $stats['total_orders'] }}</p>
     </div>
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h3 class="text-neutral-600 text-sm font-medium mb-2">Total Revenue</h3>
-        <p class="text-3xl font-bold text-accent">৳{{ number_format($stats['total_revenue'], 2) }}</p>
-    </div>
-    <div class="bg-white rounded-lg shadow-md p-6">
         <h3 class="text-neutral-600 text-sm font-medium mb-2">Pending Orders</h3>
         <p class="text-3xl font-bold text-orange-600">{{ $stats['pending_orders'] }}</p>
+    </div>
+</div>
+
+<!-- Add User Section -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="text-xl font-bold">Add New User</h2>
+            <p class="text-sm text-neutral-600 mt-1">Add a new user who will be automatically referred by you</p>
+        </div>
+        <a 
+            href="{{ route('sponsor.users.create') }}" 
+            class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold"
+        >
+            Add User
+        </a>
     </div>
 </div>
 
@@ -125,7 +137,8 @@
             <thead class="bg-neutral-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Phone</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Affiliate Code</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Orders</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Joined</th>
                 </tr>
@@ -134,13 +147,14 @@
                 @forelse($referrals as $referral)
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">{{ $referral->name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $referral->email }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $referral->phone ?? 'N/A' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 font-mono">{{ $referral->affiliate_code }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $referral->orders_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $referral->created_at->format('M d, Y') }}</td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="px-6 py-4 text-center text-neutral-500">No referrals yet</td>
+                    <td colspan="5" class="px-6 py-4 text-center text-neutral-500">No referrals yet</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -173,6 +187,7 @@ function copyPartnerLink(inputId) {
         alert('Partner link copied to clipboard!');
     });
 }
+
 </script>
 @endpush
 @endsection

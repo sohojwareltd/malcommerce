@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
@@ -66,8 +67,26 @@ class OrderController extends Controller
             $product->update(['in_stock' => false]);
         }
         
-        // TODO: Send SMS with invitation link
-        // This would integrate with an SMS service
+        // Send SMS confirmation
+        try {
+            $smsService = app(SmsService::class);
+            $message = "আপনার অর্ডার #{$order->order_number} গ্রহণ করা হয়েছে। মোট: ৳" . number_format($order->total_price, 0) . "। ধন্যবাদ!";
+            $smsResult = $smsService->send($order->customer_phone, $message);
+            
+            if (!$smsResult['success']) {
+                \Log::warning('Failed to send order confirmation SMS', [
+                    'order_id' => $order->id,
+                    'phone' => $order->customer_phone,
+                    'error' => $smsResult['error'] ?? 'Unknown error'
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('SMS sending exception', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage()
+            ]);
+            // Don't fail the order if SMS fails
+        }
         
         return redirect()->route('orders.success', $order->order_number)
             ->with('success', 'Order placed successfully!');

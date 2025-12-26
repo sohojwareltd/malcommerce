@@ -1,5 +1,25 @@
 import React, { useEffect, useState } from 'react';
 
+// Helper function to check if string contains HTML tags
+const containsHTML = (str) => {
+    if (!str || typeof str !== 'string') return false;
+    return /<[a-z][\s\S]*>/i.test(str);
+};
+
+// Helper component to render text that may contain HTML
+const RenderText = ({ content, className = '', style = {}, tag = 'div' }) => {
+    if (!content) return null;
+    
+    const Tag = tag;
+    const hasHTML = containsHTML(content);
+    
+    if (hasHTML) {
+        return <Tag className={className} style={style} dangerouslySetInnerHTML={{ __html: content }} />;
+    } else {
+        return <Tag className={className} style={style}>{content}</Tag>;
+    }
+};
+
 const ProductSections = ({ layout, productId, productPrice, productComparePrice, productInStock, productStockQuantity }) => {
     useEffect(() => {
         // Initialize countdown timers for pricing sections
@@ -72,10 +92,10 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 {(section.title || section.content) && (
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 text-center">
                         {section.title && (
-                            <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                            <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
                         )}
                         {section.content && (
-                            <p className="text-lg font-bangla" style={{ lineHeight: '1.8' }}>{section.content}</p>
+                            <RenderText content={section.content} tag="p" className="text-lg font-bangla" style={{ lineHeight: '1.8' }} />
                         )}
                     </div>
                 )}
@@ -287,9 +307,19 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                     <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }}>
+                                    {section.title}
+                                </h2>
                             )}
-                            <div className="prose max-w-none font-bangla text-lg" style={{ lineHeight: '1.8' }} dangerouslySetInnerHTML={{ __html: section.content }} />
+                            <div 
+                                className="prose prose-lg max-w-none font-bangla" 
+                                style={{ 
+                                    lineHeight: '1.8',
+                                    fontSize: '1.125rem',
+                                    color: '#374151'
+                                }} 
+                                dangerouslySetInnerHTML={{ __html: section.content }} 
+                            />
                         </div>
                     </section>
                 );
@@ -299,7 +329,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                     <section key={index} className="theme-section">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
                             )}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {section.images?.map((image, imgIndex) => (
@@ -313,21 +343,54 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 );
             
             case 'banner':
-                const bannerStyle = {
-                    backgroundImage: section.background_image ? `url(${section.background_image})` : undefined,
-                    backgroundColor: section.background_image ? undefined : (section.background_color || 'var(--color-primary)'),
-                    backgroundSize: section.background_image ? 'cover' : undefined,
-                    backgroundPosition: section.background_image ? 'center' : undefined,
-                    color: section.text_color || '#FFFFFF'
+                const getBannerBackgroundStyle = () => {
+                    const baseStyle = { color: section.text_color || '#000000' };
+                    const bgType = section.background_type || 'color';
+                    
+                    if (bgType === 'gradient') {
+                        return {
+                            ...baseStyle,
+                            background: `linear-gradient(to right, ${section.gradient_start || '#FFD700'}, ${section.gradient_end || '#FFA500'})`
+                        };
+                    } else if (bgType === 'image' && section.background_image) {
+                        return {
+                            ...baseStyle,
+                            backgroundImage: `url(${section.background_image})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat'
+                        };
+                    } else {
+                        return {
+                            ...baseStyle,
+                            backgroundColor: section.background_color || '#FFD700'
+                        };
+                    }
                 };
+                
                 return (
-                    <div key={index} className="my-8 theme-card overflow-hidden"
-                         style={bannerStyle}>
-                        <div className="p-8 md:p-12 text-center">
-                            {section.title && <h2 className="text-3xl md:text-4xl font-bold mb-4 font-bangla">{section.title}</h2>}
-                            {section.content && <p className="text-lg mb-6 font-bangla">{section.content}</p>}
+                    <div key={index} className="w-full py-8 md:py-12 my-6 md:my-8" style={getBannerBackgroundStyle()}>
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                            {section.title && (
+                                <RenderText 
+                                    content={section.title}
+                                    tag="h2"
+                                    className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 font-bangla" 
+                                    style={{ lineHeight: '1.3' }}
+                                />
+                            )}
+                            {section.content && (
+                                <RenderText 
+                                    content={section.content}
+                                    tag="p"
+                                    className="text-lg md:text-xl font-bangla" 
+                                    style={{ lineHeight: '1.6' }}
+                                />
+                            )}
                             {section.images && section.images[0] && (
-                                <img src={section.images[0]} alt={section.title} className="mx-auto max-w-full rounded-lg shadow-lg" />
+                                <div className="mt-6 md:mt-8">
+                                    <img src={section.images[0]} alt={section.title} className="mx-auto max-w-full rounded-lg" />
+                                </div>
                             )}
                         </div>
                     </div>
@@ -337,12 +400,14 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <h2 className="theme-section-title font-bangla">{section.title}</h2>}
-                            <div className="space-y-4">
+                            {section.title && (
+                                <RenderText content={section.title} tag="h2" className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }} />
+                            )}
+                            <div className="space-y-5 md:space-y-6">
                                 {section.items?.map((faq, faqIndex) => (
-                                    <div key={faqIndex} className="theme-card border-l-4" style={{ borderLeftColor: 'var(--color-primary)' }}>
-                                        <h3 className="font-semibold text-lg mb-2 font-bangla">{faq.question}</h3>
-                                        <p className="text-gray-700 font-bangla">{faq.answer}</p>
+                                    <div key={faqIndex} className="pb-5 md:pb-6 border-b border-gray-200 last:border-b-0">
+                                        <RenderText content={faq.question} tag="h3" className="font-semibold text-lg md:text-xl mb-3 font-bangla text-gray-900" style={{ lineHeight: '1.5' }} />
+                                        <RenderText content={faq.answer} tag="p" className="text-gray-600 text-base md:text-lg font-bangla" style={{ lineHeight: '1.7' }} />
                                     </div>
                                 ))}
                             </div>
@@ -352,18 +417,20 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
             
             case 'testimonials':
                 return (
-                    <section key={index} className="theme-section bg-gray-50">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section key={index} className="theme-section">
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }}>
+                                    {section.title}
+                                </h2>
                             )}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                                 {section.items?.map((testimonial, testIndex) => (
-                                    <div key={testIndex} className="theme-card border-l-4" style={{ borderLeftColor: 'var(--color-accent)' }}>
-                                        <p className="text-gray-700 mb-4 text-lg font-bangla" style={{ lineHeight: '1.8' }}>
+                                    <div key={testIndex} className="text-center">
+                                        <p className="text-gray-700 mb-4 text-base md:text-lg font-bangla" style={{ lineHeight: '1.8' }}>
                                             "{testimonial.text}"
                                         </p>
-                                        <p className="font-semibold font-bangla" style={{ color: 'var(--color-accent)' }}>- {testimonial.author}</p>
+                                        <p className="font-semibold text-gray-900 font-bangla">- {testimonial.author}</p>
                                     </div>
                                 ))}
                             </div>
@@ -375,7 +442,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <h2 className="theme-section-title font-bangla">{section.title}</h2>}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
                             <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
                                 <iframe
                                     src={section.url}
@@ -392,7 +459,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <h2 className="theme-section-title font-bangla">{section.title}</h2>}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
                             <div className="theme-card overflow-hidden">
                                 <table className="w-full">
                                     <tbody>
@@ -413,7 +480,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <h2 className="theme-section-title font-bangla">{section.title}</h2>}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
                             <div className="theme-card overflow-x-auto">
                                 <table className="w-full">
                                     <thead style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}>
@@ -474,7 +541,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
 
                 const ctaStyle = {
                     backgroundImage: section.background_image ? `url(${section.background_image})` : undefined,
-                    backgroundColor: section.background_image ? undefined : (section.background_color || 'var(--color-primary)'),
+                    backgroundColor: section.background_image ? undefined : (section.background_color || '#008060'),
                     backgroundSize: section.background_image ? 'cover' : undefined,
                     backgroundPosition: section.background_image ? 'center' : undefined,
                     color: section.text_color || '#FFFFFF',
@@ -482,29 +549,29 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 return (
                     <section
                         key={index}
-                        className="theme-section"
+                        className="py-12 md:py-16"
                         style={ctaStyle}
                     >
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                             {section.title && (
-                                <h2 className="text-2xl md:text-3xl font-bold mb-4 font-bangla">{section.title}</h2>
+                                <RenderText content={section.title} tag="h2" className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 font-bangla" style={{ lineHeight: '1.3' }} />
                             )}
                             {section.content && (
-                                <p
-                                    className="text-lg mb-6 font-bangla"
-                                    style={{ lineHeight: '1.8' }}
-                                >
-                                    {section.content}
-                                </p>
+                                <RenderText
+                                    content={section.content}
+                                    tag="p"
+                                    className="text-lg md:text-xl mb-6 md:mb-8 font-bangla"
+                                    style={{ lineHeight: '1.6' }}
+                                />
                             )}
                             {section.button_text && (
                                 <a
                                     href={isOrderCTA ? '#page-order-form' : section.button_link || '#'}
                                     onClick={isOrderCTA ? handleOrderScroll : undefined}
-                                    className="btn-primary font-bangla text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition transform hover:scale-105"
+                                    className="inline-block font-bangla text-lg md:text-xl font-semibold px-8 md:px-12 py-4 md:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
                                     style={{
-                                        backgroundColor: section.button_color || 'white',
-                                        color: section.background_color || 'var(--color-primary)',
+                                        backgroundColor: section.button_color || '#FFFFFF',
+                                        color: section.background_color || '#008060',
                                     }}
                                 >
                                     {section.button_text}
@@ -519,7 +586,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <h2 className="theme-section-title font-bangla">{section.title}</h2>}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
                             <div className="theme-card">
                                 <TabsComponent items={section.items} />
                             </div>
@@ -532,13 +599,13 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <h2 className="theme-section-title font-bangla">{section.title}</h2>}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
                             <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${section.columns || 2}, 1fr)`, gap: gridGap }}>
                                 {(section.items || []).slice(0, section.columns || 2).map((item, i) => (
                                     <div key={i} className="theme-card">
-                                        {item.type === 'text' && <div className="prose max-w-none font-bangla">{item.content}</div>}
+                                        {item.type === 'text' && <RenderText content={item.content} className="prose max-w-none font-bangla" />}
                                         {item.type === 'image' && item.image && <img src={item.image} alt="" className="w-full rounded-lg" />}
-                                        {item.type === 'html' && <div className="font-bangla" dangerouslySetInnerHTML={{ __html: item.content || '' }} />}
+                                        {item.type === 'html' && <RenderText content={item.content} className="font-bangla" />}
                                         {item.type === 'video' && item.content && (
                                             <div className="aspect-video">
                                                 <iframe src={item.content} className="w-full h-full rounded-lg" allowFullScreen />
@@ -558,7 +625,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <h2 className="theme-section-title font-bangla">{section.title}</h2>}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
                             <div className="flex gap-4 flex-wrap" style={{ 
                                 flexDirection,
                                 alignItems: flexAlign === 'start' ? 'flex-start' : flexAlign === 'end' ? 'flex-end' : flexAlign === 'center' ? 'center' : 'stretch',
@@ -566,9 +633,9 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                             }}>
                                 {(section.items || []).map((item, i) => (
                                     <div key={i} className="theme-card flex-1 min-w-[200px]">
-                                        {item.type === 'text' && <div className="prose max-w-none font-bangla">{item.content}</div>}
+                                        {item.type === 'text' && <RenderText content={item.content} className="prose max-w-none font-bangla" />}
                                         {item.type === 'image' && item.image && <img src={item.image} alt="" className="w-full rounded-lg" />}
-                                        {item.type === 'html' && <div className="font-bangla" dangerouslySetInnerHTML={{ __html: item.content || '' }} />}
+                                        {item.type === 'html' && <RenderText content={item.content} className="font-bangla" />}
                                         {item.type === 'button' && (
                                             <a href={item.buttonLink || '#'} className="btn-primary font-bangla inline-block">
                                                 {item.buttonText || 'Button'}
@@ -609,47 +676,112 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                         backgroundColor: section.backgroundColor || 'var(--color-background)',
                         borderRadius: 'var(--radius-xl)'
                     }}>
-                        <div className="font-bangla" dangerouslySetInnerHTML={{ __html: section.content || '' }} />
+                        <RenderText content={section.content} className="font-bangla" />
                     </div>
                 );
             
             case 'hero':
-                const heroStyle = {
-                    backgroundImage: section.background_image ? `url(${section.background_image})` : undefined,
-                    backgroundColor: section.background_image ? undefined : (section.background_color || 'var(--color-background)'),
-                    backgroundSize: section.background_image ? 'cover' : undefined,
-                    backgroundPosition: section.background_image ? 'center' : undefined,
-                    color: section.text_color || 'var(--color-text)'
+                // Determine background style based on background_type
+                const getHeroBackgroundStyle = () => {
+                    const baseStyle = { color: section.text_color || '#FFFFFF' };
+                    const bgType = section.background_type || 'color';
+                    
+                    if (bgType === 'gradient') {
+                        return {
+                            ...baseStyle,
+                            background: `linear-gradient(to right, ${section.gradient_start || '#008060'}, ${section.gradient_end || '#006E52'})`
+                        };
+                    } else if (bgType === 'image' && section.background_image) {
+                        return {
+                            ...baseStyle,
+                            backgroundImage: `url(${section.background_image})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat'
+                        };
+                    } else {
+                        return {
+                            ...baseStyle,
+                            backgroundColor: section.background_color || '#008060'
+                        };
+                    }
                 };
+
                 return (
-                    <section key={index} className="theme-section"
-                             style={heroStyle}>
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+                    <section key={index} className="py-16 md:py-24"
+                             style={getHeroBackgroundStyle()}>
+                        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="text-center">
                                 {section.title && (
-                                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 font-bangla" style={{ lineHeight: '1.2' }}>
-                                        {section.title}
-                                    </h1>
+                                    <RenderText 
+                                        content={section.title}
+                                        tag="h1"
+                                        className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 font-bangla" 
+                                        style={{ lineHeight: '1.2' }}
+                                    />
                                 )}
                                 {section.subtitle && (
-                                    <p className="text-lg md:text-xl mb-8 font-bangla max-w-3xl mx-auto" style={{ lineHeight: '1.6' }}>
-                                        {section.subtitle}
-                                    </p>
+                                    <RenderText 
+                                        content={section.subtitle}
+                                        tag="p"
+                                        className="text-lg md:text-xl lg:text-2xl mb-4 md:mb-6 font-bangla max-w-4xl mx-auto" 
+                                        style={{ lineHeight: '1.5' }}
+                                    />
                                 )}
-                                {section.images && section.images[0] && (
-                                    <div className="mb-8">
-                                        <img src={section.images[0]} alt={section.title} className="mx-auto max-w-full rounded-lg shadow-xl" />
+                                {section.discount_text && (
+                                    <RenderText 
+                                        content={section.discount_text}
+                                        tag="p"
+                                        className="text-xl md:text-2xl font-bold mb-4 md:mb-6 font-bangla"
+                                    />
+                                )}
+                                {section.html_content && (
+                                    <div 
+                                        className="mb-4 md:mb-6 font-bangla text-lg md:text-xl" 
+                                        style={{ lineHeight: '1.6' }}
+                                        dangerouslySetInnerHTML={{ __html: section.html_content }} 
+                                    />
+                                )}
+                                {section.video_url && (
+                                    <div className="mb-8 md:mb-12 max-w-4xl mx-auto">
+                                        <div className="aspect-video rounded-lg overflow-hidden shadow-xl">
+                                            <iframe
+                                                src={section.video_url}
+                                                className="w-full h-full"
+                                                allowFullScreen
+                                                title={section.title || 'Video'}
+                                            />
+                                        </div>
                                     </div>
                                 )}
-                                {section.button_text && (
-                                    <a href={section.button_link || '#'} 
-                                       className="font-bangla text-lg md:text-xl px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition transform hover:scale-105"
-                                       style={{
-                                           backgroundColor: section.button_bg_color || 'var(--color-primary)',
-                                           color: section.button_text_color || '#FFFFFF'
-                                       }}>
-                                        {section.button_text}
-                                    </a>
+                                {section.images && section.images[0] && !section.video_url && (
+                                    <div className="mb-8 md:mb-12">
+                                        <img src={section.images[0]} alt={section.title} className="mx-auto max-w-full rounded-lg" />
+                                    </div>
+                                )}
+                                {(section.button_text || section.button2_text) && (
+                                    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+                                        {section.button_text && (
+                                            <a href={section.button_link || '#'} 
+                                               className="inline-block font-bangla text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                               style={{
+                                                   backgroundColor: section.button_bg_color || '#FFFFFF',
+                                                   color: section.button_text_color || '#008060'
+                                               }}>
+                                                {section.button_text}
+                                            </a>
+                                        )}
+                                        {section.button2_text && (
+                                            <a href={section.button2_link || '#'} 
+                                               className="inline-block font-bangla text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                               style={{
+                                                   backgroundColor: section.button2_bg_color || '#008060',
+                                                   color: section.button2_text_color || '#FFFFFF'
+                                               }}>
+                                                {section.button2_text}
+                                            </a>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -659,21 +791,26 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
             case 'benefits':
                 return (
                     <section key={index} className="theme-section">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                                <RenderText content={section.title} tag="h2" className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }} />
                             )}
-                            <div className="space-y-4">
+                            <div className="space-y-3 md:space-y-4">
                                 {section.items?.map((benefit, i) => (
-                                    <div key={i} className="theme-card border-l-4 hover:bg-gray-50 transition" style={{ borderLeftColor: 'var(--color-accent)' }}>
-                                        {benefit.title && (
-                                            <h3 className="text-xl md:text-2xl font-bold mb-2 font-bangla text-gray-800">{benefit.title}</h3>
-                                        )}
-                                        {benefit.description && (
-                                            <p className="text-gray-700 text-lg font-bangla" style={{ lineHeight: '1.8' }}>
-                                                {benefit.description}
-                                            </p>
-                                        )}
+                                    <div key={i} className="flex items-start gap-3 md:gap-4 py-2">
+                                        <div className="flex-shrink-0 mt-1">
+                                            <svg className="w-5 h-5 md:w-6 md:h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="flex-1">
+                                            {benefit.title && (
+                                                <RenderText content={benefit.title} tag="h3" className="text-lg md:text-xl font-semibold font-bangla text-gray-900" style={{ lineHeight: '1.6' }} />
+                                            )}
+                                            {benefit.description && (
+                                                <RenderText content={benefit.description} tag="p" className="text-gray-600 text-base md:text-lg font-bangla mt-1" style={{ lineHeight: '1.7' }} />
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -683,39 +820,43 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
             
             case 'pricing':
                 return (
-                    <section key={index} className="theme-section bg-gray-50">
+                    <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }}>
+                                    {section.title}
+                                </h2>
                             )}
-                            <div className="theme-card text-center">
+                            <div className="text-center">
                                 {section.original_price && (
                                     <div className="mb-4">
-                                        <p className="text-lg text-gray-500 mb-2 font-bangla">Previous Price</p>
-                                        <span className="text-2xl text-gray-500 line-through font-bangla">{section.original_price}</span>
+                                        <span className="text-xl md:text-2xl text-gray-500 line-through font-bangla">{section.original_price}</span>
                                     </div>
                                 )}
                                 {section.offer_price && (
                                     <div className="mb-4">
-                                        <p className="text-lg text-gray-700 mb-2 font-bangla">Offer Price</p>
-                                        <span className="text-5xl font-bold font-bangla" style={{ color: 'var(--color-error)' }}>{section.offer_price}</span>
+                                        <span className="text-4xl md:text-5xl lg:text-6xl font-bold font-bangla" style={{ color: '#DC2626' }}>
+                                            {section.offer_price}
+                                        </span>
                                     </div>
                                 )}
                                 {section.discount_text && (
-                                    <p className="text-center font-bold text-xl mb-6 font-bangla" style={{ color: 'var(--color-accent)' }}>{section.discount_text}</p>
+                                    <p className="font-bold text-lg md:text-xl mb-6 md:mb-8 font-bangla" style={{ color: '#059669' }}>
+                                        {section.discount_text}
+                                    </p>
                                 )}
                                 {section.countdown_date && (
-                                    <div className="text-center mb-6">
-                                        <p className="text-sm text-gray-600 mb-3 font-bangla">অফার শেষ হতে বাকি:</p>
-                                        <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-red-50 border border-red-200 shadow-sm">
+                                    <div className="text-center mb-6 md:mb-8">
+                                        <p className="text-sm md:text-base text-gray-600 mb-3 font-bangla">অফার শেষ হতে বাকি:</p>
+                                        <div className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-red-50 border-2 border-red-300">
                                             <span
                                                 id={`countdown-${index}`}
-                                                className="font-mono text-xl md:text-2xl tracking-widest font-bold font-bangla text-red-600"
+                                                className="font-mono text-xl md:text-2xl tracking-wider font-bold font-bangla text-red-600"
                                             >
                                                 Loading...
                                             </span>
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-2 font-bangla">
+                                        <p className="text-xs md:text-sm text-gray-500 mt-3 font-bangla">
                                             সময় শেষ হলে অফার পরিবর্তন হতে পারে।
                                         </p>
                                     </div>
@@ -730,7 +871,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                     <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
                             )}
                             <div className="space-y-6">
                                 {section.items?.map((step, i) => (
@@ -741,14 +882,10 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                                             </div>
                                             <div className="flex-1">
                                                 {step.title && (
-                                                    <h3 className="text-xl md:text-2xl font-bold mb-2 font-bangla text-gray-800">
-                                                        {step.title}
-                                                    </h3>
+                                                    <RenderText content={step.title} tag="h3" className="text-xl md:text-2xl font-bold mb-2 font-bangla text-gray-800" />
                                                 )}
                                                 {step.description && (
-                                                    <p className="text-gray-700 text-lg font-bangla" style={{ lineHeight: '1.8' }}>
-                                                        {step.description}
-                                                    </p>
+                                                    <RenderText content={step.description} tag="p" className="text-gray-700 text-lg font-bangla" style={{ lineHeight: '1.8' }} />
                                                 )}
                                             </div>
                                         </div>
@@ -764,7 +901,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                     <section key={index} className="theme-section bg-gray-50">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                             {section.title && (
-                                <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
                             )}
                             <div className="flex flex-wrap justify-center gap-4">
                                 {section.items?.map((link, i) => {
@@ -805,7 +942,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                     <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="theme-section-title font-bangla">{section.title}</h2>
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
                             )}
                             <div className="theme-card">
                                 {section.phone && (
@@ -827,7 +964,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                                     </div>
                                 )}
                                 {section.content && (
-                                    <div className="mt-4 font-bangla text-lg" dangerouslySetInnerHTML={{ __html: section.content }} />
+                                    <RenderText content={section.content} className="mt-4 font-bangla text-lg" />
                                 )}
                             </div>
                         </div>
@@ -866,7 +1003,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                 <div className="p-6">
                     {items?.map((tab, tabIndex) => (
                         <div key={tabIndex} style={{ display: activeTab === tabIndex ? 'block' : 'none' }}>
-                            <div className="font-bangla" dangerouslySetInnerHTML={{ __html: tab.content || '' }} />
+                            <RenderText content={tab.content} className="font-bangla" />
                         </div>
                     ))}
                 </div>

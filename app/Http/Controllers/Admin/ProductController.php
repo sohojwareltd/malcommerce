@@ -57,6 +57,11 @@ class ProductController extends Controller
         return view('admin.products.edit', compact('product', 'categories'));
     }
     
+    public function builder(Product $product)
+    {
+        return view('admin.products.builder', compact('product'));
+    }
+    
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
@@ -70,11 +75,21 @@ class ProductController extends Controller
             'sku' => 'nullable|string|unique:products,sku,' . $product->id,
             'stock_quantity' => 'required|integer|min:0',
             'images' => 'nullable|array',
-            'page_layout' => 'nullable|array',
+            'page_layout' => 'nullable',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer',
         ]);
+        
+        // Handle page_layout - it comes as JSON string from the form
+        if (isset($validated['page_layout']) && is_string($validated['page_layout'])) {
+            $decoded = json_decode($validated['page_layout'], true);
+            $validated['page_layout'] = $decoded ?: null;
+        } elseif (!isset($validated['page_layout']) || $validated['page_layout'] === '') {
+            // If empty or not set, set to null
+            $validated['page_layout'] = null;
+        }
+        // If it's already an array, Laravel will handle it automatically via the cast
         
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
@@ -84,6 +99,11 @@ class ProductController extends Controller
         
         $product->update($validated);
         
+        // If coming from builder, redirect back to builder
+        if ($request->has('page_layout')) {
+            return redirect()->route('admin.products.builder', $product)->with('success', 'Layout saved successfully!');
+        }
+        
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully!');
     }
     
@@ -91,31 +111,5 @@ class ProductController extends Controller
     {
         $product->delete();
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully!');
-    }
-    
-    public function builder(Product $product)
-    {
-        return view('admin.products.builder', compact('product'));
-    }
-    
-    public function saveBuilder(Request $request, Product $product)
-    {
-        $request->validate([
-            'page_layout' => 'nullable|array',
-        ]);
-        
-        $product->update([
-            'page_layout' => $request->page_layout ?? [],
-        ]);
-        
-        if ($request->expectsJson() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Page layout saved successfully!'
-            ]);
-        }
-        
-        return redirect()->route('admin.products.builder', $product)
-            ->with('success', 'Page layout saved successfully!');
     }
 }

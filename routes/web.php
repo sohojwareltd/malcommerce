@@ -24,9 +24,12 @@ Route::middleware([TrackReferral::class])->group(function () {
 
 // Authentication routes (no referral tracking needed)
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login/send-otp', [LoginController::class, 'sendOtp'])->name('login.send-otp');
+Route::post('/login/verify-otp', [LoginController::class, 'verifyOtp'])->name('login.verify-otp');
+Route::post('/login', [LoginController::class, 'login']); // Legacy password-based login
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/register/send-otp', [RegisterController::class, 'sendOtp'])->name('register.send-otp');
+Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp'])->name('register.verify-otp');
 
 // Logout (requires auth)
 Route::middleware('auth')->group(function () {
@@ -35,9 +38,8 @@ Route::middleware('auth')->group(function () {
     // Admin routes
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        Route::resource('products', AdminProductController::class);
         Route::get('/products/{product}/builder', [AdminProductController::class, 'builder'])->name('products.builder');
-        Route::post('/products/{product}/builder', [AdminProductController::class, 'saveBuilder'])->name('products.builder.save');
+        Route::resource('products', AdminProductController::class);
         Route::post('/upload-image', [\App\Http\Controllers\Admin\ImageUploadController::class, 'upload'])->name('upload.image');
         Route::get('/categories', [AdminDashboardController::class, 'categories'])->name('categories.index');
         Route::get('/categories/create', [AdminDashboardController::class, 'createCategory'])->name('categories.create');
@@ -66,5 +68,7 @@ Route::middleware('auth')->group(function () {
     // Sponsor/Affiliate routes
     Route::middleware('sponsor')->prefix('sponsor')->name('sponsor.')->group(function () {
         Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/users/create', [SponsorDashboardController::class, 'createUser'])->name('users.create');
+        Route::post('/users', [SponsorDashboardController::class, 'addUser'])->name('users.store');
     });
 });
