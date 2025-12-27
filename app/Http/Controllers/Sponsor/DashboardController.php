@@ -41,7 +41,7 @@ class DashboardController extends Controller
             });
         }
         
-        $referrals = $referralsQuery->get();
+        $referrals = $referralsQuery->latest()->take(10)->get();
         
         $affiliateLink = url('/') . '?ref=' . $user->affiliate_code;
         
