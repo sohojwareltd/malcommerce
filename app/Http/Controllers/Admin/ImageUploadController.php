@@ -18,8 +18,9 @@ class ImageUploadController extends Controller
             $image = $request->file('image');
             $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
             
-            // Use different path based on upload type if needed
-            $path = $image->storeAs('products/sections', $filename, 'public');
+            // Use different path based on upload type if specified, otherwise default to sections
+            $uploadType = $request->input('type', 'sections'); // 'sections' or 'products'
+            $path = $image->storeAs('products/' . $uploadType, $filename, 'public');
             
             return response()->json([
                 'success' => true,

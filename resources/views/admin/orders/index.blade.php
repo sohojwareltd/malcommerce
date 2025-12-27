@@ -31,7 +31,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $order->product->name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
                         <div>{{ $order->customer_name }}</div>
-                        <div class="text-xs text-neutral-400">{{ $order->customer_email }}</div>
+                        <div class="text-xs text-neutral-400">{{ $order->customer_phone }}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">৳{{ number_format($order->total_price, 2) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">

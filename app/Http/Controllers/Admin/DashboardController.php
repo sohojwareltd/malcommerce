@@ -46,37 +46,61 @@ class DashboardController extends Controller
     
     public function storeCategory(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:categories,slug',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'is_active' => 'boolean',
-            'sort_order' => 'nullable|integer|min:0',
-        ]);
-        
-        $data = $request->all();
-        
-        // Generate slug if not provided
-        if (empty($data['slug'])) {
-            $data['slug'] = \Illuminate\Support\Str::slug($data['name']);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'nullable|string|max:255|unique:categories,slug',
+                'description' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+                'is_active' => 'boolean',
+                'sort_order' => 'nullable|integer|min:0',
+            ]);
+            
+            $data = $validated;
+            
+            // Generate slug if not provided
+            if (empty($data['slug'])) {
+                $data['slug'] = \Illuminate\Support\Str::slug($data['name']);
+            }
+            
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $path = $image->storeAs('categories', $filename, 'public');
+                $data['image'] = Storage::disk('public')->url($path);
+            }
+            
+            $data['is_active'] = $request->has('is_active');
+            $data['sort_order'] = $data['sort_order'] ?? 0;
+            
+            $category = Category::create($data);
+            
+            // If request expects JSON (for modal quick create)
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Category created successfully!',
+                    'category' => [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                        'slug' => $category->slug,
+                    ]
+                ]);
+            }
+            
+            return redirect()->route('admin.categories.index')
+                ->with('success', 'Category created successfully!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // If request expects JSON, return JSON error response
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
         }
-        
-        // Handle image upload
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-            $path = $image->storeAs('categories', $filename, 'public');
-            $data['image'] = Storage::disk('public')->url($path);
-        }
-        
-        $data['is_active'] = $request->has('is_active');
-        $data['sort_order'] = $data['sort_order'] ?? 0;
-        
-        Category::create($data);
-        
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Category created successfully!');
     }
     
     public function editCategory(Category $category)
@@ -208,24 +232,50 @@ class DashboardController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'affiliate_code' => 'nullable|string|max:255|unique:users,affiliate_code',
+            'phone' => 'required|string|max:20|unique:users,phone',
         ]);
         
-        $data = $request->all();
-        $data['password'] = bcrypt($data['password']);
-        $data['role'] = 'sponsor';
+        $phone = $this->normalizePhone($request->phone);
         
-        // Generate affiliate code if not provided
-        if (empty($data['affiliate_code'])) {
-            $data['affiliate_code'] = strtoupper(\Illuminate\Support\Str::random(8));
+        // Check if user already exists with normalized phone
+        if (User::where('phone', $phone)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['phone' => 'This phone number is already registered.']);
         }
         
-        User::create($data);
+        // Create sponsor user
+        User::create([
+            'name' => $request->name,
+            'phone' => $phone,
+            'role' => 'sponsor',
+            'password' => null, // OTP-based auth doesn't need password
+            // affiliate_code will be auto-generated in User model boot method
+        ]);
         
         return redirect()->route('admin.sponsors.index')
             ->with('success', 'Sponsor created successfully!');
+    }
+    
+    /**
+     * Normalize phone number
+     */
+    protected function normalizePhone($phone)
+    {
+        // Remove spaces, dashes, and other characters
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        
+        // If it starts with 0, replace with country code
+        if (strpos($phone, '0') === 0) {
+            $phone = '880' . substr($phone, 1);
+        }
+        
+        // If it doesn't start with country code, add it
+        if (strpos($phone, '880') !== 0) {
+            $phone = '880' . $phone;
+        }
+        
+        return $phone;
     }
     
     public function showSponsor(User $sponsor)
@@ -271,19 +321,22 @@ class DashboardController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $sponsor->id,
-            'password' => 'nullable|string|min:8|confirmed',
-            'affiliate_code' => 'nullable|string|max:255|unique:users,affiliate_code,' . $sponsor->id,
+            'phone' => 'required|string|max:20|unique:users,phone,' . $sponsor->id,
         ]);
         
-        $data = $request->only(['name', 'email', 'affiliate_code']);
+        $phone = $this->normalizePhone($request->phone);
         
-        // Update password only if provided
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
+        // Check if phone is already taken by another user
+        if (User::where('phone', $phone)->where('id', '!=', $sponsor->id)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['phone' => 'This phone number is already registered.']);
         }
         
-        $sponsor->update($data);
+        $sponsor->update([
+            'name' => $request->name,
+            'phone' => $phone,
+        ]);
         
         return redirect()->route('admin.sponsors.show', $sponsor)
             ->with('success', 'Sponsor updated successfully!');

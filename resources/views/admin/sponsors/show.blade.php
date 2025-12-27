@@ -129,10 +129,7 @@
                     <dt class="text-sm font-medium text-neutral-500">Name</dt>
                     <dd class="mt-1 text-sm font-semibold">{{ $sponsor->name }}</dd>
                 </div>
-                <div>
-                    <dt class="text-sm font-medium text-neutral-500">Email</dt>
-                    <dd class="mt-1 text-sm">{{ $sponsor->email }}</dd>
-                </div>
+            
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Partner Code</dt>
                     <dd class="mt-1 text-sm font-mono font-semibold">{{ $sponsor->affiliate_code }}</dd>

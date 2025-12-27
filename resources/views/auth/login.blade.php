@@ -125,6 +125,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 otpInput.focus();
                 startResendTimer();
             } else {
+                // If user doesn't exist, redirect to register with phone number
+                if (data.redirect_to_register && data.phone) {
+                    // Format phone for display (remove country code if present)
+                    let displayPhone = data.phone;
+                    if (displayPhone.startsWith('880')) {
+                        displayPhone = '0' + displayPhone.substring(3);
+                    }
+                    window.location.href = '{{ route("register") }}?phone=' + encodeURIComponent(displayPhone);
+                    return;
+                }
                 showError(phoneError, data.message || 'OTP পাঠাতে ব্যর্থ হয়েছে');
                 sendOtpBtn.disabled = false;
                 sendOtpBtn.textContent = 'OTP পাঠান';

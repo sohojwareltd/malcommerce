@@ -26,6 +26,11 @@
         <input type="hidden" name="is_active" value="{{ $product->is_active ? 1 : 0 }}">
         <input type="hidden" name="is_featured" value="{{ $product->is_featured ? 1 : 0 }}">
         <input type="hidden" name="sort_order" value="{{ $product->sort_order }}">
+        @if($product->images && is_array($product->images))
+            @foreach($product->images as $image)
+                <input type="hidden" name="images[]" value="{{ $image }}">
+            @endforeach
+        @endif
     </form>
     <button 
         type="button" 

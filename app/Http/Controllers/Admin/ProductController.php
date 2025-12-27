@@ -18,7 +18,7 @@ class ProductController extends Controller
     
     public function create()
     {
-        $categories = Category::where('is_active', true)->get();
+        $categories = Category::orderBy('sort_order')->orderBy('name')->get();
         return view('admin.products.create', compact('categories'));
     }
     
@@ -46,6 +46,17 @@ class ProductController extends Controller
         
         $validated['in_stock'] = $validated['stock_quantity'] > 0;
         
+        // Handle images - filter out empty values
+        if (isset($validated['images']) && is_array($validated['images'])) {
+            $validated['images'] = array_filter($validated['images'], fn($img) => !empty($img));
+            $validated['images'] = array_values($validated['images']); // Re-index array
+            if (empty($validated['images'])) {
+                $validated['images'] = null;
+            }
+        } else {
+            $validated['images'] = null;
+        }
+        
         Product::create($validated);
         
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully!');
@@ -53,7 +64,7 @@ class ProductController extends Controller
     
     public function edit(Product $product)
     {
-        $categories = Category::where('is_active', true)->get();
+        $categories = Category::orderBy('sort_order')->orderBy('name')->get();
         return view('admin.products.edit', compact('product', 'categories'));
     }
     
@@ -82,20 +93,40 @@ class ProductController extends Controller
         ]);
         
         // Handle page_layout - it comes as JSON string from the form
-        if (isset($validated['page_layout']) && is_string($validated['page_layout'])) {
-            $decoded = json_decode($validated['page_layout'], true);
-            $validated['page_layout'] = $decoded ?: null;
-        } elseif (!isset($validated['page_layout']) || $validated['page_layout'] === '') {
-            // If empty or not set, set to null
-            $validated['page_layout'] = null;
+        // Only update page_layout if it's provided in the request
+        if (array_key_exists('page_layout', $validated)) {
+            if (isset($validated['page_layout']) && is_string($validated['page_layout'])) {
+                $decoded = json_decode($validated['page_layout'], true);
+                $validated['page_layout'] = $decoded ?: null;
+            } elseif (!isset($validated['page_layout']) || $validated['page_layout'] === '') {
+                $validated['page_layout'] = null;
+            }
+        } else {
+            // Preserve existing page_layout if not in request
+            unset($validated['page_layout']);
         }
-        // If it's already an array, Laravel will handle it automatically via the cast
         
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
         }
         
         $validated['in_stock'] = $validated['stock_quantity'] > 0;
+        
+        // Handle images - only update if provided in request
+        if (array_key_exists('images', $validated)) {
+            if (isset($validated['images']) && is_array($validated['images'])) {
+                $validated['images'] = array_filter($validated['images'], fn($img) => !empty($img));
+                $validated['images'] = array_values($validated['images']); // Re-index array
+                if (empty($validated['images'])) {
+                    $validated['images'] = null;
+                }
+            } else {
+                $validated['images'] = null;
+            }
+        } else {
+            // Preserve existing images if not in request
+            unset($validated['images']);
+        }
         
         $product->update($validated);
         

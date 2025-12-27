@@ -2,7 +2,30 @@
     /** @var \App\Models\Product $product */
 @endphp
 
-<div class="card" id="order">
+<div id="order" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Product Info -->
+    <div class="card">
+        <div class="mb-4">
+            @if($product->main_image)
+            <img 
+                src="{{ $product->main_image }}" 
+                alt="{{ $product->name }}" 
+                class="w-full h-64 object-cover rounded-lg mb-4"
+            >
+            @else
+            <div class="w-full h-64 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                <span class="text-gray-400 font-bangla">No Image</span>
+            </div>
+            @endif
+        </div>
+        <h2 class="text-2xl font-bold mb-3 text-gray-900 font-bangla">{{ $product->name }}</h2>
+        @if($product->short_description)
+        <p class="text-gray-700 font-bangla leading-relaxed">{{ $product->short_description }}</p>
+        @endif
+    </div>
+    
+    <!-- Order Form -->
+    <div class="card">
     <h2 class="text-2xl font-bold mb-6 text-gray-900 font-bangla">অর্ডার করুন</h2>
 
     <form action="{{ route('orders.store') }}" method="POST" x-data="{ quantity: 1, price: {{ $product->price }}, totalPrice: {{ $product->price }} }">
@@ -74,87 +97,15 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                    ইমেইল <span class="text-red-500">*</span>
-                </label>
-                <input 
-                    type="email"
-                    name="customer_email"
-                    required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="your@email.com"
-                >
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2 font-bangla">
                     পূর্ণ ঠিকানা <span class="text-red-500">*</span>
                 </label>
                 <textarea 
                     name="address"
-                    rows="3"
+                    rows="4"
                     required
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla resize-none"
-                    placeholder="বাড়ি নম্বর, রোড, এলাকা"
+                    placeholder="বাড়ি নম্বর, রোড, এলাকা, জেলা"
                 ></textarea>
-            </div>
-        </div>
-
-        {{-- BD Address Details --}}
-        <div class="space-y-4 mb-6 border-t pt-6">
-            <h3 class="font-semibold text-gray-900 font-bangla mb-4">ডেলিভারির ঠিকানা বিস্তারিত</h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                        জেলা <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text"
-                        name="district"
-                        required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
-                        placeholder="ঢাকা"
-                    >
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                        উপজেলা <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text"
-                        name="upazila"
-                        required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
-                        placeholder="গুলশান"
-                    >
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                        শহর / গ্রাম <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text"
-                        name="city_village"
-                        required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
-                        placeholder="ধানমন্ডি"
-                    >
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                        পোস্ট কোড <span class="text-red-500">*</span>
-                    </label>
-                    <input 
-                        type="text"
-                        name="post_code"
-                        required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="1205"
-                    >
-                </div>
             </div>
         </div>
 
@@ -194,4 +145,5 @@
             <span>অর্ডার নিশ্চিত করুন - ৳<span x-text="totalPrice.toLocaleString('bn-BD')"></span></span>
         </button>
     </form>
+    </div>
 </div>

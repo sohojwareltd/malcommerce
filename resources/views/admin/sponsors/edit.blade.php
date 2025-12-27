@@ -22,34 +22,19 @@
             </div>
 
             <div>
-                <label for="email" class="block text-sm font-medium text-neutral-700 mb-2">Email <span class="text-red-500">*</span></label>
-                <input type="email" name="email" id="email" value="{{ old('email', $sponsor->email) }}" required class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-                @error('email')
+                <label for="phone" class="block text-sm font-medium text-neutral-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
+                @php
+                    $displayPhone = old('phone', $sponsor->phone);
+                    // Remove country code for display if present
+                    if (!empty($displayPhone) && strpos($displayPhone, '880') === 0) {
+                        $displayPhone = '0' . substr($displayPhone, 3);
+                    }
+                @endphp
+                <input type="tel" name="phone" id="phone" value="{{ $displayPhone }}" required class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="01XXXXXXXXX">
+                <p class="mt-1 text-xs text-neutral-500">Enter 11-digit phone number (e.g., 01712345678)</p>
+                @error('phone')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-            </div>
-
-            <div>
-                <label for="affiliate_code" class="block text-sm font-medium text-neutral-700 mb-2">Partner Code</label>
-                <input type="text" name="affiliate_code" id="affiliate_code" value="{{ old('affiliate_code', $sponsor->affiliate_code) }}" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-mono">
-                <p class="mt-1 text-xs text-neutral-500">Unique code used in partner links</p>
-                @error('affiliate_code')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div>
-                <label for="password" class="block text-sm font-medium text-neutral-700 mb-2">New Password</label>
-                <input type="password" name="password" id="password" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-                <p class="mt-1 text-xs text-neutral-500">Leave blank to keep current password</p>
-                @error('password')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div>
-                <label for="password_confirmation" class="block text-sm font-medium text-neutral-700 mb-2">Confirm New Password</label>
-                <input type="password" name="password_confirmation" id="password_confirmation" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
             </div>
 
             <div class="flex gap-4">
@@ -63,5 +48,18 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone');
+    
+    // Format phone input - only allow numbers
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    }
+});
+</script>
 @endsection
 

@@ -18,17 +18,10 @@ class DatabaseSeeder extends Seeder
         // Create admin user
         User::create([
             'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'),
+            'email' => null,
+            'phone' => '01795560431',
+            'password' => null,
             'role' => 'admin',
-        ]);
-        
-        // Create a sample sponsor
-        User::create([
-            'name' => 'Sponsor User',
-            'email' => 'sponsor@example.com',
-            'password' => bcrypt('password'),
-            'role' => 'sponsor',
         ]);
 
         $this->call([

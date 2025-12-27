@@ -9,6 +9,9 @@ function initProductSections() {
         try {
             const layout = JSON.parse(container.dataset.layout || '[]');
             const productId = container.dataset.productId;
+            const productName = container.dataset.productName || '';
+            const productImage = container.dataset.productImage || '';
+            const productShortDescription = container.dataset.productShortDescription || '';
             const productPrice = container.dataset.productPrice;
             const productComparePrice = container.dataset.productComparePrice;
             const productInStock = container.dataset.productInStock === '1';
@@ -23,6 +26,9 @@ function initProductSections() {
             root.render(React.createElement(ProductSections, { 
                 layout,
                 productId,
+                productName,
+                productImage,
+                productShortDescription,
                 productPrice,
                 productComparePrice,
                 productInStock,

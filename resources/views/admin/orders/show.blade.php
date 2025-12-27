@@ -56,20 +56,12 @@
                     <dd class="mt-1 text-sm font-semibold">{{ $order->customer_name }}</dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-neutral-500">Email</dt>
-                    <dd class="mt-1 text-sm">{{ $order->customer_email }}</dd>
-                </div>
-                <div>
                     <dt class="text-sm font-medium text-neutral-500">Phone</dt>
                     <dd class="mt-1 text-sm">{{ $order->customer_phone }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Address</dt>
-                    <dd class="mt-1 text-sm">
-                        {{ $order->address }}<br>
-                        {{ $order->city_village }}, {{ $order->upazila }}, {{ $order->district }}<br>
-                        Post Code: {{ $order->post_code }}
-                    </dd>
+                    <dd class="mt-1 text-sm whitespace-pre-line">{{ $order->address }}</dd>
                 </div>
             </dl>
         </div>
@@ -148,6 +140,7 @@
     </div>
 </div>
 @endsection
+
 
 
 

@@ -38,9 +38,17 @@ class LoginController extends Controller
         $user = User::where('phone', $phone)->first();
         
         if (!$user) {
+            // Format phone for display (remove country code and add leading 0)
+            $displayPhone = $phone;
+            if (strpos($displayPhone, '880') === 0) {
+                $displayPhone = '0' . substr($displayPhone, 3);
+            }
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Phone number not found. Please register first.'
+                'message' => 'Phone number not found. Please register first.',
+                'redirect_to_register' => true,
+                'phone' => $displayPhone
             ], 422);
         }
 

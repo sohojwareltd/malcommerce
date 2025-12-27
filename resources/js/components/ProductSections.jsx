@@ -20,7 +20,7 @@ const RenderText = ({ content, className = '', style = {}, tag = 'div' }) => {
     }
 };
 
-const ProductSections = ({ layout, productId, productPrice, productComparePrice, productInStock, productStockQuantity }) => {
+const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity }) => {
     useEffect(() => {
         // Initialize countdown timers for pricing sections
         layout?.forEach((section, index) => {
@@ -100,8 +100,31 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                     </div>
                 )}
                 {productId && productInStock && (
-                    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="card">
+                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Product Info */}
+                            <div className="card">
+                                <div className="mb-4">
+                                    {productImage ? (
+                                        <img 
+                                            src={productImage} 
+                                            alt={productName} 
+                                            className="w-full h-64 object-cover rounded-lg mb-4"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-64 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                                            <span className="text-gray-400 font-bangla">No Image</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <h2 className="text-2xl font-bold mb-3 text-gray-900 font-bangla">{productName}</h2>
+                                {productShortDescription && (
+                                    <p className="text-gray-700 font-bangla leading-relaxed">{productShortDescription}</p>
+                                )}
+                            </div>
+                            
+                            {/* Order Form */}
+                            <div className="card">
                             <h2 className="text-2xl font-bold mb-6 text-gray-900 font-bangla">অর্ডার করুন</h2>
                             <form action="/orders" method="POST" id={`product-order-form-${index}`} className="space-y-4">
                                 <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
@@ -173,87 +196,15 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                                            ইমেইল <span className="text-red-500">*</span>
-                                        </label>
-                                        <input 
-                                            type="email"
-                                            name="customer_email"
-                                            required
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                                            placeholder="your@email.com"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
                                             পূর্ণ ঠিকানা <span className="text-red-500">*</span>
                                         </label>
                                         <textarea 
                                             name="address"
-                                            rows="3"
+                                            rows="4"
                                             required
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla resize-none"
-                                            placeholder="বাড়ি নম্বর, রোড, এলাকা"
+                                            placeholder="বাড়ি নম্বর, রোড, এলাকা, জেলা"
                                         ></textarea>
-                                    </div>
-                                </div>
-
-                                {/* BD Address Details */}
-                                <div className="space-y-4 mb-6 border-t pt-6">
-                                    <h3 className="font-semibold text-gray-900 font-bangla mb-4">ডেলিভারির ঠিকানা বিস্তারিত</h3>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                                                জেলা <span className="text-red-500">*</span>
-                                            </label>
-                                            <input 
-                                                type="text"
-                                                name="district"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
-                                                placeholder="ঢাকা"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                                                উপজেলা <span className="text-red-500">*</span>
-                                            </label>
-                                            <input 
-                                                type="text"
-                                                name="upazila"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
-                                                placeholder="গুলশান"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                                                শহর / গ্রাম <span className="text-red-500">*</span>
-                                            </label>
-                                            <input 
-                                                type="text"
-                                                name="city_village"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
-                                                placeholder="ধানমন্ডি"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
-                                                পোস্ট কোড <span className="text-red-500">*</span>
-                                            </label>
-                                            <input 
-                                                type="text"
-                                                name="post_code"
-                                                required
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                placeholder="1205"
-                                            />
-                                        </div>
                                     </div>
                                 </div>
 
@@ -293,6 +244,7 @@ const ProductSections = ({ layout, productId, productPrice, productComparePrice,
                                     অর্ডার নিশ্চিত করুন - ৳{totalPrice.toLocaleString('en-IN')}
                                 </button>
                             </form>
+                            </div>
                         </div>
                     </div>
                 )}

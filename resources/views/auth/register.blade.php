@@ -94,6 +94,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let resendTimer = null;
     let resendCountdown = 60;
 
+    // Auto-fill phone number from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const phoneParam = urlParams.get('phone');
+    if (phoneParam) {
+        phoneInput.value = phoneParam;
+        nameInput.focus(); // Focus on name field since phone is already filled
+    }
+
     // Format phone input
     phoneInput.addEventListener('input', function(e) {
         e.target.value = e.target.value.replace(/[^0-9]/g, '');

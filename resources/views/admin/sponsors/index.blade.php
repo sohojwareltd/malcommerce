@@ -19,7 +19,6 @@
             <thead class="bg-neutral-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Email</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Partner Code</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Referrals</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Orders</th>
@@ -33,7 +32,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:underline">{{ $sponsor->name }}</a>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->email }}</td>
+               
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 font-mono">{{ $sponsor->affiliate_code }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->referrals_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->orders_count }}</td>

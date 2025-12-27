@@ -44,12 +44,17 @@
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <a href="{{ route('admin.products.edit', $product) }}" class="text-primary hover:text-primary-light mr-3">Edit</a>
-                    <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
-                    </form>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('admin.products.edit', $product) }}" class="text-primary hover:text-primary-light">Edit</a>
+                        <span class="text-neutral-300">|</span>
+                        <a href="{{ route('admin.products.builder', $product) }}" class="text-blue-600 hover:text-blue-800">Page Builder</a>
+                        <span class="text-neutral-300">|</span>
+                        <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             @empty

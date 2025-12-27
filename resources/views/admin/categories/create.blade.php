@@ -63,7 +63,39 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('name');
+    const slugInput = document.getElementById('slug');
+    
+    // Auto-generate slug from name
+    if (nameInput && slugInput) {
+        nameInput.addEventListener('input', function() {
+            // Only auto-generate if slug hasn't been manually edited
+            if (!slugInput.dataset.manualEdit) {
+                slugInput.value = generateSlug(nameInput.value);
+            }
+        });
+        
+        // Track manual edits to slug
+        slugInput.addEventListener('input', function() {
+            slugInput.dataset.manualEdit = 'true';
+        });
+    }
+    
+    function generateSlug(text) {
+        return text.toLowerCase()
+            .replace(/[^\w\s-]/g, '') // Remove special characters
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/-+/g, '-') // Replace multiple hyphens with single
+            .trim()
+            .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+    }
+});
+</script>
 @endsection
+
 
 
 
