@@ -146,7 +146,7 @@
         @endif
             
         <!-- Header -->
-        <header x-data="{ mobileMenuOpen: false }" class="bg-white border-b border-gray-200 shadow-sm">
+        <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
             @php
                 $categories = \App\Models\Category::where('is_active', true)->orderBy('sort_order')->get();
             @endphp

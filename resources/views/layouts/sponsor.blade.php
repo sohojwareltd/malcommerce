@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Storage;
 <body class="h-full bg-neutral-100 font-sans">
     <div class="min-h-full">
         <!-- Navigation -->
-        <nav class="bg-white shadow-sm border-b border-neutral-200">
+        <nav class="sticky top-0 z-50 bg-white shadow-sm border-b border-neutral-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <div class="flex items-center gap-4">
