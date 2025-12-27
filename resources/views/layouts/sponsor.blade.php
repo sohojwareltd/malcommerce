@@ -47,7 +47,7 @@ use Illuminate\Support\Facades\Storage;
                     <div class="flex items-center gap-3">
                         <!-- Web Icon -->
                         <a href="{{ route('home') }}" target="_blank" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-neutral-100 transition-colors text-neutral-600 hover:text-primary" title="View Website">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
                             </svg>
                         </a>
