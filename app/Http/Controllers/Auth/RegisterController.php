@@ -30,10 +30,17 @@ class RegisterController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20|unique:users,phone',
+            'phone' => 'required|string|max:20',
         ]);
 
-        $phone = $this->normalizePhone($request->phone);
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
 
         // Check if user already exists
         if (User::where('phone', $phone)->exists()) {
@@ -81,7 +88,15 @@ class RegisterController extends Controller
             'otp' => 'required|string|size:6',
         ]);
 
-        $phone = $this->normalizePhone($request->phone);
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
+        
         $name = session('register_name');
 
         if (!$name) {
@@ -148,23 +163,51 @@ class RegisterController extends Controller
     }
 
     /**
-     * Normalize phone number
+     * Normalize and validate Bangladesh phone number
+     * Formats: 01795560431 -> 8801795560431, 8801795560431 -> 8801795560431, +8801795560431 -> 8801795560431
+     *
+     * @param string $phone Phone number in any format
+     * @return string Normalized phone number (880XXXXXXXXXX)
+     * @throws \Exception If phone number is invalid
      */
     protected function normalizePhone($phone)
     {
-        // Remove spaces, dashes, and other characters
-        $phone = preg_replace('/[^0-9]/', '', $phone);
+        if (empty($phone)) {
+            throw new \Exception('Phone number is required');
+        }
+
+        // Remove all non-numeric characters except + (we'll handle + separately)
+        $phone = preg_replace('/[^0-9+]/', '', $phone);
         
-        // If it starts with 0, replace with country code
+        // Remove + if present
+        $phone = str_replace('+', '', $phone);
+        
+        // If it starts with 880, validate format
+        if (strpos($phone, '880') === 0) {
+            // Validate Bangladesh mobile format: 880 + 1 + 9 digits = 13 digits total
+            if (strlen($phone) === 13 && $phone[3] === '1') {
+                return $phone;
+            }
+            throw new \Exception('Invalid Bangladesh phone number format. Please enter a valid 11-digit mobile number.');
+        }
+        
+        // If it starts with 0, replace with 880
         if (strpos($phone, '0') === 0) {
             $phone = '880' . substr($phone, 1);
+            // Validate: should be 13 digits total and 4th digit should be 1
+            if (strlen($phone) === 13 && $phone[3] === '1') {
+                return $phone;
+            }
+            throw new \Exception('Invalid Bangladesh phone number format. Please enter a valid 11-digit mobile number.');
         }
         
-        // If it doesn't start with country code, add it
-        if (strpos($phone, '880') !== 0) {
-            $phone = '880' . $phone;
+        // If it doesn't start with 0 or 880, add 880 prefix
+        $phone = '880' . $phone;
+        // Validate: should be 13 digits total and 4th digit should be 1
+        if (strlen($phone) === 13 && $phone[3] === '1') {
+            return $phone;
         }
         
-        return $phone;
+        throw new \Exception('Invalid Bangladesh phone number format. Please enter a valid 11-digit mobile number.');
     }
 }

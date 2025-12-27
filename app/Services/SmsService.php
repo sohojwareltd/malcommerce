@@ -44,7 +44,7 @@ class SmsService
             if (empty($numberString)) {
                 return [
                     'success' => false,
-                    'message' => 'No valid phone numbers provided',
+                    'message' => 'No valid Bangladesh phone numbers provided. Please enter a valid 11-digit mobile number.',
                     'error' => 'Invalid phone numbers'
                 ];
             }
@@ -153,8 +153,14 @@ class SmsService
                     continue; // Skip messages without content
                 }
 
+                // Normalize and validate phone number
+                $normalizedPhone = $this->normalizePhone(trim($message['to']));
+                if (!$normalizedPhone) {
+                    continue; // Skip invalid phone numbers
+                }
+
                 $validMessages[] = [
-                    'to' => trim($message['to']),
+                    'to' => $normalizedPhone,
                     'message' => $message['message']
                 ];
             }
@@ -204,15 +210,87 @@ class SmsService
     protected function normalizeNumbers($numbers)
     {
         if (is_array($numbers)) {
-            // Remove empty values and trim
-            $numbers = array_filter(array_map('trim', $numbers));
-            return implode(',', $numbers);
+            // Normalize each number
+            $normalized = [];
+            foreach ($numbers as $number) {
+                $normalizedNumber = $this->normalizePhone($number);
+                if ($normalizedNumber) {
+                    $normalized[] = $normalizedNumber;
+                }
+            }
+            return implode(',', $normalized);
         }
 
-        // If it's a string, split by comma, clean, and rejoin
+        // If it's a string, split by comma, normalize each, and rejoin
         $numberArray = explode(',', $numbers);
-        $numberArray = array_filter(array_map('trim', $numberArray));
-        return implode(',', $numberArray);
+        $normalized = [];
+        foreach ($numberArray as $number) {
+            $normalizedNumber = $this->normalizePhone(trim($number));
+            if ($normalizedNumber) {
+                $normalized[] = $normalizedNumber;
+            }
+        }
+        return implode(',', $normalized);
+    }
+
+    /**
+     * Normalize and validate Bangladesh phone number
+     * Formats: 01795560431 -> 8801795560431, 8801795560431 -> 8801795560431, +8801795560431 -> 8801795560431
+     *
+     * @param string $phone Phone number in any format
+     * @return string|null Normalized phone number (880XXXXXXXXXX) or null if invalid
+     */
+    protected function normalizePhone($phone)
+    {
+        if (empty($phone)) {
+            return null;
+        }
+
+        // Remove all non-numeric characters except + (we'll handle + separately)
+        $phone = preg_replace('/[^0-9+]/', '', $phone);
+        
+        // Remove + if present
+        $phone = str_replace('+', '', $phone);
+        
+        // If it starts with 880, keep it as is (already normalized)
+        if (strpos($phone, '880') === 0) {
+            // Validate Bangladesh mobile format: 880 + 1 + 9 digits = 13 digits total
+            if (strlen($phone) === 13 && $phone[3] === '1') {
+                return $phone;
+            }
+            return null; // Invalid format
+        }
+        
+        // If it starts with 0, replace with 880
+        if (strpos($phone, '0') === 0) {
+            $phone = '880' . substr($phone, 1);
+            // Validate: should be 13 digits total and 4th digit should be 1
+            if (strlen($phone) === 13 && $phone[3] === '1') {
+                return $phone;
+            }
+            return null; // Invalid format
+        }
+        
+        // If it doesn't start with 0 or 880, add 880 prefix
+        $phone = '880' . $phone;
+        // Validate: should be 13 digits total and 4th digit should be 1
+        if (strlen($phone) === 13 && $phone[3] === '1') {
+            return $phone;
+        }
+        
+        return null; // Invalid format
+    }
+
+    /**
+     * Validate Bangladesh phone number
+     *
+     * @param string $phone Phone number
+     * @return bool True if valid Bangladesh mobile number
+     */
+    protected function isValidBangladeshPhone($phone)
+    {
+        $normalized = $this->normalizePhone($phone);
+        return $normalized !== null;
     }
 
     /**
