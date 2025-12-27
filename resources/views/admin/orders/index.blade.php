@@ -92,17 +92,27 @@
             </thead>
             <tbody class="bg-white divide-y divide-neutral-200">
                 @forelse($orders as $order)
-                <tr class="hover:bg-neutral-50">
+                @php
+                    $rowBgClass = match($order->status) {
+                        'pending' => 'bg-yellow-50 hover:bg-yellow-100',
+                        'processing' => 'bg-blue-50 hover:bg-blue-100',
+                        'shipped' => 'bg-indigo-50 hover:bg-indigo-100',
+                        'delivered' => 'bg-green-50 hover:bg-green-100',
+                        'cancelled' => 'bg-red-50 hover:bg-red-100',
+                        default => 'bg-neutral-50 hover:bg-neutral-100'
+                    };
+                @endphp
+                <tr class="{{ $rowBgClass }} transition-colors">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:underline">{{ $order->order_number }}</a>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $order->product->name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-700">{{ $order->product->name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-700">
                         <div>{{ $order->customer_name }}</div>
-                        <div class="text-xs text-neutral-400">{{ $order->customer_phone }}</div>
+                        <div class="text-xs text-neutral-500">{{ $order->customer_phone }}</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">৳{{ number_format($order->total_price, 2) }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-neutral-900">৳{{ number_format($order->total_price, 2) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-700">
                         {{ $order->sponsor->name ?? 'N/A' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -110,11 +120,13 @@
                             {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
                                ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
                                ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                               'bg-blue-100 text-blue-800')) }}">
+                               ($order->status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                               ($order->status === 'shipped' ? 'bg-indigo-100 text-indigo-800' :
+                               'bg-gray-100 text-gray-800')))) }}">
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $order->created_at->format('M d, Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-700">{{ $order->created_at->format('M d, Y') }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:text-primary-light font-medium">View Details</a>
                     </td>
