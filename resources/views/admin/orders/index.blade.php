@@ -94,12 +94,12 @@
                 @forelse($orders as $order)
                 @php
                     $rowBgClass = match($order->status) {
-                        'pending' => 'bg-yellow-50 hover:bg-yellow-100',
-                        'processing' => 'bg-blue-50 hover:bg-blue-100',
-                        'shipped' => 'bg-indigo-50 hover:bg-indigo-100',
-                        'delivered' => 'bg-green-50 hover:bg-green-100',
-                        'cancelled' => 'bg-red-50 hover:bg-red-100',
-                        default => 'bg-neutral-50 hover:bg-neutral-100'
+                        'pending' => 'bg-yellow-200 hover:bg-yellow-300',
+                        'processing' => 'bg-blue-200 hover:bg-blue-300',
+                        'shipped' => 'bg-indigo-200 hover:bg-indigo-300',
+                        'delivered' => 'bg-purple-200 hover:bg-purple-300',
+                        'cancelled' => 'bg-red-200 hover:bg-red-300',
+                        default => 'bg-neutral-200 hover:bg-neutral-300'
                     };
                 @endphp
                 <tr class="{{ $rowBgClass }} transition-colors">
@@ -117,12 +117,12 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                               ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
-                               ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                               ($order->status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                               ($order->status === 'shipped' ? 'bg-indigo-100 text-indigo-800' :
-                               'bg-gray-100 text-gray-800')))) }}">
+                            {{ $order->status === 'pending' ? 'bg-yellow-300 text-yellow-900' : 
+                               ($order->status === 'delivered' ? 'bg-purple-300 text-purple-900' : 
+                               ($order->status === 'cancelled' ? 'bg-red-300 text-red-900' : 
+                               ($order->status === 'processing' ? 'bg-blue-300 text-blue-900' :
+                               ($order->status === 'shipped' ? 'bg-indigo-300 text-indigo-900' :
+                               'bg-gray-300 text-gray-900')))) }}">
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
