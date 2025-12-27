@@ -22,14 +22,16 @@ Route::middleware([TrackReferral::class])->group(function () {
     Route::get('/orders/success/{orderNumber}', [OrderController::class, 'success'])->name('orders.success');
 });
 
-// Authentication routes (no referral tracking needed)
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login/send-otp', [LoginController::class, 'sendOtp'])->name('login.send-otp');
-Route::post('/login/verify-otp', [LoginController::class, 'verifyOtp'])->name('login.verify-otp');
-Route::post('/login', [LoginController::class, 'login']); // Legacy password-based login
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('/register/send-otp', [RegisterController::class, 'sendOtp'])->name('register.send-otp');
-Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp'])->name('register.verify-otp');
+// Authentication routes (no referral tracking needed, guest only)
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login/send-otp', [LoginController::class, 'sendOtp'])->name('login.send-otp');
+    Route::post('/login/verify-otp', [LoginController::class, 'verifyOtp'])->name('login.verify-otp');
+    Route::post('/login', [LoginController::class, 'login']); // Legacy password-based login
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register/send-otp', [RegisterController::class, 'sendOtp'])->name('register.send-otp');
+    Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp'])->name('register.verify-otp');
+});
 
 // Logout (requires auth)
 Route::middleware('auth')->group(function () {

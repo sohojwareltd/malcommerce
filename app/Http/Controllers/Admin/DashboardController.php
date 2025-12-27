@@ -335,7 +335,9 @@ class DashboardController extends Controller
             abort(404);
         }
         
-        $sponsor->load(['orders.product', 'referrals']);
+        $sponsor->load(['orders.product', 'referrals' => function($query) {
+            $query->withCount('orders');
+        }]);
         
         // Get all active products for affiliate links
         $products = Product::where('is_active', true)->orderBy('name')->get();
