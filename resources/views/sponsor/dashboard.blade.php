@@ -62,13 +62,12 @@ use Illuminate\Support\Str;
                     </div>
                     <!-- User Info -->
                     <div class="text-white flex-1 min-w-0">
-                        <h1 class="text-2xl lg:text-3xl font-bold mb-2 truncate">{{ Auth::user()->name }}</h1>
+                        <h1 class="text-2xl lg:text-3xl text-white font-bold mb-2 truncate">{{ Auth::user()->name }}</h1>
                         <div class="flex flex-wrap items-center gap-2 lg:gap-4">
                             <div class="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
                                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                 </svg>
-                                <span class="text-xs lg:text-sm font-medium">Partner Code</span>
                                 <span class="font-mono font-bold text-sm lg:text-lg">{{ Auth::user()->affiliate_code }}</span>
                             </div>
                             @if(Auth::user()->phone)

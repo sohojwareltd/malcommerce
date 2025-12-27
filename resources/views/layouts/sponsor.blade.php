@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Storage;
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                             </svg>
                         </a>
+                        
                         <!-- Income Badge -->
                         @php
                             $income = Auth::user()->orders()->where('status', '!=', 'cancelled')->sum('total_price');
@@ -43,7 +44,14 @@ use Illuminate\Support\Facades\Storage;
                             <span class="text-sm font-semibold text-green-700">৳{{ number_format($income, 2) }}</span>
                         </div>
                     </div>
-                    <!-- User Avatar with Dropdown -->
+                    <div class="flex items-center gap-3">
+                        <!-- Web Icon -->
+                        <a href="{{ route('home') }}" target="_blank" class="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-neutral-100 transition-colors text-neutral-600 hover:text-primary" title="View Website">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                            </svg>
+                        </a>
+                        <!-- User Avatar with Dropdown -->
                     <div class="relative" x-data="{ open: false }">
                         <button 
                             @click="open = !open"
@@ -67,20 +75,14 @@ use Illuminate\Support\Facades\Storage;
                             x-transition:leave="transition ease-in duration-75"
                             x-transition:leave-start="transform opacity-100 scale-100"
                             x-transition:leave-end="transform opacity-0 scale-95"
-                            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50"
+                            class="absolute right-0 mt-2 w-60 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50"
                             style="display: none;"
                         >
                             <div class="px-4 py-2 border-b border-neutral-100">
                                 <p class="text-sm font-semibold text-neutral-900">{{ Auth::user()->name }}</p>
-                                <p class="text-xs text-neutral-500 truncate">{{ Auth::user()->email }}</p>
+                                <p class="text-xs text-neutral-500 truncate">{{ Auth::user()->affiliate_code }}</p>
                             </div>
-                            <a href="{{ route('home') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                View Site
-                            </a>
+                            
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition text-left">
@@ -91,6 +93,7 @@ use Illuminate\Support\Facades\Storage;
                                 </button>
                             </form>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>

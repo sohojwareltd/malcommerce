@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     @php
+        use Illuminate\Support\Facades\Storage;
         $siteName = \App\Models\Setting::get('site_name', config('app.name', 'Shop'));
         $canonicalUrl = url()->current();
         $ogImage = \App\Models\Setting::get('og_image') ?: asset('favicon.ico');
@@ -191,15 +192,64 @@
                             <a href="{{ route('products.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
                             
                             @if(auth()->check())
-                                @if(auth()->user()->isAdmin())
-                                    <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-primary transition">Admin</a>
-                                @elseif(auth()->user()->isSponsor())
-                                    <a href="{{ route('sponsor.dashboard') }}" class="text-gray-700 hover:text-primary transition">Dashboard</a>
-                                @endif
-                                <form method="POST" action="{{ route('logout') }}" class="inline">
-                                    @csrf
-                                    <button type="submit" class="text-gray-700 hover:text-primary transition font-bangla">লগআউট</button>
-                                </form>
+                                <!-- User Avatar with Dropdown -->
+                                <div class="relative" x-data="{ userMenuOpen: false }">
+                                    <button 
+                                        @click="userMenuOpen = !userMenuOpen"
+                                        class="flex items-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition"
+                                    >
+                                        @if(auth()->user()->photo)
+                                            <img src="{{ Storage::disk('public')->url(auth()->user()->photo) }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 hover:border-primary transition-colors">
+                                       
+                                            @else
+                                            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-gray-200 hover:border-primary transition-colors">
+                                                <span class="text-white font-semibold text-sm">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                            </div>
+                                        @endif
+                                    </button>
+                                    <!-- Dropdown Menu -->
+                                    <div 
+                                        x-show="userMenuOpen"
+                                        @click.away="userMenuOpen = false"
+                                        x-transition:enter="transition ease-out duration-100"
+                                        x-transition:enter-start="transform opacity-0 scale-95"
+                                        x-transition:enter-end="transform opacity-100 scale-100"
+                                        x-transition:leave="transition ease-in duration-75"
+                                        x-transition:leave-start="transform opacity-100 scale-100"
+                                        x-transition:leave-end="transform opacity-0 scale-95"
+                                        class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                                        style="display: none;"
+                                    >
+                                        <div class="px-4 py-3 border-b border-gray-100">
+                                            <p class="text-sm font-semibold text-gray-900">{{ auth()->user()->name }}</p>
+                                            <p class="text-xs text-gray-500 truncate">{{ auth()->user()->affiliate_code }}</p>
+                                        </div>
+                                        @if(auth()->user()->isAdmin())
+                                            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                                </svg>
+                                                Admin Dashboard
+                                            </a>
+                                        @elseif(auth()->user()->isSponsor())
+                                            <a href="{{ route('sponsor.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                                </svg>
+                                                Partner Dashboard
+                                            </a>
+                                        @endif
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition text-left">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                                </svg>
+                                                <span class="font-bangla">লগআউট</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             @else
                                 <a href="{{ route('login') }}" class="text-gray-700 hover:text-primary transition font-bangla">লগইন</a>
                             @endif
@@ -259,19 +309,7 @@
                         <a href="{{ route('products.index', ['category' => $category->id]) }}" class="block text-gray-700 hover:text-primary font-bangla pl-4">{{ $category->name }}</a>
                         @endforeach
                     @endif
-                    @if(auth()->check())
-                        @if(auth()->user()->isAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="block text-gray-700 hover:text-primary">Admin</a>
-                        @elseif(auth()->user()->isSponsor())
-                            <a href="{{ route('sponsor.dashboard') }}" class="block text-gray-700 hover:text-primary">Dashboard</a>
-                        @endif
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
-                            @csrf
-                            <button type="submit" class="block text-gray-700 hover:text-primary font-bangla">লগআউট</button>
-                        </form>
-                    @else
-                        <a href="{{ route('login') }}" class="block text-gray-700 hover:text-primary font-bangla">লগইন</a>
-                    @endif
+                  
                 </div>
             </div>
         </header>
