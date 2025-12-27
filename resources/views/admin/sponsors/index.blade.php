@@ -39,10 +39,10 @@ use Illuminate\Support\Str;
                 <tr class="hover:bg-neutral-50">
                     <td class="px-6 py-4 whitespace-nowrap">
                         @if($sponsor->photo)
-                            <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-10 h-10 rounded-full object-cover">
+                            <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-50 h-50 rounded aspect-square object-cover">
                         @else
-                            <div class="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center">
-                                <svg class="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-20 h-20 rounded bg-neutral-200 flex items-center justify-center">
+                                <svg class="w-10 h-10 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                 </svg>
                             </div>
