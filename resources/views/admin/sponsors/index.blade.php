@@ -52,7 +52,7 @@ use Illuminate\Support\Str;
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:underline">{{ $sponsor->name }}</a>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
-                        <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:underline">{{ $sponsor->affiliate_code }}</a>
+                     {{ $sponsor->affiliate_code }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         {{ $sponsor->phone }}
