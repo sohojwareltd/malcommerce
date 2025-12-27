@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         
@@ -26,8 +26,22 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
-            
-        $referrals = $user->referrals()->withCount('orders')->get();
+        
+        // Build referrals query with search
+        $referralsQuery = $user->referrals()->withCount('orders');
+        
+        // Apply search filter if provided
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $referralsQuery->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('affiliate_code', 'like', "%{$search}%");
+            });
+        }
+        
+        $referrals = $referralsQuery->get();
         
         $affiliateLink = url('/') . '?ref=' . $user->affiliate_code;
         

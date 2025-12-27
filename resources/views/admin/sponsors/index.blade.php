@@ -18,6 +18,33 @@ use Illuminate\Support\Str;
     </a>
 </div>
 
+<!-- Search Form -->
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <form method="GET" action="{{ route('admin.sponsors.index') }}" class="flex gap-4 items-end">
+        <div class="flex-1">
+            <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search Partners</label>
+            <input 
+                type="text" 
+                name="search" 
+                id="search" 
+                value="{{ request('search') }}" 
+                placeholder="Search by name, phone, address, or partner code..."
+                class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            >
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold">
+                Search
+            </button>
+            @if(request('search'))
+            <a href="{{ route('admin.sponsors.index') }}" class="bg-neutral-200 text-neutral-700 px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold">
+                Clear
+            </a>
+            @endif
+        </div>
+    </form>
+</div>
+
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
@@ -52,10 +79,10 @@ use Illuminate\Support\Str;
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:underline">{{ $sponsor->name }}</a>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900 font-mono">
-                     {{ $sponsor->affiliate_code }}
+                        {{ $sponsor->affiliate_code }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 font-mono">
-                        {{ $sponsor->phone }}
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        {{ $sponsor->phone ?? 'N/A' }}
                     </td>
                     <td class="px-6 py-4 text-sm text-neutral-500 max-w-xs truncate" title="{{ $sponsor->address ?? 'N/A' }}">
                         {{ $sponsor->address ? Str::limit($sponsor->address, 30) : 'N/A' }}
@@ -77,7 +104,13 @@ use Illuminate\Support\Str;
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="px-6 py-4 text-center text-neutral-500">No sponsors found</td>
+                    <td colspan="9" class="px-6 py-4 text-center text-neutral-500">
+                        @if(request('search'))
+                            No sponsors found matching "{{ request('search') }}"
+                        @else
+                            No sponsors found
+                        @endif
+                    </td>
                 </tr>
                 @endforelse
             </tbody>
@@ -85,5 +118,3 @@ use Illuminate\Support\Str;
     </div>
 </div>
 @endsection
-
-

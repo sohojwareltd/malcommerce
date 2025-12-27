@@ -223,14 +223,26 @@ class DashboardController extends Controller
             ->with('success', 'Order status updated successfully!');
     }
     
-    public function sponsors()
+    public function sponsors(Request $request)
     {
-        $sponsors = User::where('role', 'sponsor')
+        $query = User::where('role', 'sponsor')
             ->withCount(['orders', 'referrals'])
             ->with(['orders' => function($query) {
                 $query->where('status', '!=', 'cancelled');
-            }])
-            ->get()
+            }]);
+        
+        // Apply search filter if provided
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('affiliate_code', 'like', "%{$search}%");
+            });
+        }
+        
+        $sponsors = $query->get()
             ->map(function($sponsor) {
                 $sponsor->total_revenue = $sponsor->orders->sum('total_price');
                 return $sponsor;

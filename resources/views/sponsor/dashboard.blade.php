@@ -139,7 +139,31 @@ use Illuminate\Support\Str;
 
 <!-- Referrals -->
 <div class="bg-white rounded-lg shadow-md p-6">
-    <h2 class="text-xl font-bold mb-4">Your Referrals</h2>
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold">Your Referrals</h2>
+    </div>
+    
+    <!-- Search Form -->
+    <form method="GET" action="{{ route('sponsor.dashboard') }}" class="mb-4">
+        <div class="flex gap-2">
+            <input 
+                type="text" 
+                name="search" 
+                value="{{ request('search') }}" 
+                placeholder="Search by name, phone, address, or affiliate code..."
+                class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            >
+            <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold">
+                Search
+            </button>
+            @if(request('search'))
+            <a href="{{ route('sponsor.dashboard') }}" class="bg-neutral-200 text-neutral-700 px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold">
+                Clear
+            </a>
+            @endif
+        </div>
+    </form>
+    
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
             <thead class="bg-neutral-50">
@@ -187,7 +211,13 @@ use Illuminate\Support\Str;
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-6 py-4 text-center text-neutral-500">No referrals yet</td>
+                    <td colspan="8" class="px-6 py-4 text-center text-neutral-500">
+                        @if(request('search'))
+                            No referrals found matching "{{ request('search') }}"
+                        @else
+                            No referrals yet
+                        @endif
+                    </td>
                 </tr>
                 @endforelse
             </tbody>
