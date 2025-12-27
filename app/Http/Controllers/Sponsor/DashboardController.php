@@ -205,4 +205,88 @@ class DashboardController extends Controller
         return redirect()->route('sponsor.dashboard')
             ->with('success', 'Profile updated successfully!');
     }
+    
+    /**
+     * Show the referral user details page
+     */
+    public function showReferral(User $referral)
+    {
+        $sponsor = Auth::user();
+        
+        // Ensure the referral belongs to the current sponsor
+        if ($referral->sponsor_id !== $sponsor->id) {
+            abort(403, 'Unauthorized action.');
+        }
+        
+        // Load referral's orders and their products
+        $referral->load(['orders.product' => function($query) {
+            $query->orderBy('created_at', 'desc');
+        }]);
+        
+        // Calculate statistics
+        $stats = [
+            'total_orders' => $referral->orders()->count(),
+            'total_revenue' => $referral->orders()->where('status', '!=', 'cancelled')->sum('total_price'),
+            'pending_orders' => $referral->orders()->where('status', 'pending')->count(),
+            'delivered_orders' => $referral->orders()->where('status', 'delivered')->count(),
+        ];
+        
+        return view('sponsor.users.show', compact('referral', 'sponsor', 'stats'));
+    }
+    
+    /**
+     * Show the edit referral user page
+     */
+    public function editReferral(User $referral)
+    {
+        $sponsor = Auth::user();
+        
+        // Ensure the referral belongs to the current sponsor
+        if ($referral->sponsor_id !== $sponsor->id) {
+            abort(403, 'Unauthorized action.');
+        }
+        
+        return view('sponsor.users.edit', compact('referral', 'sponsor'));
+    }
+    
+    /**
+     * Update a referral user
+     */
+    public function updateReferral(Request $request, User $referral)
+    {
+        $sponsor = Auth::user();
+        
+        // Ensure the referral belongs to the current sponsor
+        if ($referral->sponsor_id !== $sponsor->id) {
+            abort(403, 'Unauthorized action.');
+        }
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'nullable|string|max:1000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+        
+        $data = [
+            'name' => $request->name,
+            'address' => $request->address,
+        ];
+        
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($referral->photo && Storage::disk('public')->exists($referral->photo)) {
+                Storage::disk('public')->delete($referral->photo);
+            }
+            
+            // Store new photo
+            $photoPath = $request->file('photo')->store('photos', 'public');
+            $data['photo'] = $photoPath;
+        }
+        
+        $referral->update($data);
+        
+        return redirect()->route('sponsor.dashboard')
+            ->with('success', 'Referral user updated successfully!');
+    }
 }

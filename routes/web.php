@@ -72,6 +72,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
         Route::get('/users/create', [SponsorDashboardController::class, 'createUser'])->name('users.create');
         Route::post('/users', [SponsorDashboardController::class, 'addUser'])->name('users.store');
+        Route::get('/users/{referral}/edit', [SponsorDashboardController::class, 'editReferral'])->name('users.edit');
+        Route::put('/users/{referral}', [SponsorDashboardController::class, 'updateReferral'])->name('users.update');
         Route::get('/profile/edit', [SponsorDashboardController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [SponsorDashboardController::class, 'updateProfile'])->name('profile.update');
     });

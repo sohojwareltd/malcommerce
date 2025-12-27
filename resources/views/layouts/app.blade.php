@@ -151,19 +151,7 @@
             @endphp
             
             <!-- Top Bar -->
-            <div class="bg-white border-b border-gray-100">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex items-center justify-between h-10 text-sm text-gray-600">
-                        <div class="flex items-center gap-4 font-bangla">
-                            <span>🚚 ফ্রি ডেলিভারি</span>
-                            <span>💳 ক্যাশ অন ডেলিভারি</span>
-                        </div>
-                        <div class="hidden md:flex items-center gap-4">
-                            <a href="tel:{{ \App\Models\Setting::get('contact_phone', '') }}" class="hover:text-primary transition">📞 {{ \App\Models\Setting::get('contact_phone', '') }}</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
             
             <!-- Main Navigation -->
             <nav class="bg-white">
