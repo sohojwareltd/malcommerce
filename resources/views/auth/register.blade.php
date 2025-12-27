@@ -22,6 +22,8 @@
                     <label for="phone" class="block text-sm font-medium text-neutral-700 mb-2 font-bangla">ফোন নম্বর</label>
                     <input type="tel" name="phone" id="phone" required 
                            placeholder="01XXXXXXXXX" 
+                           autocomplete="tel"
+                           inputmode="numeric"
                            class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla">
                     <p class="mt-1 text-xs text-neutral-500 font-bangla">আপনার ১১ সংখ্যার মোবাইল নম্বর দিন</p>
                     <div id="phone-error" class="mt-1 text-sm text-red-600 hidden"></div>
@@ -51,6 +53,8 @@
                     <label for="otp" class="block text-sm font-medium text-neutral-700 mb-2 font-bangla">OTP কোড</label>
                     <input type="text" name="otp" id="otp" required autofocus 
                            placeholder="000000" maxlength="6" 
+                           autocomplete="one-time-code"
+                           inputmode="numeric"
                            class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-center text-2xl tracking-widest font-mono">
                     <div id="otp-error" class="mt-1 text-sm text-red-600 hidden"></div>
                 </div>
@@ -93,6 +97,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let resendTimer = null;
     let resendCountdown = 60;
+    let otpAbortController = null;
+
+    // Try to get phone number from device (if supported)
+    if ('credentials' in navigator && 'get' in navigator.credentials) {
+        navigator.credentials.get({ 
+            password: true,
+            mediation: 'silent'
+        }).then(credential => {
+            if (credential && credential.id) {
+                // Some browsers may store phone numbers
+                // This is a fallback, primary method is autocomplete="tel"
+            }
+        }).catch(() => {
+            // Ignore errors - feature not available
+        });
+    }
 
     // Auto-fill phone number from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
@@ -155,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 verifyPhoneInput.value = phone;
                 otpInput.focus();
                 startResendTimer();
+                startOtpDetection();
             } else {
                 showError(phoneError, data.message || 'OTP পাঠাতে ব্যর্থ হয়েছে');
                 sendOtpBtn.disabled = false;
@@ -272,6 +293,54 @@ document.addEventListener('DOMContentLoaded', function() {
         element.classList.add('hidden');
         element.textContent = '';
     }
+
+    // Web OTP API - Auto-detect OTP from SMS
+    function startOtpDetection() {
+        // Cancel any existing OTP detection
+        if (otpAbortController) {
+            otpAbortController.abort();
+        }
+
+        // Check if Web OTP API is supported
+        if ('OTPCredential' in window) {
+            otpAbortController = new AbortController();
+            
+            // Get the current domain for SMS format
+            const domain = window.location.hostname;
+            
+            navigator.credentials.get({
+                otp: { transport: ['sms'] },
+                signal: otpAbortController.signal
+            }).then(otp => {
+                if (otp && otp.code) {
+                    // Auto-fill OTP
+                    otpInput.value = otp.code;
+                    // Auto-submit if OTP is complete
+                    if (otp.code.length === 6) {
+                        verifyOtpForm.dispatchEvent(new Event('submit'));
+                    }
+                }
+            }).catch(err => {
+                // User cancelled or feature not available
+                // Silently fail - user can manually enter OTP
+                console.log('OTP auto-detection not available:', err);
+            });
+        }
+    }
+
+    // Stop OTP detection when form is submitted or page is hidden
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && otpAbortController) {
+            otpAbortController.abort();
+        }
+    });
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+        if (otpAbortController) {
+            otpAbortController.abort();
+        }
+    });
 });
 </script>
 @endsection

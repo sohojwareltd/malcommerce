@@ -42,7 +42,16 @@ class OtpService
             
             // Send OTP via SMS with brand name
             $brandName = config('sms.brand_name') ?: config('app.name', 'Your Brand');
-            $message = "Your {$brandName} OTP is {$otp}";
+            
+            // Get domain for Web OTP API compatibility
+            $domain = parse_url(config('app.url', 'http://localhost'), PHP_URL_HOST);
+            // Remove www. prefix if present
+            $domain = preg_replace('/^www\./', '', $domain);
+            
+            // Format message for Web OTP API: "@domain.com #OTP"
+            // This allows browsers to auto-detect OTP from SMS
+            $message = "Your {$brandName} OTP is {$otp}. @{$domain} #{$otp}";
+            
             $smsResult = $this->smsService->sendToSingle($phone, $message);
             
             if ($smsResult['success']) {
