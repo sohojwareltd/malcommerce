@@ -26,6 +26,7 @@ use Illuminate\Support\Str;
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Photo</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Partner Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Phone</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Address</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Referrals</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Orders</th>
@@ -50,7 +51,12 @@ use Illuminate\Support\Str;
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:underline">{{ $sponsor->name }}</a>
                     </td>
-               
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
+                        <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:underline">{{ $sponsor->name }}</a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
+                        {{ $sponsor->phone }}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 font-mono">{{ $sponsor->affiliate_code }}</td>
                     <td class="px-6 py-4 text-sm text-neutral-500 max-w-xs truncate" title="{{ $sponsor->address ?? 'N/A' }}">
                         {{ $sponsor->address ? Str::limit($sponsor->address, 30) : 'N/A' }}
