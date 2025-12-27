@@ -39,9 +39,9 @@ use Illuminate\Support\Str;
                 <tr class="hover:bg-neutral-50">
                     <td class="px-6 py-4 whitespace-nowrap">
                         @if($sponsor->photo)
-                            <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-20 h-20 rounded object-cover">
+                            <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-12 h-12 rounded-full object-cover">
                         @else
-                            <div class="w-12 h-12 rounded bg-neutral-200 flex items-center justify-center">
+                            <div class="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
                                 <svg class="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                 </svg>
@@ -51,13 +51,12 @@ use Illuminate\Support\Str;
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:underline">{{ $sponsor->name }}</a>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900 font-mono">
                      {{ $sponsor->affiliate_code }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 font-mono">
                         {{ $sponsor->phone }}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 font-mono">{{ $sponsor->affiliate_code }}</td>
                     <td class="px-6 py-4 text-sm text-neutral-500 max-w-xs truncate" title="{{ $sponsor->address ?? 'N/A' }}">
                         {{ $sponsor->address ? Str::limit($sponsor->address, 30) : 'N/A' }}
                     </td>
@@ -78,7 +77,7 @@ use Illuminate\Support\Str;
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-6 py-4 text-center text-neutral-500">No sponsors found</td>
+                    <td colspan="9" class="px-6 py-4 text-center text-neutral-500">No sponsors found</td>
                 </tr>
                 @endforelse
             </tbody>

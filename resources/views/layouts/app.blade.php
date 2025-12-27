@@ -143,7 +143,7 @@
                 </div>
             </div>
         @endif
-        
+            
         <!-- Header -->
         <header x-data="{ mobileMenuOpen: false }" class="bg-white border-b border-gray-200 shadow-sm">
             @php
