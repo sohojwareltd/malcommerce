@@ -3,10 +3,27 @@
 @section('title', 'Partner Dashboard')
 
 @section('content')
-<div class="mb-6">
+<div class="mb-6 flex items-center justify-between">
     <h1 class="text-3xl font-bold">Partner Dashboard</h1>
+    <a href="{{ route('sponsor.profile.edit') }}" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold">
+        Edit Profile
+    </a>
 </div>
-
+<!-- Add User Section -->
+<div class="bg-white rounded-lg shadow-md p-6 mb-8">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="text-xl font-bold">Add New User</h2>
+            <p class="text-sm text-neutral-600 mt-1">Add a new user who will be automatically referred by you</p>
+        </div>
+        <a 
+            href="{{ route('sponsor.users.create') }}" 
+            class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold"
+        >
+            Add User
+        </a>
+    </div>
+</div>
 <!-- Stats Grid -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-lg shadow-md p-6">
@@ -23,21 +40,7 @@
     </div>
 </div>
 
-<!-- Add User Section -->
-<div class="bg-white rounded-lg shadow-md p-6 mb-8">
-    <div class="flex items-center justify-between mb-4">
-        <div>
-            <h2 class="text-xl font-bold">Add New User</h2>
-            <p class="text-sm text-neutral-600 mt-1">Add a new user who will be automatically referred by you</p>
-        </div>
-        <a 
-            href="{{ route('sponsor.users.create') }}" 
-            class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold"
-        >
-            Add User
-        </a>
-    </div>
-</div>
+
 
 <!-- General Partner Link -->
 <div class="bg-white rounded-lg shadow-md p-6 mb-8">

@@ -25,6 +25,8 @@ class User extends Authenticatable
         'role',
         'affiliate_code',
         'sponsor_id',
+        'address',
+        'photo',
     ];
 
     /**

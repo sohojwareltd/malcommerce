@@ -2,6 +2,10 @@
 
 @section('title', 'Sponsor Details')
 
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('content')
 <div class="mb-6 flex items-center justify-between">
     <div>
@@ -124,16 +128,52 @@
         <!-- Sponsor Information -->
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-bold mb-4">Sponsor Information</h2>
+            
+            <!-- Photo -->
+            <div class="mb-4 flex justify-center">
+                @if($sponsor->photo)
+                    <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-24 h-24 rounded-full object-cover border-2 border-neutral-200">
+                @else
+                    <div class="w-24 h-24 rounded-full bg-neutral-200 flex items-center justify-center border-2 border-neutral-300">
+                        <svg class="w-12 h-12 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                @endif
+            </div>
+            
             <dl class="space-y-3">
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Name</dt>
                     <dd class="mt-1 text-sm font-semibold">{{ $sponsor->name }}</dd>
                 </div>
+                
+                @if($sponsor->email)
+                <div>
+                    <dt class="text-sm font-medium text-neutral-500">Email</dt>
+                    <dd class="mt-1 text-sm">{{ $sponsor->email }}</dd>
+                </div>
+                @endif
+                
+                @if($sponsor->phone)
+                <div>
+                    <dt class="text-sm font-medium text-neutral-500">Phone</dt>
+                    <dd class="mt-1 text-sm">{{ $sponsor->phone }}</dd>
+                </div>
+                @endif
             
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Partner Code</dt>
                     <dd class="mt-1 text-sm font-mono font-semibold">{{ $sponsor->affiliate_code }}</dd>
                 </div>
+                
+                @if($sponsor->address)
+                <div>
+                    <dt class="text-sm font-medium text-neutral-500">Address</dt>
+                    <dd class="mt-1 text-sm whitespace-pre-line">{{ $sponsor->address }}</dd>
+                </div>
+                @endif
+                
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Joined</dt>
                     <dd class="mt-1 text-sm">{{ $sponsor->created_at->format('M d, Y') }}</dd>
