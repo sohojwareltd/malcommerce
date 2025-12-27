@@ -91,11 +91,9 @@ class User extends Authenticatable
         static::creating(function ($user) {
             // Generate affiliate code for all users (all registered users are sponsors)
             if (empty($user->affiliate_code)) {
-                $identifier = $user->phone ?? $user->email ?? time();
-                
-                // Generate unique affiliate code
+                // Generate unique 6-digit affiliate code
                 do {
-                    $code = strtoupper(substr(md5($identifier . time() . rand(1000, 9999) . uniqid()), 0, 8));
+                    $code = str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
                 } while (User::where('affiliate_code', $code)->exists());
                 
                 $user->affiliate_code = $code;
