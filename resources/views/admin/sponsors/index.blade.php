@@ -66,7 +66,7 @@ use Illuminate\Support\Str;
                 <tr class="hover:bg-neutral-50">
                     <td class="px-6 py-4 whitespace-nowrap">
                         @if($sponsor->photo)
-                            <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-12 h-12 rounded-full object-cover">
+                            <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-20 h-20 aspect-square object-cover">
                         @else
                             <div class="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
                                 <svg class="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

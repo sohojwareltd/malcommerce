@@ -47,15 +47,7 @@
                 <div id="phone-error" class="mt-1 text-sm text-red-600 hidden"></div>
             </div>
             
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 class="text-sm font-semibold text-blue-900 mb-2">Note:</h3>
-                <ul class="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                    <li>The user will be automatically referred by you</li>
-                    <li>An affiliate code will be automatically generated for the new user</li>
-                    <li>The user will have sponsor access once created</li>
-                    <li>You will see this user in your referrals list</li>
-                </ul>
-            </div>
+           
             
             <div class="flex gap-4">
                 <button 
