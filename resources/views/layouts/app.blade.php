@@ -203,9 +203,12 @@
                             <a href="{{ route('products.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
                             
                             @if(auth()->check())
-                                @if(auth()->user()->isAdmin())
+                                @php
+                                    $user = auth()->user();
+                                @endphp
+                                @if($user?->isAdmin())
                                     <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-primary transition">Admin</a>
-                                @elseif(auth()->user()->isSponsor())
+                                @elseif($user?->isSponsor())
                                     <a href="{{ route('sponsor.dashboard') }}" class="text-gray-700 hover:text-primary transition">Dashboard</a>
                                 @endif
                                 <form method="POST" action="{{ route('logout') }}" class="inline">
@@ -272,9 +275,12 @@
                         @endforeach
                     @endif
                     @if(auth()->check())
-                        @if(auth()->user()->isAdmin())
+                        @php
+                            $user = auth()->user();
+                        @endphp
+                        @if($user?->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" class="block text-gray-700 hover:text-primary">Admin</a>
-                        @elseif(auth()->user()->isSponsor())
+                        @elseif($user?->isSponsor())
                             <a href="{{ route('sponsor.dashboard') }}" class="block text-gray-700 hover:text-primary">Dashboard</a>
                         @endif
                         <form method="POST" action="{{ route('logout') }}" class="inline">
