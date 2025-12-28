@@ -167,6 +167,22 @@ class DashboardController extends Controller
     {
         $query = Order::with('product', 'sponsor');
         
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', '%' . $search . '%')
+                  ->orWhere('customer_name', 'like', '%' . $search . '%')
+                  ->orWhere('customer_phone', 'like', '%' . $search . '%')
+                  ->orWhereHas('product', function($productQuery) use ($search) {
+                      $productQuery->where('name', 'like', '%' . $search . '%');
+                  })
+                  ->orWhereHas('sponsor', function($sponsorQuery) use ($search) {
+                      $sponsorQuery->where('name', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+        
         // Filter by status
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -180,7 +196,7 @@ class DashboardController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
         
-        $orders = $query->orderBy('created_at', 'desc')->paginate(20);
+        $orders = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
         return view('admin.orders.index', compact('orders'));
     }
     
@@ -207,14 +223,26 @@ class DashboardController extends Controller
             ->with('success', 'Order status updated successfully!');
     }
     
-    public function sponsors()
+    public function sponsors(Request $request)
     {
-        $sponsors = User::where('role', 'sponsor')
+        $query = User::where('role', 'sponsor')
             ->withCount(['orders', 'referrals'])
             ->with(['orders' => function($query) {
                 $query->where('status', '!=', 'cancelled');
-            }])
-            ->get()
+            }]);
+        
+        // Apply search filter if provided
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('affiliate_code', 'like', "%{$search}%");
+            });
+        }
+        
+        $sponsors = $query->get()
             ->map(function($sponsor) {
                 $sponsor->total_revenue = $sponsor->orders->sum('total_price');
                 return $sponsor;
@@ -319,7 +347,9 @@ class DashboardController extends Controller
             abort(404);
         }
         
-        $sponsor->load(['orders.product', 'referrals']);
+        $sponsor->load(['orders.product', 'referrals' => function($query) {
+            $query->withCount('orders');
+        }]);
         
         // Get all active products for affiliate links
         $products = Product::where('is_active', true)->orderBy('name')->get();
@@ -356,6 +386,8 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'address' => 'nullable|string|max:1000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
         
         try {
@@ -373,10 +405,25 @@ class DashboardController extends Controller
                 ->withErrors(['phone' => 'This phone number is already registered.']);
         }
         
-        $sponsor->update([
+        $data = [
             'name' => $request->name,
             'phone' => $phone,
-        ]);
+            'address' => $request->address,
+        ];
+        
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($sponsor->photo && Storage::disk('public')->exists($sponsor->photo)) {
+                Storage::disk('public')->delete($sponsor->photo);
+            }
+            
+            // Store new photo
+            $photoPath = $request->file('photo')->store('photos', 'public');
+            $data['photo'] = $photoPath;
+        }
+        
+        $sponsor->update($data);
         
         return redirect()->route('admin.sponsors.show', $sponsor)
             ->with('success', 'Sponsor updated successfully!');

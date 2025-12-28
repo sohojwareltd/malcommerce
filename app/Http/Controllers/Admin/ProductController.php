@@ -10,10 +10,40 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('category')->orderBy('created_at', 'desc')->paginate(20);
-        return view('admin.products.index', compact('products'));
+        $query = Product::with('category');
+        
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('slug', 'like', '%' . $search . '%')
+                  ->orWhere('sku', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+        
+        // Filter by category
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
+        
+        // Filter by status
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($request->status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+        
+        $products = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        
+        $categories = Category::orderBy('name')->get();
+        
+        return view('admin.products.index', compact('products', 'categories'));
     }
     
     public function create()

@@ -20,6 +20,17 @@ class LoginController extends Controller
 
     public function showLoginForm()
     {
+        // Redirect authenticated users to their dashboard
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.dashboard');
+            } elseif ($user->isSponsor()) {
+                return redirect()->route('sponsor.dashboard');
+            }
+            return redirect()->route('home');
+        }
+        
         return view('auth.login');
     }
     

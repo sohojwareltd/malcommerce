@@ -52,7 +52,29 @@ class Order extends Model
 
         static::creating(function ($order) {
             if (empty($order->order_number)) {
-                $order->order_number = 'ORD-' . strtoupper(uniqid());
+                // Get all order numbers and find the highest numeric one
+                $orderNumbers = self::pluck('order_number')->toArray();
+                $maxNumber = 0;
+                
+                foreach ($orderNumbers as $orderNum) {
+                    if ($orderNum && is_numeric($orderNum) && strlen($orderNum) <= 6) {
+                        $num = (int) $orderNum;
+                        if ($num > $maxNumber && $num <= 999999) {
+                            $maxNumber = $num;
+                        }
+                    }
+                }
+                
+                // Start from 1 if no numeric orders found, otherwise increment
+                $nextNumber = $maxNumber + 1;
+                
+                // Ensure we don't exceed 999999
+                if ($nextNumber > 999999) {
+                    $nextNumber = 1;
+                }
+                
+                // Generate 6-digit order number (000001 to 999999)
+                $order->order_number = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
             }
         });
     }

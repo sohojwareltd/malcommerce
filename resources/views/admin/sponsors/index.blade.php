@@ -2,6 +2,11 @@
 
 @section('title', 'Sponsors')
 
+@php
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+@endphp
+
 @section('content')
 <div class="mb-6 flex items-center justify-between">
     <div>
@@ -13,13 +18,43 @@
     </a>
 </div>
 
+<!-- Search Form -->
+<div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <form method="GET" action="{{ route('admin.sponsors.index') }}" class="flex gap-4 items-end">
+        <div class="flex-1">
+            <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search Partners</label>
+            <input 
+                type="text" 
+                name="search" 
+                id="search" 
+                value="{{ request('search') }}" 
+                placeholder="Search by name, phone, address, or partner code..."
+                class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            >
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold">
+                Search
+            </button>
+            @if(request('search'))
+            <a href="{{ route('admin.sponsors.index') }}" class="bg-neutral-200 text-neutral-700 px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold">
+                Clear
+            </a>
+            @endif
+        </div>
+    </form>
+</div>
+
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
             <thead class="bg-neutral-50">
                 <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Photo</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Partner Code</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Phone</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Address</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Referrals</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Orders</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Revenue</th>
@@ -29,11 +64,29 @@
             <tbody class="bg-white divide-y divide-neutral-200">
                 @forelse($sponsors as $sponsor)
                 <tr class="hover:bg-neutral-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        @if($sponsor->photo)
+                            <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-20 h-20 aspect-square object-cover">
+                        @else
+                            <div class="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:underline">{{ $sponsor->name }}</a>
                     </td>
-               
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500 font-mono">{{ $sponsor->affiliate_code }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900 font-mono">
+                        {{ $sponsor->affiliate_code }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        {{ $sponsor->phone ?? 'N/A' }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-neutral-500 max-w-xs truncate" title="{{ $sponsor->address ?? 'N/A' }}">
+                        {{ $sponsor->address ? Str::limit($sponsor->address, 30) : 'N/A' }}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->referrals_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->orders_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-accent">৳{{ number_format($sponsor->total_revenue, 2) }}</td>
@@ -51,7 +104,13 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-neutral-500">No sponsors found</td>
+                    <td colspan="9" class="px-6 py-4 text-center text-neutral-500">
+                        @if(request('search'))
+                            No sponsors found matching "{{ request('search') }}"
+                        @else
+                            No sponsors found
+                        @endif
+                    </td>
                 </tr>
                 @endforelse
             </tbody>
@@ -59,5 +118,3 @@
     </div>
 </div>
 @endsection
-
-
