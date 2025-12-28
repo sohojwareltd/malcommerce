@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Sponsor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -302,5 +303,53 @@ class DashboardController extends Controller
         
         return redirect()->route('sponsor.dashboard')
             ->with('success', 'Referral user updated successfully!');
+    }
+    
+    /**
+     * Show all orders for the current sponsor with search and filters
+     */
+    public function orders(Request $request)
+    {
+        $user = Auth::user();
+        
+        $query = $user->orders()->with('product');
+        
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', '%' . $search . '%')
+                  ->orWhere('customer_name', 'like', '%' . $search . '%')
+                  ->orWhere('customer_phone', 'like', '%' . $search . '%')
+                  ->orWhereHas('product', function($productQuery) use ($search) {
+                      $productQuery->where('name', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+        
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+        
+        $orders = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        
+        // Calculate summary stats
+        $stats = [
+            'total_orders' => $user->orders()->count(),
+            'total_revenue' => $user->orders()->where('status', '!=', 'cancelled')->sum('total_price'),
+            'pending_orders' => $user->orders()->where('status', 'pending')->count(),
+            'delivered_orders' => $user->orders()->where('status', 'delivered')->count(),
+        ];
+        
+        return view('sponsor.orders.index', compact('orders', 'stats'));
     }
 }

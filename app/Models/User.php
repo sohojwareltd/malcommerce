@@ -89,8 +89,8 @@ class User extends Authenticatable
         parent::boot();
 
         static::creating(function ($user) {
-            // Generate affiliate code for all users (all registered users are sponsors)
-            if (empty($user->affiliate_code)) {
+            // Generate affiliate code only for sponsors (not for admin users)
+            if (empty($user->affiliate_code) && $user->role !== 'admin') {
                 // Generate unique 6-digit affiliate code
                 do {
                     $code = str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);

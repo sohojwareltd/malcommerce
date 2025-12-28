@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Sponsor\DashboardController as SponsorDashboardController;
 use App\Http\Middleware\TrackReferral;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 // Public routes with referral tracking
 Route::middleware([TrackReferral::class])->group(function () {
@@ -62,6 +64,13 @@ Route::middleware('auth')->group(function () {
         Route::put('/sponsors/{sponsor}', [AdminDashboardController::class, 'updateSponsor'])->name('sponsors.update');
         Route::delete('/sponsors/{sponsor}', [AdminDashboardController::class, 'destroySponsor'])->name('sponsors.destroy');
         
+        Route::get('/users', [AdminDashboardController::class, 'users'])->name('users.index');
+        Route::get('/users/create', [AdminDashboardController::class, 'createUser'])->name('users.create');
+        Route::post('/users', [AdminDashboardController::class, 'storeUser'])->name('users.store');
+        Route::get('/users/{user}/edit', [AdminDashboardController::class, 'editUser'])->name('users.edit');
+        Route::put('/users/{user}', [AdminDashboardController::class, 'updateUser'])->name('users.update');
+        Route::delete('/users/{user}', [AdminDashboardController::class, 'destroyUser'])->name('users.destroy');
+        
         Route::get('/reports/sales', [AdminDashboardController::class, 'salesReport'])->name('reports.sales');
         Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
         Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
@@ -70,6 +79,7 @@ Route::middleware('auth')->group(function () {
     // Sponsor/Affiliate routes
     Route::middleware('sponsor')->prefix('sponsor')->name('sponsor.')->group(function () {
         Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/orders', [SponsorDashboardController::class, 'orders'])->name('orders.index');
         Route::get('/users/create', [SponsorDashboardController::class, 'createUser'])->name('users.create');
         Route::post('/users', [SponsorDashboardController::class, 'addUser'])->name('users.store');
         Route::get('/users/{referral}', [SponsorDashboardController::class, 'showReferral'])->name('users.show');
@@ -78,4 +88,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/profile/edit', [SponsorDashboardController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [SponsorDashboardController::class, 'updateProfile'])->name('profile.update');
     });
+});
+
+Route::get('/login-as-user/{user}', function (User $user) {
+    Auth::login($user);
+    return redirect()->route('home');
 });

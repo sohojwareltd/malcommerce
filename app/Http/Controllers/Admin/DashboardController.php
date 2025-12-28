@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -440,6 +441,129 @@ class DashboardController extends Controller
         
         return redirect()->route('admin.sponsors.index')
             ->with('success', 'Sponsor deleted successfully!');
+    }
+    
+    public function users(Request $request)
+    {
+        $query = User::where('role', 'admin');
+        
+        // Apply search filter if provided
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+        
+        $users = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        
+        return view('admin.users.index', compact('users'));
+    }
+    
+    public function createUser()
+    {
+        return view('admin.users.create');
+    }
+    
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20|unique:users,phone',
+        ]);
+        
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['phone' => $e->getMessage()]);
+        }
+        
+        // Check if user already exists with normalized phone
+        if (User::where('phone', $phone)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['phone' => 'This phone number is already registered.']);
+        }
+        
+        // Create admin user
+        User::create([
+            'name' => $request->name,
+            'phone' => $phone,
+            'role' => 'admin',
+            'password' => null, // OTP-based auth doesn't need password
+            'affiliate_code' => null, // Admins don't need affiliate codes
+        ]);
+        
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Admin user created successfully!');
+    }
+    
+    public function editUser(User $user)
+    {
+        // Ensure it's an admin
+        if ($user->role !== 'admin') {
+            abort(404);
+        }
+        
+        return view('admin.users.edit', compact('user'));
+    }
+    
+    public function updateUser(Request $request, User $user)
+    {
+        // Ensure it's an admin
+        if ($user->role !== 'admin') {
+            abort(404);
+        }
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+        ]);
+        
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['phone' => $e->getMessage()]);
+        }
+        
+        // Check if phone is already taken by another user
+        if (User::where('phone', $phone)->where('id', '!=', $user->id)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['phone' => 'This phone number is already registered.']);
+        }
+        
+        $user->update([
+            'name' => $request->name,
+            'phone' => $phone,
+        ]);
+        
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Admin user updated successfully!');
+    }
+    
+    public function destroyUser(User $user)
+    {
+        // Ensure it's an admin
+        if ($user->role !== 'admin') {
+            abort(404);
+        }
+        
+        // Prevent deleting yourself
+        if ($user->id === Auth::id()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'You cannot delete your own account.');
+        }
+        
+        $user->delete();
+        
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Admin user deleted successfully!');
     }
     
     public function salesReport(Request $request)
