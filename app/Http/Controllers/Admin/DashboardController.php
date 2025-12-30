@@ -669,4 +669,74 @@ class DashboardController extends Controller
         
         return redirect()->route('admin.settings')->with('success', 'Settings updated successfully!');
     }
+    
+    /**
+     * Show admin profile edit form
+     */
+    public function editProfile()
+    {
+        $user = Auth::user();
+        return view('admin.profile.edit', compact('user'));
+    }
+    
+    /**
+     * Update admin profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+            'address' => 'nullable|string|max:1000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'password' => 'nullable|min:8|confirmed',
+        ]);
+        
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['phone' => $e->getMessage()]);
+        }
+        
+        // Check if phone is already taken by another user
+        if (User::where('phone', $phone)->where('id', '!=', $user->id)->exists()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['phone' => 'This phone number is already registered.']);
+        }
+        
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $phone,
+            'address' => $request->address,
+        ];
+        
+        // Handle password update
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+        
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            
+            // Store new photo
+            $photoPath = $request->file('photo')->store('photos', 'public');
+            $data['photo'] = $photoPath;
+        }
+        
+        $user->update($data);
+        
+        return redirect()->route('admin.profile.edit')
+            ->with('success', 'Profile updated successfully!');
+    }
 }

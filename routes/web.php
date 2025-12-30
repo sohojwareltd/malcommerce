@@ -30,6 +30,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/login/send-otp', [LoginController::class, 'sendOtp'])->name('login.send-otp');
     Route::post('/login/verify-otp', [LoginController::class, 'verifyOtp'])->name('login.verify-otp');
     Route::post('/login', [LoginController::class, 'login']); // Legacy password-based login
+    
+    // Admin login routes
+    Route::get('/admin/login', [LoginController::class, 'showAdminLoginForm'])->name('admin.login');
+    Route::post('/admin/login', [LoginController::class, 'adminLoginPassword'])->name('admin.login.password');
+    Route::post('/admin/login/send-otp', [LoginController::class, 'adminSendOtp'])->name('admin.login.send-otp');
+    Route::post('/admin/login/verify-otp', [LoginController::class, 'adminVerifyOtp'])->name('admin.login.verify-otp');
+    
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register/send-otp', [RegisterController::class, 'sendOtp'])->name('register.send-otp');
     Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp'])->name('register.verify-otp');
@@ -74,6 +81,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sales', [AdminDashboardController::class, 'salesReport'])->name('reports.sales');
         Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
         Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
+        
+        // Admin profile routes
+        Route::get('/profile', [AdminDashboardController::class, 'editProfile'])->name('profile.edit');
+        Route::put('/profile', [AdminDashboardController::class, 'updateProfile'])->name('profile.update');
     });
     
     // Sponsor/Affiliate routes

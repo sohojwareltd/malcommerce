@@ -186,6 +186,171 @@ class LoginController extends Controller
         ]);
     }
     
+    /**
+     * Show admin login form
+     */
+    public function showAdminLoginForm()
+    {
+        // Redirect authenticated admin users
+        if (Auth::check() && Auth::user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        
+        return view('auth.admin-login');
+    }
+    
+    /**
+     * Admin login with password
+     */
+    public function adminLoginPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+        
+        if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
+            $user = Auth::user();
+            
+            // Only allow admin users
+            if (!$user->isAdmin()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'You do not have permission to access the admin panel.',
+                ])->withInput();
+            }
+            
+            $request->session()->regenerate();
+            return redirect()->intended(route('admin.dashboard'));
+        }
+        
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->withInput();
+    }
+    
+    /**
+     * Send OTP for admin login
+     */
+    public function adminSendOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|max:20',
+        ]);
+
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
+
+        // Check if user exists and is admin
+        $user = User::where('phone', $phone)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number not found.'
+            ], 422);
+        }
+        
+        // Only allow admin users
+        if (!$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to access the admin panel.'
+            ], 403);
+        }
+
+        // Check rate limiting
+        if (!$this->otpService->canSendOtp($phone)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please wait a moment before requesting another OTP.'
+            ], 429);
+        }
+
+        // Send OTP
+        $result = $this->otpService->sendOtp($phone, 'admin-login');
+
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => 'OTP sent successfully to your phone number',
+                'expires_in' => $result['otp_expires_in'] ?? 300
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $result['message'] ?? 'Failed to send OTP. Please try again.'
+        ], 500);
+    }
+
+    /**
+     * Verify OTP for admin login
+     */
+    public function adminVerifyOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|max:20',
+            'otp' => 'required|string|size:6',
+        ]);
+
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
+
+        // Verify OTP
+        $result = $this->otpService->verifyOtp($phone, $request->otp, 'admin-login');
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Invalid OTP. Please try again.'
+            ], 422);
+        }
+
+        // Find user and verify admin role
+        $user = User::where('phone', $phone)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.'
+            ], 422);
+        }
+        
+        // Only allow admin users
+        if (!$user->isAdmin()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to access the admin panel.'
+            ], 403);
+        }
+
+        // Clear session data
+        session()->forget(['otp_phone', 'otp_type', 'otp_sent_at']);
+
+        // Login user
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Login successful!',
+            'redirect' => route('admin.dashboard')
+        ]);
+    }
+    
     public function logout(Request $request)
     {
         Auth::logout();
