@@ -21,6 +21,7 @@ class Order extends Model
         'city_village',
         'post_code',
         'address',
+        'user_id',
         'sponsor_id',
         'referral_code',
         'status',
@@ -39,6 +40,11 @@ class Order extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function sponsor(): BelongsTo

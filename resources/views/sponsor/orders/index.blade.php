@@ -22,6 +22,12 @@
         </div>
         <h3 class="text-[10px] sm:text-xs text-neutral-500 mb-0.5 sm:mb-1 truncate">Total Orders</h3>
         <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900">{{ $stats['total_orders'] }}</p>
+        <div class="mt-2 pt-2 border-t border-neutral-200">
+            <div class="flex justify-between text-xs">
+                <span class="text-blue-600 font-medium">My: {{ $stats['my_orders'] ?? 0 }}</span>
+                <span class="text-purple-600 font-medium">Referral: {{ $stats['referral_orders'] ?? 0 }}</span>
+            </div>
+        </div>
     </div>
     
     <div class="bg-white rounded-xl shadow-lg p-3 sm:p-4 lg:p-6 border border-neutral-200">
@@ -141,6 +147,7 @@
             <thead class="bg-primary/10">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Order #</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Type</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Product</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Customer</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-primary uppercase">Phone</th>
@@ -153,6 +160,12 @@
                 @forelse($orders as $order)
                 <tr class="hover:bg-primary/5 transition-colors">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-neutral-900">{{ $order->order_number }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' }}">
+                            {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'My Order' : 'Referral Order' }}
+                        </span>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-700">{{ $order->product->name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-700">{{ $order->customer_name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $order->customer_phone }}</td>
@@ -171,7 +184,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-neutral-500">
+                    <td colspan="8" class="px-6 py-4 text-center text-neutral-500">
                         @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
                             No orders found matching your filters
                         @else
@@ -190,9 +203,13 @@
         <div class="p-4 hover:bg-primary/5 transition-colors">
             <div class="flex items-start justify-between mb-3">
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
                         <span class="text-xs font-mono text-neutral-500">#</span>
                         <span class="text-sm font-semibold text-neutral-900 truncate">{{ $order->order_number }}</span>
+                        <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' }}">
+                            {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'My Order' : 'Referral' }}
+                        </span>
                     </div>
                     <p class="text-xs text-neutral-500">{{ $order->created_at->format('M d, Y') }}</p>
                 </div>

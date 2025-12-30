@@ -16,20 +16,30 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
+        // Get orders from referrals (users sponsored by this sponsor) AND sponsor's own orders
+        // Orders where user_id belongs to users where sponsor_id = current user's id OR user_id = current user's id
+        $referralUserIds = $user->referrals()->pluck('id');
+        $allUserIds = $referralUserIds->push($user->id)->unique();
+        
         $stats = [
             'total_referrals' => $user->referrals()->count(),
-            'total_orders' => $user->orders()->count(),
-            'pending_orders' => $user->orders()->where('status', 'pending')->count(),
+            'total_orders' => Order::whereIn('user_id', $allUserIds)->count(),
+            'pending_orders' => Order::whereIn('user_id', $allUserIds)->where('status', 'pending')->count(),
         ];
         
-        $recentOrders = $user->orders()
-            ->with('product')
+        $recentOrders = Order::whereIn('user_id', $allUserIds)
+            ->with(['product', 'user'])
             ->orderBy('created_at', 'desc')
             ->take(10)
-            ->get();
+            ->get()
+            ->map(function($order) use ($user) {
+                // Add order type: 'my_order' if it's sponsor's own order, 'referral_order' if from referral
+                $order->order_type = $order->user_id == $user->id ? 'my_order' : 'referral_order';
+                return $order;
+            });
         
         // Build referrals query with search
-        $referralsQuery = $user->referrals()->withCount('orders');
+        $referralsQuery = $user->referrals()->withCount('customerOrders as orders_count');
         
         // Apply search filter if provided
         if ($request->has('search') && !empty($request->search)) {
@@ -59,7 +69,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $referrals = $user->referrals()
-            ->withCount('orders')
+            ->withCount('customerOrders as orders_count')
             ->orderBy('created_at', 'desc')
             ->get();
         return view('sponsor.users.create', compact('user', 'referrals'));
@@ -233,17 +243,17 @@ class DashboardController extends Controller
             abort(403, 'Unauthorized action.');
         }
         
-        // Load referral's orders and their products
-        $referral->load(['orders.product' => function($query) {
+        // Load referral's customer orders and their products
+        $referral->load(['customerOrders.product' => function($query) {
             $query->orderBy('created_at', 'desc');
         }]);
         
         // Calculate statistics
         $stats = [
-            'total_orders' => $referral->orders()->count(),
-            'total_revenue' => $referral->orders()->where('status', '!=', 'cancelled')->sum('total_price'),
-            'pending_orders' => $referral->orders()->where('status', 'pending')->count(),
-            'delivered_orders' => $referral->orders()->where('status', 'delivered')->count(),
+            'total_orders' => $referral->customerOrders()->count(),
+            'total_revenue' => $referral->customerOrders()->where('status', '!=', 'cancelled')->sum('total_price'),
+            'pending_orders' => $referral->customerOrders()->where('status', 'pending')->count(),
+            'delivered_orders' => $referral->customerOrders()->where('status', 'delivered')->count(),
         ];
         
         return view('sponsor.users.show', compact('referral', 'sponsor', 'stats'));
@@ -312,7 +322,12 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        $query = $user->orders()->with('product');
+        // Get orders from referrals (users sponsored by this sponsor) AND sponsor's own orders
+        $referralUserIds = $user->referrals()->pluck('id');
+        $allUserIds = $referralUserIds->push($user->id)->unique();
+        
+        $query = Order::whereIn('user_id', $allUserIds)
+            ->with(['product', 'user']);
         
         // Search functionality
         if ($request->filled('search')) {
@@ -323,6 +338,10 @@ class DashboardController extends Controller
                   ->orWhere('customer_phone', 'like', '%' . $search . '%')
                   ->orWhereHas('product', function($productQuery) use ($search) {
                       $productQuery->where('name', 'like', '%' . $search . '%');
+                  })
+                  ->orWhereHas('user', function($userQuery) use ($search) {
+                      $userQuery->where('name', 'like', '%' . $search . '%')
+                                 ->orWhere('phone', 'like', '%' . $search . '%');
                   });
             });
         }
@@ -342,12 +361,20 @@ class DashboardController extends Controller
         
         $orders = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
         
+        // Add order type to each order
+        $orders->getCollection()->transform(function($order) use ($user) {
+            $order->order_type = $order->user_id == $user->id ? 'my_order' : 'referral_order';
+            return $order;
+        });
+        
         // Calculate summary stats
         $stats = [
-            'total_orders' => $user->orders()->count(),
-            'total_revenue' => $user->orders()->where('status', '!=', 'cancelled')->sum('total_price'),
-            'pending_orders' => $user->orders()->where('status', 'pending')->count(),
-            'delivered_orders' => $user->orders()->where('status', 'delivered')->count(),
+            'total_orders' => Order::whereIn('user_id', $allUserIds)->count(),
+            'total_revenue' => Order::whereIn('user_id', $allUserIds)->where('status', '!=', 'cancelled')->sum('total_price'),
+            'pending_orders' => Order::whereIn('user_id', $allUserIds)->where('status', 'pending')->count(),
+            'delivered_orders' => Order::whereIn('user_id', $allUserIds)->where('status', 'delivered')->count(),
+            'my_orders' => Order::where('user_id', $user->id)->count(),
+            'referral_orders' => Order::whereIn('user_id', $referralUserIds)->count(),
         ];
         
         return view('sponsor.orders.index', compact('orders', 'stats'));

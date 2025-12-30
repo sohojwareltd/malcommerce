@@ -46,9 +46,9 @@ use Illuminate\Support\Facades\Storage;
         </div>
 
         <!-- Recent Orders -->
-        @if($referral->orders->count() > 0)
+        @if($referral->customerOrders->count() > 0)
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold mb-4">Orders ({{ $referral->orders->count() }})</h2>
+            <h2 class="text-xl font-bold mb-4">Orders ({{ $referral->customerOrders->count() }})</h2>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-neutral-200">
                     <thead class="bg-neutral-50">
@@ -61,7 +61,7 @@ use Illuminate\Support\Facades\Storage;
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-neutral-200">
-                        @foreach($referral->orders->take(20) as $order)
+                        @foreach($referral->customerOrders->take(20) as $order)
                         <tr class="hover:bg-neutral-50">
                             <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-neutral-900">
                                 {{ $order->order_number }}

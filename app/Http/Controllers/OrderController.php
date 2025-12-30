@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
@@ -27,12 +28,45 @@ class OrderController extends Controller
             return back()->withErrors(['quantity' => 'Insufficient stock available.'])->withInput();
         }
         
+        // Normalize phone number
+        try {
+            $normalizedPhone = $this->normalizePhone($request->customer_phone);
+        } catch (\Exception $e) {
+            return back()->withErrors(['customer_phone' => $e->getMessage()])->withInput();
+        }
+        
+        // Find or create user by phone number
+        $user = User::where('phone', $normalizedPhone)->first();
+        
+        if (!$user) {
+            // Create new user with customer role
+            $user = User::create([
+                'name' => $request->customer_name,
+                'phone' => $normalizedPhone,
+                'role' => 'customer',
+                'password' => null, // OTP-based auth, password not required
+                'address' => $request->address,
+            ]);
+        } else {
+            // Update user name and address if provided (in case they changed)
+            $updateData = [];
+            if ($request->customer_name && $user->name !== $request->customer_name) {
+                $updateData['name'] = $request->customer_name;
+            }
+            if ($request->address && $user->address !== $request->address) {
+                $updateData['address'] = $request->address;
+            }
+            if (!empty($updateData)) {
+                $user->update($updateData);
+            }
+        }
+        
         // Get referral code from session (set by middleware)
         $referralCode = Session::get('referral_code');
         $sponsorId = null;
         
         if ($referralCode) {
-            $sponsor = \App\Models\User::where('affiliate_code', $referralCode)->first();
+            $sponsor = User::where('affiliate_code', $referralCode)->first();
             if ($sponsor) {
                 $sponsorId = $sponsor->id;
             }
@@ -44,8 +78,9 @@ class OrderController extends Controller
             'unit_price' => $product->price,
             'total_price' => $product->price * $request->quantity,
             'customer_name' => $request->customer_name,
-            'customer_phone' => $request->customer_phone,
+            'customer_phone' => $normalizedPhone,
             'address' => $request->address,
+            'user_id' => $user->id,
             'sponsor_id' => $sponsorId,
             'referral_code' => $referralCode,
             'status' => 'pending',
@@ -86,5 +121,54 @@ class OrderController extends Controller
     {
         $order = Order::where('order_number', $orderNumber)->firstOrFail();
         return view('orders.success', compact('order'));
+    }
+    
+    /**
+     * Normalize and validate Bangladesh phone number
+     * Formats: 01795560431 -> 8801795560431, 8801795560431 -> 8801795560431, +8801795560431 -> 8801795560431
+     *
+     * @param string $phone Phone number in any format
+     * @return string Normalized phone number (880XXXXXXXXXX)
+     * @throws \Exception If phone number is invalid
+     */
+    protected function normalizePhone($phone)
+    {
+        if (empty($phone)) {
+            throw new \Exception('Phone number is required');
+        }
+
+        // Remove all non-numeric characters except + (we'll handle + separately)
+        $phone = preg_replace('/[^0-9+]/', '', $phone);
+        
+        // Remove + if present
+        $phone = str_replace('+', '', $phone);
+        
+        // If it starts with 880, validate format
+        if (strpos($phone, '880') === 0) {
+            // Validate Bangladesh mobile format: 880 + 1 + 9 digits = 13 digits total
+            if (strlen($phone) === 13 && $phone[3] === '1') {
+                return $phone;
+            }
+            throw new \Exception('Invalid Bangladesh phone number format. Please enter a valid 11-digit mobile number.');
+        }
+        
+        // If it starts with 0, replace with 880
+        if (strpos($phone, '0') === 0) {
+            $phone = '880' . substr($phone, 1);
+            // Validate: should be 13 digits total and 4th digit should be 1
+            if (strlen($phone) === 13 && $phone[3] === '1') {
+                return $phone;
+            }
+            throw new \Exception('Invalid Bangladesh phone number format. Please enter a valid 11-digit mobile number.');
+        }
+        
+        // If it doesn't start with 0 or 880, add 880 prefix
+        $phone = '880' . $phone;
+        // Validate: should be 13 digits total and 4th digit should be 1
+        if (strlen($phone) === 13 && $phone[3] === '1') {
+            return $phone;
+        }
+        
+        throw new \Exception('Invalid Bangladesh phone number format. Please enter a valid 11-digit mobile number.');
     }
 }

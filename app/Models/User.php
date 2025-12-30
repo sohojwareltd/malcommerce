@@ -68,6 +68,11 @@ class User extends Authenticatable
         return $this->hasMany(Order::class, 'sponsor_id');
     }
 
+    public function customerOrders()
+    {
+        return $this->hasMany(Order::class, 'user_id');
+    }
+
     // Helper methods
     public function isAdmin(): bool
     {

@@ -374,6 +374,7 @@ use Illuminate\Support\Str;
             <thead class="bg-orange-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-orange-900 uppercase">Order #</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-orange-900 uppercase">Type</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-orange-900 uppercase">Product</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-orange-900 uppercase">Customer</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-orange-900 uppercase">Amount</th>
@@ -385,6 +386,12 @@ use Illuminate\Support\Str;
                 @forelse($recentOrders as $order)
                 <tr class="hover:bg-orange-50 transition-colors">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-neutral-900">{{ $order->order_number }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' }}">
+                            {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'My Order' : 'Referral Order' }}
+                        </span>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-700">{{ $order->product->name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-700">{{ $order->customer_name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">৳{{ number_format($order->total_price, 2) }}</td>
@@ -400,7 +407,7 @@ use Illuminate\Support\Str;
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-neutral-500">No orders yet</td>
+                    <td colspan="7" class="px-6 py-4 text-center text-neutral-500">No orders yet</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -416,6 +423,10 @@ use Illuminate\Support\Str;
                     <div class="flex items-center gap-2 mb-1">
                         <span class="text-xs font-mono text-neutral-500">#</span>
                         <span class="text-sm font-semibold text-neutral-900 truncate">{{ $order->order_number }}</span>
+                        <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' }}">
+                            {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'My Order' : 'Referral' }}
+                        </span>
                     </div>
                     <p class="text-xs text-neutral-500">{{ $order->created_at->format('M d, Y') }}</p>
                 </div>
