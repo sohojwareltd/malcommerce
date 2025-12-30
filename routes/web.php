@@ -103,7 +103,7 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-Route::get('/login-as-user/{user}', function (User $user) {
-    Auth::login($user);
-    return redirect()->route('home');
-});
+// Route::get('/login-as-user/{user}', function (User $user) {
+//     Auth::login($user);
+//     return redirect()->route('home');
+// });
