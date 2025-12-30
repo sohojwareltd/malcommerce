@@ -688,11 +688,10 @@ class DashboardController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'nullable|email|unique:users,email,' . $user->id,
             'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'password' => 'nullable|min:8|confirmed',
         ]);
         
         try {
@@ -712,14 +711,13 @@ class DashboardController extends Controller
         
         $data = [
             'name' => $request->name,
-            'email' => $request->email,
             'phone' => $phone,
             'address' => $request->address,
         ];
         
-        // Handle password update
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
+        // Only update email if provided
+        if ($request->filled('email')) {
+            $data['email'] = $request->email;
         }
         
         // Handle photo upload
@@ -736,7 +734,47 @@ class DashboardController extends Controller
         
         $user->update($data);
         
-        return redirect()->route('admin.profile.edit')
+        return redirect()->to(route('admin.profile.edit') . '#profile')
             ->with('success', 'Profile updated successfully!');
+    }
+    
+    /**
+     * Show change password form (redirects to profile page with password tab)
+     */
+    public function showChangePasswordForm()
+    {
+        return redirect()->to(route('admin.profile.edit') . '#password');
+    }
+    
+    /**
+     * Update admin password
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+        
+        // If user has a password, require current password; otherwise it's optional
+        $rules = [
+            'password' => 'required|min:8|confirmed',
+        ];
+        
+        if ($user->password) {
+            $rules['current_password'] = 'required';
+        }
+        
+        $request->validate($rules);
+        
+        // Check current password if user has a password set
+        if ($user->password && !\Hash::check($request->current_password, $user->password)) {
+            return redirect()->back()
+                ->withErrors(['current_password' => 'The current password is incorrect.']);
+        }
+        
+        $user->update([
+            'password' => bcrypt($request->password),
+        ]);
+        
+        return redirect()->to(route('admin.profile.edit') . '#password')
+            ->with('success', 'Password changed successfully!');
     }
 }

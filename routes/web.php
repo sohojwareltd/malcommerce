@@ -85,6 +85,8 @@ Route::middleware('auth')->group(function () {
         // Admin profile routes
         Route::get('/profile', [AdminDashboardController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [AdminDashboardController::class, 'updateProfile'])->name('profile.update');
+        Route::get('/profile/change-password', [AdminDashboardController::class, 'showChangePasswordForm'])->name('profile.change-password');
+        Route::put('/profile/change-password', [AdminDashboardController::class, 'updatePassword'])->name('profile.update-password');
     });
     
     // Sponsor/Affiliate routes
