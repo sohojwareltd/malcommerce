@@ -13,6 +13,33 @@
     </a>
 </div>
 
+<!-- Search Form -->
+<div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+    <form method="GET" action="{{ route('admin.categories.index') }}" class="flex flex-col sm:flex-row gap-4 sm:items-end">
+        <div class="flex-1">
+            <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search Categories</label>
+            <input 
+                type="text" 
+                name="search" 
+                id="search" 
+                value="{{ request('search') }}" 
+                placeholder="Search by name, slug, or description..."
+                class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+            >
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold text-sm sm:text-base flex-1 sm:flex-none">
+                Search
+            </button>
+            @if(request('search'))
+            <a href="{{ route('admin.categories.index') }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base">
+                Clear
+            </a>
+            @endif
+        </div>
+    </form>
+</div>
+
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
     <!-- Desktop Table View -->
     <div class="hidden lg:block overflow-x-auto">
@@ -117,6 +144,13 @@
         @endforelse
     </div>
 </div>
+
+<!-- Pagination -->
+@if($categories->hasPages())
+<div class="mt-4">
+    {{ $categories->links() }}
+</div>
+@endif
 @endsection
 
 

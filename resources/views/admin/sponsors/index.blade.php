@@ -185,4 +185,11 @@ use Illuminate\Support\Str;
         @endforelse
     </div>
 </div>
+
+<!-- Pagination -->
+@if($sponsors->hasPages())
+<div class="mt-4">
+    {{ $sponsors->links() }}
+</div>
+@endif
 @endsection

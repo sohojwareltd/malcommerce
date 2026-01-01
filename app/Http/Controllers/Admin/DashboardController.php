@@ -34,9 +34,26 @@ class DashboardController extends Controller
         return view('admin.dashboard', compact('stats', 'recentOrders'));
     }
     
-    public function categories()
+    public function categories(Request $request)
     {
-        $categories = Category::orderBy('sort_order')->get();
+        $query = Category::query();
+        
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('slug', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+        
+        // Order by sort_order first, then by latest created
+        $categories = $query->orderBy('sort_order')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
+            
         return view('admin.categories.index', compact('categories'));
     }
     
@@ -243,11 +260,16 @@ class DashboardController extends Controller
             });
         }
         
-        $sponsors = $query->get()
-            ->map(function($sponsor) {
-                $sponsor->total_revenue = $sponsor->orders->sum('total_price');
-                return $sponsor;
-            });
+        // Order by latest first (created_at desc)
+        $sponsors = $query->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
+            
+        // Calculate total revenue for each sponsor
+        $sponsors->getCollection()->transform(function($sponsor) {
+            $sponsor->total_revenue = $sponsor->orders->sum('total_price') ?? 0;
+            return $sponsor;
+        });
             
         return view('admin.sponsors.index', compact('sponsors'));
     }
@@ -262,6 +284,9 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'address' => 'nullable|string|max:1000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'comment' => 'nullable|string|max:2000',
         ]);
         
         try {
@@ -279,14 +304,38 @@ class DashboardController extends Controller
                 ->withErrors(['phone' => 'This phone number is already registered.']);
         }
         
-        // Create sponsor user
-        User::create([
+        $data = [
             'name' => $request->name,
             'phone' => $phone,
             'role' => 'sponsor',
             'password' => null, // OTP-based auth doesn't need password
+            'address' => $request->address,
+            'comment' => $request->comment,
             // affiliate_code will be auto-generated in User model boot method
-        ]);
+        ];
+        
+        // Handle photo upload with auto-resize
+        if ($request->hasFile('photo')) {
+            try {
+                // Resize and store photo (400x400 pixels, 85% quality)
+                $photoPath = \App\Services\ImageResizeService::resizeAndStore(
+                    $request->file('photo'),
+                    'photos',
+                    400,
+                    400,
+                    85
+                );
+                $data['photo'] = $photoPath;
+            } catch (\Exception $e) {
+                \Log::error('Photo upload failed: ' . $e->getMessage());
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['photo' => 'Failed to upload photo. ' . $e->getMessage()]);
+            }
+        }
+        
+        // Create sponsor user
+        User::create($data);
         
         return redirect()->route('admin.sponsors.index')
             ->with('success', 'Sponsor created successfully!');
@@ -728,20 +777,27 @@ class DashboardController extends Controller
         
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
-                Storage::disk('public')->delete($user->photo);
+            try {
+                // Delete old photo if exists
+                if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                    Storage::disk('public')->delete($user->photo);
+                }
+                
+                // Resize and store photo (400x400 pixels, 85% quality)
+                $photoPath = \App\Services\ImageResizeService::resizeAndStore(
+                    $request->file('photo'),
+                    'photos',
+                    400,
+                    400,
+                    85
+                );
+                $data['photo'] = $photoPath;
+            } catch (\Exception $e) {
+                \Log::error('Photo upload failed: ' . $e->getMessage());
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['photo' => 'Failed to upload photo. ' . $e->getMessage()]);
             }
-            
-            // Resize and store photo (400x400 pixels, 85% quality)
-            $photoPath = \App\Services\ImageResizeService::resizeAndStore(
-                $request->file('photo'),
-                'photos',
-                400,
-                400,
-                85
-            );
-            $data['photo'] = $photoPath;
         }
         
         $user->update($data);

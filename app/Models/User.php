@@ -27,6 +27,7 @@ class User extends Authenticatable
         'sponsor_id',
         'address',
         'photo',
+        'comment',
     ];
 
     /**
