@@ -419,8 +419,14 @@ class DashboardController extends Controller
                 Storage::disk('public')->delete($sponsor->photo);
             }
             
-            // Store new photo
-            $photoPath = $request->file('photo')->store('photos', 'public');
+            // Resize and store photo (400x400 pixels, 85% quality)
+            $photoPath = \App\Services\ImageResizeService::resizeAndStore(
+                $request->file('photo'),
+                'photos',
+                400,
+                400,
+                85
+            );
             $data['photo'] = $photoPath;
         }
         
@@ -720,15 +726,21 @@ class DashboardController extends Controller
             $data['email'] = $request->email;
         }
         
-        // Handle photo upload
+        // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {
             // Delete old photo if exists
             if ($user->photo && Storage::disk('public')->exists($user->photo)) {
                 Storage::disk('public')->delete($user->photo);
             }
             
-            // Store new photo
-            $photoPath = $request->file('photo')->store('photos', 'public');
+            // Resize and store photo (400x400 pixels, 85% quality)
+            $photoPath = \App\Services\ImageResizeService::resizeAndStore(
+                $request->file('photo'),
+                'photos',
+                400,
+                400,
+                85
+            );
             $data['photo'] = $photoPath;
         }
         

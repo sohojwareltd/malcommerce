@@ -1,7 +1,44 @@
 @extends('layouts.app')
 
+@php
+    // Set product-specific meta tags for SEO and social sharing
+    $productDescription = $product->short_description ?? $product->description ?? 'পণ্যের বিবরণ দেখুন';
+    $productImage = $product->main_image;
+    
+    // Convert image URL to absolute URL for Facebook sharing (Facebook requires absolute URLs)
+    if ($productImage) {
+        // Check if it's already a full URL (http:// or https://)
+        if (!filter_var($productImage, FILTER_VALIDATE_URL)) {
+            // If it starts with /storage/, it's already a public path
+            if (strpos($productImage, '/storage/') === 0) {
+                $productImage = url($productImage);
+            }
+            // If it starts with /, use url() helper to make it absolute
+            elseif (strpos($productImage, '/') === 0) {
+                $productImage = url($productImage);
+            } 
+            // If it contains 'storage/', assume it's a storage path
+            elseif (strpos($productImage, 'storage/') !== false) {
+                $productImage = url('/' . $productImage);
+            }
+            // Otherwise, assume it's a storage path and prepend /storage/
+            else {
+                $productImage = url('/storage/' . $productImage);
+            }
+        }
+    } else {
+        // Fallback to default image
+        $productImage = asset('favicon.ico');
+    }
+    
+    // Override meta tags for this product page
+    $metaDescOverride = $productDescription;
+    $ogImageOverride = $productImage;
+    $ogTypeOverride = 'product';
+@endphp
+
 @section('title', $product->name)
-@section('description', $product->short_description ?? $product->description ?? 'পণ্যের বিবরণ দেখুন')
+@section('description', $productDescription)
 
 @section('content')
 @if($product->page_layout && is_array($product->page_layout) && count($product->page_layout) > 0)
@@ -186,5 +223,39 @@
 @if($product->page_layout && count($product->page_layout) > 0)
 @vite('resources/js/product-sections.js')
 @endif
+@endpush
+
+@push('head')
+<!-- Product Structured Data (JSON-LD) for SEO -->
+@php
+    $structuredData = [
+        "@context" => "https://schema.org",
+        "@type" => "Product",
+        "name" => $product->name,
+        "description" => $productDescription,
+        "image" => $productImage,
+        "sku" => $product->sku ?? '',
+        "offers" => [
+            "@type" => "Offer",
+            "url" => url()->current(),
+            "priceCurrency" => "BDT",
+            "price" => (string) $product->price,
+            "priceValidUntil" => now()->addYear()->toDateString(),
+            "availability" => "https://schema.org/" . ($product->in_stock ? 'InStock' : 'OutOfStock'),
+            "itemCondition" => "https://schema.org/NewCondition"
+        ],
+        "brand" => [
+            "@type" => "Brand",
+            "name" => \App\Models\Setting::get('site_name', config('app.name'))
+        ]
+    ];
+    
+    if ($product->category) {
+        $structuredData["category"] = $product->category->name;
+    }
+@endphp
+<script type="application/ld+json">
+{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+</script>
 @endpush
 @endsection

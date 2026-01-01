@@ -15,6 +15,10 @@
     <!-- Primary Meta Tags -->
     @php
         $metaDesc = \App\Models\Setting::get('meta_description', 'আমাদের অনলাইন শপ থেকে সেরা পণ্য কিনুন। ফ্রি ডেলিভারি ও ক্যাশ অন ডেলিভারি সুবিধা।');
+        // Allow views to override meta description
+        $metaDesc = $metaDescOverride ?? $metaDesc;
+        $ogImageOverride = $ogImageOverride ?? null;
+        $ogType = $ogTypeOverride ?? 'website';
     @endphp
     <title>{{ $siteName }} - @yield('title', 'হোম')</title>
     <meta name="title" content="{{ $siteName }} - @yield('title', 'হোম')">
@@ -25,11 +29,16 @@
     <link rel="canonical" href="{{ $canonicalUrl }}">
     
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="{{ $ogType }}">
     <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:title" content="{{ $siteName }} - @yield('title', 'হোম')">
     <meta property="og:description" content="{{ $metaDesc }}">
-    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image" content="{{ $ogImageOverride ?: $ogImage }}">
+    @if($ogImageOverride)
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
+    @endif
     <meta property="og:locale" content="bn_BD">
     <meta property="og:site_name" content="{{ $siteName }}">
     
@@ -38,7 +47,7 @@
     <meta property="twitter:url" content="{{ $canonicalUrl }}">
     <meta property="twitter:title" content="{{ $siteName }} - @yield('title', 'হোম')">
     <meta property="twitter:description" content="{{ $metaDesc }}">
-    <meta property="twitter:image" content="{{ $ogImage }}">
+    <meta property="twitter:image" content="{{ $ogImageOverride ?: $ogImage }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,6 +122,7 @@
 
     
     @stack('styles')
+    @stack('head')
     
     <!-- Dynamic Color Injection from Settings -->
     <style>
