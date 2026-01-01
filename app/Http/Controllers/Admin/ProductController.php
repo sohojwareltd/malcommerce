@@ -39,7 +39,11 @@ class ProductController extends Controller
             }
         }
         
-        $products = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        // Get per page value from request, default to 20
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+        
+        $products = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
         
         $categories = Category::orderBy('name')->get();
         

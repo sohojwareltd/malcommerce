@@ -48,10 +48,14 @@ class DashboardController extends Controller
             });
         }
         
+        // Get per page value from request, default to 20
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+        
         // Order by sort_order first, then by latest created
         $categories = $query->orderBy('sort_order')
             ->orderBy('created_at', 'desc')
-            ->paginate(20)
+            ->paginate($perPage)
             ->withQueryString();
             
         return view('admin.categories.index', compact('categories'));
@@ -214,7 +218,11 @@ class DashboardController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
         
-        $orders = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        // Get per page value from request, default to 20
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+        
+        $orders = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
         return view('admin.orders.index', compact('orders'));
     }
     
@@ -260,9 +268,13 @@ class DashboardController extends Controller
             });
         }
         
+        // Get per page value from request, default to 20
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+        
         // Order by latest first (created_at desc)
         $sponsors = $query->orderBy('created_at', 'desc')
-            ->paginate(20)
+            ->paginate($perPage)
             ->withQueryString();
             
         // Calculate total revenue for each sponsor
@@ -511,7 +523,11 @@ class DashboardController extends Controller
             });
         }
         
-        $users = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        // Get per page value from request, default to 20
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+        
+        $users = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
         
         return view('admin.users.index', compact('users'));
     }

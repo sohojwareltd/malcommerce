@@ -13,7 +13,7 @@
 <!-- Search and Filter Form -->
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
     <form method="GET" action="{{ route('admin.products.index') }}" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <!-- Search Input -->
             <div class="md:col-span-2">
                 <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search</label>
@@ -52,6 +52,17 @@
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                 </select>
             </div>
+            
+            <!-- Per Page -->
+            <div>
+                <label for="per_page" class="block text-sm font-medium text-neutral-700 mb-2">Per Page</label>
+                <select name="per_page" id="per_page" onchange="this.form.submit()" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
+                    <option value="10" {{ request('per_page', 20) == 10 ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ request('per_page', 20) == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page', 20) == 100 ? 'selected' : '' }}>100</option>
+                </select>
+            </div>
         </div>
         
         <div class="flex flex-col sm:flex-row gap-2">
@@ -59,11 +70,15 @@
                 Search
             </button>
             @if(request()->hasAny(['search', 'category', 'status']))
-                <a href="{{ route('admin.products.index') }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base text-center">
+                <a href="{{ route('admin.products.index') }}{{ request('per_page') ? '?per_page=' . request('per_page') : '' }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base text-center">
                     Clear Filters
                 </a>
             @endif
         </div>
+        <!-- Preserve per_page when clearing filters -->
+        @if(request('per_page'))
+        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+        @endif
     </form>
 </div>
 

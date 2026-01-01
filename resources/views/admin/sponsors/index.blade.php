@@ -20,28 +20,43 @@ use Illuminate\Support\Str;
 
 <!-- Search Form -->
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
-    <form method="GET" action="{{ route('admin.sponsors.index') }}" class="flex flex-col sm:flex-row gap-4 sm:items-end">
-        <div class="flex-1">
-            <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search Partners</label>
-            <input 
-                type="text" 
-                name="search" 
-                id="search" 
-                value="{{ request('search') }}" 
-                placeholder="Search by name, phone, address, or partner code..."
-                class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
-            >
-        </div>
-        <div class="flex gap-2">
-            <button type="submit" class="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold text-sm sm:text-base flex-1 sm:flex-none">
-                Search
-            </button>
+    <form method="GET" action="{{ route('admin.sponsors.index') }}" class="space-y-4">
+        <div class="flex flex-col sm:flex-row gap-4 sm:items-end">
+            <div class="flex-1">
+                <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search Partners</label>
+                <input 
+                    type="text" 
+                    name="search" 
+                    id="search" 
+                    value="{{ request('search') }}" 
+                    placeholder="Search by name, phone, address, or partner code..."
+                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+                >
+            </div>
+            <div class="sm:w-40">
+                <label for="per_page" class="block text-sm font-medium text-neutral-700 mb-2">Per Page</label>
+                <select name="per_page" id="per_page" onchange="this.form.submit()" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
+                    <option value="10" {{ request('per_page', 20) == 10 ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ request('per_page', 20) == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page', 20) == 100 ? 'selected' : '' }}>100</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold text-sm sm:text-base flex-1 sm:flex-none">
+                    Search
+                </button>
             @if(request('search'))
-            <a href="{{ route('admin.sponsors.index') }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base">
+            <a href="{{ route('admin.sponsors.index') }}{{ request('per_page') ? '?per_page=' . request('per_page') : '' }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base">
                 Clear
             </a>
             @endif
+            </div>
         </div>
+        <!-- Preserve per_page when clearing search -->
+        @if(request('per_page') && !request('search'))
+        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+        @endif
     </form>
 </div>
 
