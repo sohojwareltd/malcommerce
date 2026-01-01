@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Storage;
                     </div>
                     <div class="flex-1">
                         <input type="file" name="photo" id="photo" accept="image/*" class="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-light">
-                        <p class="mt-1 text-xs text-neutral-500">JPG, PNG or GIF. Max size: 2MB</p>
+                        <p class="mt-1 text-xs text-neutral-500">JPG, PNG or GIF</p>
                         @error('photo')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -119,12 +119,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 
-                // Validate file size (2MB)
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('Image size must be less than 2MB.');
-                    photoInput.value = '';
-                    return;
-                }
                 
                 // Create FileReader to read the file
                 const reader = new FileReader();

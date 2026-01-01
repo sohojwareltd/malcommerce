@@ -75,7 +75,7 @@ use Illuminate\Support\Facades\Storage;
                             <div class="flex-1">
                                 <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/jpg,image/gif" 
                                        class="block w-full text-sm text-neutral-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-light file:cursor-pointer transition">
-                                <p class="mt-2 text-xs text-neutral-500">JPG, PNG or GIF. Max size: 2MB</p>
+                                <p class="mt-2 text-xs text-neutral-500">JPG, PNG or GIF</p>
                                 @error('photo')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
