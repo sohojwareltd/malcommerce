@@ -9,7 +9,23 @@
         use Illuminate\Support\Facades\Storage;
         $siteName = \App\Models\Setting::get('site_name', config('app.name', 'Shop'));
         $canonicalUrl = url()->current();
-        $ogImage = \App\Models\Setting::get('og_image') ?: asset('favicon.ico');
+        
+        // Get OG image from settings, or use a default placeholder
+        $ogImageSetting = \App\Models\Setting::get('og_image');
+        if ($ogImageSetting) {
+            // If it's a full URL, use it; otherwise make it absolute
+            if (filter_var($ogImageSetting, FILTER_VALIDATE_URL)) {
+                $ogImage = $ogImageSetting;
+            } else {
+                // Make relative path absolute
+                $ogImage = strpos($ogImageSetting, '/') === 0 
+                    ? url($ogImageSetting) 
+                    : url('/' . $ogImageSetting);
+            }
+        } else {
+            // No OG image set - we'll conditionally include og:image tag only if we have a valid image
+            $ogImage = null;
+        }
     @endphp
     
     <!-- Primary Meta Tags -->
@@ -33,11 +49,15 @@
     <meta property="og:url" content="{{ $canonicalUrl }}">
     <meta property="og:title" content="{{ $siteName }} - @yield('title', 'হোম')">
     <meta property="og:description" content="{{ $metaDesc }}">
-    <meta property="og:image" content="{{ $ogImageOverride ?: $ogImage }}">
-    @if($ogImageOverride)
+    @php
+        $finalOgImage = $ogImageOverride ?: $ogImage;
+    @endphp
+    @if($finalOgImage && filter_var($finalOgImage, FILTER_VALIDATE_URL))
+    <meta property="og:image" content="{{ $finalOgImage }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:alt" content="{{ $siteName }} - @yield('title', 'হোম')">
     @endif
     <meta property="og:locale" content="bn_BD">
     <meta property="og:site_name" content="{{ $siteName }}">
@@ -47,7 +67,9 @@
     <meta property="twitter:url" content="{{ $canonicalUrl }}">
     <meta property="twitter:title" content="{{ $siteName }} - @yield('title', 'হোম')">
     <meta property="twitter:description" content="{{ $metaDesc }}">
-    <meta property="twitter:image" content="{{ $ogImageOverride ?: $ogImage }}">
+    @if($finalOgImage && filter_var($finalOgImage, FILTER_VALIDATE_URL))
+    <meta property="twitter:image" content="{{ $finalOgImage }}">
+    @endif
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

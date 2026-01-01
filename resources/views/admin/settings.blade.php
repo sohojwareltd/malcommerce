@@ -31,6 +31,24 @@
                 <label class="block text-sm font-medium text-neutral-700 mb-2">Contact Phone</label>
                 <input type="text" name="contact_phone" value="{{ \App\Models\Setting::get('contact_phone') }}" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
             </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Meta Description</label>
+                <textarea name="meta_description" rows="3" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">{{ \App\Models\Setting::get('meta_description') }}</textarea>
+                <p class="text-xs text-neutral-500 mt-1">Used for SEO and social media sharing</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Open Graph Image (OG Image)</label>
+                <div class="flex gap-4 items-start">
+                    <input type="text" name="og_image" value="{{ \App\Models\Setting::get('og_image') }}" placeholder="Image URL (recommended: 1200x630px)" class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    <button type="button" onclick="uploadOgImage(this)" class="px-4 py-2 bg-neutral-200 hover:bg-neutral-300 rounded-lg text-sm font-medium transition">Upload Image</button>
+                </div>
+                <p class="text-xs text-neutral-500 mt-1">Image shown when sharing on Facebook, Twitter, etc. Recommended size: 1200x630px. Must be JPG or PNG format.</p>
+                @if(\App\Models\Setting::get('og_image'))
+                <div class="mt-2">
+                    <img src="{{ \App\Models\Setting::get('og_image') }}" alt="OG Image Preview" class="max-w-xs max-h-48 object-contain rounded-lg border border-neutral-300">
+                </div>
+                @endif
+            </div>
         </div>
     </div>
     
@@ -411,6 +429,64 @@
                     previewDiv.style.display = 'block';
                 } else {
                     alert('Failed to upload image');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error uploading image');
+            }
+        };
+        input.click();
+    }
+    
+    function uploadOgImage(button) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/jpeg,image/png,image/jpg';
+        input.onchange = async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
+                alert('Please upload a JPG or PNG image. Facebook cannot process other formats.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            try {
+                const response = await fetch('/admin/upload-image', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    const ogImageInput = document.querySelector('input[name="og_image"]');
+                    ogImageInput.value = data.url;
+                    
+                    // Update preview if exists
+                    const previewContainer = ogImageInput.closest('div').nextElementSibling;
+                    if (previewContainer && previewContainer.tagName === 'DIV') {
+                        if (previewContainer.querySelector('img')) {
+                            previewContainer.querySelector('img').src = data.url;
+                        } else {
+                            const img = document.createElement('img');
+                            img.src = data.url;
+                            img.alt = 'OG Image Preview';
+                            img.className = 'max-w-xs max-h-48 object-contain rounded-lg border border-neutral-300';
+                            previewContainer.appendChild(img);
+                        }
+                        previewContainer.style.display = 'block';
+                    }
+                } else {
+                    alert('Failed to upload image: ' + (data.message || 'Unknown error'));
                 }
             } catch (error) {
                 console.error('Upload error:', error);

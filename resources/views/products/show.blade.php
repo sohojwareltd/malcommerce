@@ -26,10 +26,22 @@
                 $productImage = url('/storage/' . $productImage);
             }
         }
-    } else {
-        // Fallback to default image
-        $productImage = asset('favicon.ico');
-    }
+        } else {
+            // Fallback to default OG image from settings (not favicon.ico as Facebook can't process it)
+            $defaultOgImage = \App\Models\Setting::get('og_image');
+            if ($defaultOgImage) {
+                if (filter_var($defaultOgImage, FILTER_VALIDATE_URL)) {
+                    $productImage = $defaultOgImage;
+                } else {
+                    $productImage = strpos($defaultOgImage, '/') === 0 
+                        ? url($defaultOgImage) 
+                        : url('/' . $defaultOgImage);
+                }
+            } else {
+                // No fallback image - will be handled in layout (won't include og:image tag)
+                $productImage = null;
+            }
+        }
     
     // Override meta tags for this product page
     $metaDescOverride = $productDescription;
