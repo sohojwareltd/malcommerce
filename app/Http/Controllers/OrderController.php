@@ -28,6 +28,35 @@ class OrderController extends Controller
             return back()->withErrors(['quantity' => 'Insufficient stock available.'])->withInput();
         }
         
+        // Get order form settings (product-specific with fallback to global)
+        $deliveryOptions = $product->order_delivery_options 
+            ? json_decode($product->order_delivery_options, true) 
+            : json_decode(\App\Models\Setting::get('order_delivery_options', '[]'), true);
+        $minQuantity = (int) ($product->order_min_quantity ?: \App\Models\Setting::get('order_min_quantity', 0));
+        $maxQuantity = (int) ($product->order_max_quantity ?: \App\Models\Setting::get('order_max_quantity', 0));
+        
+        // Calculate delivery charge
+        $deliveryCharge = 0;
+        if ($request->has('delivery_option') && !empty($deliveryOptions)) {
+            $selectedOption = $deliveryOptions[$request->delivery_option] ?? null;
+            if ($selectedOption) {
+                $deliveryCharge = (float) ($selectedOption['charge'] ?? 0);
+            }
+        }
+        
+        // Calculate total price
+        $subtotal = $product->price * $request->quantity;
+        $totalPrice = $subtotal + $deliveryCharge;
+        
+        // Validate min/max order quantity
+        if ($minQuantity > 0 && $request->quantity < $minQuantity) {
+            return back()->withErrors(['quantity' => "Minimum order quantity is {$minQuantity} items."])->withInput();
+        }
+        
+        if ($maxQuantity > 0 && $request->quantity > $maxQuantity) {
+            return back()->withErrors(['quantity' => "Maximum order quantity is {$maxQuantity} items."])->withInput();
+        }
+        
         // Normalize phone number
         try {
             $normalizedPhone = $this->normalizePhone($request->customer_phone);
@@ -76,7 +105,7 @@ class OrderController extends Controller
             'product_id' => $product->id,
             'quantity' => $request->quantity,
             'unit_price' => $product->price,
-            'total_price' => $product->price * $request->quantity,
+            'total_price' => $totalPrice,
             'customer_name' => $request->customer_name,
             'customer_phone' => $normalizedPhone,
             'address' => $request->address,

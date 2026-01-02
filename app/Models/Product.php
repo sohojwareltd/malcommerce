@@ -24,6 +24,15 @@ class Product extends Model
         'is_active',
         'is_featured',
         'sort_order',
+        'order_form_title',
+        'order_button_text',
+        'order_min_quantity',
+        'order_max_quantity',
+        'order_custom_charge',
+        'is_free',
+        'order_delivery_options',
+        'order_hide_summary',
+        'order_hide_quantity',
     ];
 
     protected function casts(): array
@@ -37,6 +46,12 @@ class Product extends Model
             'page_layout' => 'array',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
+            'is_free' => 'boolean',
+            'order_min_quantity' => 'integer',
+            'order_max_quantity' => 'integer',
+            'order_custom_charge' => 'decimal:2',
+            'order_hide_summary' => 'boolean',
+            'order_hide_quantity' => 'boolean',
         ];
     }
 

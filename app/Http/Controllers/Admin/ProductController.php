@@ -72,6 +72,14 @@ class ProductController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer',
+            'order_form_title' => 'nullable|string|max:255',
+            'order_button_text' => 'nullable|string|max:255',
+            'order_min_quantity' => 'nullable|integer|min:0',
+            'order_max_quantity' => 'nullable|integer|min:0',
+            'order_delivery_options' => 'nullable|string',
+            'order_hide_summary' => 'boolean',
+            'order_hide_quantity' => 'boolean',
+            'is_free' => 'boolean',
         ]);
         
         if (empty($validated['slug'])) {
@@ -89,6 +97,22 @@ class ProductController extends Controller
             }
         } else {
             $validated['images'] = null;
+        }
+        
+        // Handle order form settings
+        $validated['order_hide_summary'] = $request->has('order_hide_summary');
+        $validated['order_hide_quantity'] = $request->has('order_hide_quantity');
+        $validated['is_free'] = $request->has('is_free');
+        
+        // If product is free, set price to 0
+        if ($validated['is_free'] ?? false) {
+            $validated['price'] = 0;
+        }
+        
+        if (isset($validated['order_delivery_options']) && is_string($validated['order_delivery_options'])) {
+            // Validate JSON
+            $decoded = json_decode($validated['order_delivery_options'], true);
+            $validated['order_delivery_options'] = $decoded ? json_encode($decoded) : null;
         }
         
         Product::create($validated);
@@ -124,6 +148,14 @@ class ProductController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer',
+            'order_form_title' => 'nullable|string|max:255',
+            'order_button_text' => 'nullable|string|max:255',
+            'order_min_quantity' => 'nullable|integer|min:0',
+            'order_max_quantity' => 'nullable|integer|min:0',
+            'order_delivery_options' => 'nullable|string',
+            'order_hide_summary' => 'boolean',
+            'order_hide_quantity' => 'boolean',
+            'is_free' => 'boolean',
         ]);
         
         // Handle page_layout - it comes as JSON string from the form
@@ -160,6 +192,22 @@ class ProductController extends Controller
         } else {
             // Preserve existing images if not in request
             unset($validated['images']);
+        }
+        
+        // Handle order form settings
+        $validated['order_hide_summary'] = $request->has('order_hide_summary');
+        $validated['order_hide_quantity'] = $request->has('order_hide_quantity');
+        $validated['is_free'] = $request->has('is_free');
+        
+        // If product is free, set price to 0
+        if ($validated['is_free'] ?? false) {
+            $validated['price'] = 0;
+        }
+        
+        if (isset($validated['order_delivery_options']) && is_string($validated['order_delivery_options'])) {
+            // Validate JSON
+            $decoded = json_decode($validated['order_delivery_options'], true);
+            $validated['order_delivery_options'] = $decoded ? json_encode($decoded) : null;
         }
         
         $product->update($validated);

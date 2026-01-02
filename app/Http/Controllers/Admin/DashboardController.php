@@ -280,8 +280,8 @@ class DashboardController extends Controller
         // Calculate total revenue for each sponsor
         $sponsors->getCollection()->transform(function($sponsor) {
             $sponsor->total_revenue = $sponsor->orders->sum('total_price') ?? 0;
-            return $sponsor;
-        });
+                return $sponsor;
+            });
             
         return view('admin.sponsors.index', compact('sponsors'));
     }
@@ -733,6 +733,11 @@ class DashboardController extends Controller
             unset($data['hero_slider']);
         }
         
+        // Handle checkbox settings (they won't be in request if unchecked)
+        Setting::set('order_hide_summary', $request->has('order_hide_summary') ? '1' : '0');
+        Setting::set('order_hide_quantity', $request->has('order_hide_quantity') ? '1' : '0');
+        unset($data['order_hide_summary'], $data['order_hide_quantity']);
+        
         // Handle other settings
         foreach ($data as $key => $value) {
             Setting::set($key, $value);
@@ -794,11 +799,11 @@ class DashboardController extends Controller
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {
             try {
-                // Delete old photo if exists
-                if ($user->photo && Storage::disk('public')->exists($user->photo)) {
-                    Storage::disk('public')->delete($user->photo);
-                }
-                
+            // Delete old photo if exists
+            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            
                 // Resize and store photo (400x400 pixels, 85% quality)
                 $photoPath = \App\Services\ImageResizeService::resizeAndStore(
                     $request->file('photo'),
@@ -807,7 +812,7 @@ class DashboardController extends Controller
                     400,
                     85
                 );
-                $data['photo'] = $photoPath;
+            $data['photo'] = $photoPath;
             } catch (\Exception $e) {
                 \Log::error('Photo upload failed: ' . $e->getMessage());
                 return redirect()->back()

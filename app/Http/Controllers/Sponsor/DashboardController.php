@@ -63,16 +63,45 @@ class DashboardController extends Controller
     }
     
     /**
+     * Show all referrals with pagination and filters
+     */
+    public function referrals(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Build referrals query
+        $query = $user->referrals()->withCount('customerOrders as orders_count');
+        
+        // Apply search filter if provided
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('affiliate_code', 'like', "%{$search}%");
+            });
+        }
+        
+        // Get per page value from request, default to 20
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+        
+        // Order by latest first
+        $referrals = $query->orderBy('created_at', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
+        
+        return view('sponsor.users.index', compact('referrals', 'user'));
+    }
+    
+    /**
      * Show the add user page
      */
     public function createUser()
     {
         $user = Auth::user();
-        $referrals = $user->referrals()
-            ->withCount('customerOrders as orders_count')
-            ->orderBy('created_at', 'desc')
-            ->get();
-        return view('sponsor.users.create', compact('user', 'referrals'));
+        return view('sponsor.users.create', compact('user'));
     }
     
     /**
@@ -83,6 +112,9 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'address' => 'nullable|string|max:1000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'comment' => 'nullable|string|max:2000',
         ]);
         
         $sponsor = Auth::user();
@@ -104,14 +136,39 @@ class DashboardController extends Controller
             ], 422);
         }
         
-        // Create user with current sponsor as referrer
-        $user = User::create([
+        $data = [
             'name' => $request->name,
             'phone' => $phone,
             'role' => 'sponsor', // All users are sponsors
             'sponsor_id' => $sponsor->id, // Referred by current sponsor
             'password' => null,
-        ]);
+            'address' => $request->address,
+            'comment' => $request->comment,
+        ];
+        
+        // Handle photo upload with auto-resize
+        if ($request->hasFile('photo')) {
+            try {
+                // Resize and store photo (400x400 pixels, 85% quality)
+                $photoPath = \App\Services\ImageResizeService::resizeAndStore(
+                    $request->file('photo'),
+                    'photos',
+                    400,
+                    400,
+                    85
+                );
+                $data['photo'] = $photoPath;
+            } catch (\Exception $e) {
+                \Log::error('Photo upload failed: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to upload photo. ' . $e->getMessage()
+                ], 422);
+            }
+        }
+        
+        // Create user with current sponsor as referrer
+        $user = User::create($data);
         
         return response()->json([
             'success' => true,

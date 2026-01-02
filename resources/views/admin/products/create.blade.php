@@ -7,7 +7,7 @@
     <h1 class="text-3xl font-bold">Create Product</h1>
 </div>
 
-<form action="{{ route('admin.products.store') }}" method="POST" class="bg-white rounded-lg shadow-md p-6">
+<form action="{{ route('admin.products.store') }}" method="POST" class="bg-white rounded-lg shadow-md p-6" onsubmit="updateDeliveryOptionsJson(); return true;">
     @csrf
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -46,7 +46,18 @@
         
         <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Price *</label>
-            <input type="number" name="price" step="0.01" value="{{ old('price') }}" required class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+            <div class="flex items-center gap-3">
+                <input type="number" name="price" id="product-price" step="0.01" value="{{ old('price') }}" required 
+                       class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary" 
+                       {{ old('is_free') ? 'disabled' : '' }}>
+                <label class="flex items-center gap-2 whitespace-nowrap">
+                    <input type="checkbox" name="is_free" id="product-is-free" value="1" 
+                           {{ old('is_free') ? 'checked' : '' }} 
+                           onchange="toggleFreeProduct(this)"
+                           class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
+                    <span class="text-sm text-neutral-700">Free Product</span>
+                </label>
+            </div>
             @error('price')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
         </div>
         
@@ -96,6 +107,60 @@
             <input type="checkbox" name="is_featured" value="1" {{ old('is_featured') ? 'checked' : '' }} class="rounded border-neutral-300 text-primary focus:ring-primary">
             <span class="ml-2 text-sm text-neutral-700">Featured</span>
         </label>
+    </div>
+    
+    <!-- Order Form Settings -->
+    <div class="mt-8 border-t border-neutral-200 pt-6">
+        <h2 class="text-xl font-bold mb-4">Order Form Settings</h2>
+        <p class="text-sm text-neutral-600 mb-4">Customize the order form for this product. Leave empty to use global settings.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Order Form Title</label>
+                <input type="text" name="order_form_title" value="{{ old('order_form_title') }}" placeholder="Leave empty for default" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">Default: "অর্ডার করুন"</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Order Button Text</label>
+                <input type="text" name="order_button_text" value="{{ old('order_button_text') }}" placeholder="Leave empty for default" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">Default: "অর্ডার নিশ্চিত করুন"</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Minimum Order Quantity</label>
+                <input type="number" name="order_min_quantity" value="{{ old('order_min_quantity') }}" min="0" step="1" placeholder="0 = no minimum" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">Minimum number of items required per order</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Maximum Order Quantity</label>
+                <input type="number" name="order_max_quantity" value="{{ old('order_max_quantity') }}" min="0" step="1" placeholder="0 = no maximum" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">Maximum number of items allowed per order</p>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Delivery Options</label>
+                <p class="text-xs text-neutral-500 mb-3">Leave empty to use global settings. Click "Add Delivery Option" to add a new row.</p>
+                
+                <div id="delivery-options-container" class="space-y-3 mb-3">
+                    <!-- Delivery options rows will be added here dynamically -->
+                </div>
+                
+                <button type="button" onclick="addDeliveryOption()" class="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition text-sm font-medium">
+                    + Add Delivery Option
+                </button>
+                
+                <!-- Hidden input to store JSON -->
+                <input type="hidden" name="order_delivery_options" id="order_delivery_options_json" value="{{ old('order_delivery_options', '') }}">
+            </div>
+        </div>
+        <div class="mt-4 space-y-2">
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="order_hide_summary" value="1" {{ old('order_hide_summary') ? 'checked' : '' }} class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
+                <span class="text-sm font-medium text-neutral-700">Hide Order Summary</span>
+            </label>
+            <label class="flex items-center gap-2">
+                <input type="checkbox" name="order_hide_quantity" value="1" {{ old('order_hide_quantity') ? 'checked' : '' }} class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
+                <span class="text-sm font-medium text-neutral-700">Hide Quantity Selector</span>
+            </label>
+        </div>
     </div>
     
     <div class="mt-6">
@@ -222,7 +287,90 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Initialize delivery options from old input
+    const oldDeliveryOptions = @json(old('order_delivery_options', ''));
+    if (oldDeliveryOptions) {
+        try {
+            const parsed = typeof oldDeliveryOptions === 'string' ? JSON.parse(oldDeliveryOptions) : oldDeliveryOptions;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                parsed.forEach(option => {
+                    addDeliveryOption(option.name || '', option.charge || 0, option.days || '');
+                });
+            }
+        } catch (e) {
+            console.error('Error parsing delivery options:', e);
+        }
+    }
 });
+</script>
+
+<script>
+let deliveryOptionIndex = 0;
+
+function addDeliveryOption(name = '', charge = 0, days = '') {
+    const container = document.getElementById('delivery-options-container');
+    const index = deliveryOptionIndex++;
+    
+    const row = document.createElement('div');
+    row.className = 'delivery-option-row flex flex-col sm:flex-row gap-3 p-4 border border-neutral-300 rounded-lg bg-neutral-50';
+    row.dataset.index = index;
+    
+    row.innerHTML = `
+        <div class="w-full sm:w-64 md:w-80">
+            <label class="block text-xs font-medium text-neutral-600 mb-1">Name</label>
+            <input type="text" class="delivery-name w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary text-sm" 
+                   placeholder="e.g., Standard Delivery" value="${name}" onchange="updateDeliveryOptionsJson()">
+        </div>
+        <div class="w-full sm:w-32">
+            <label class="block text-xs font-medium text-neutral-600 mb-1">Charge (৳)</label>
+            <input type="number" class="delivery-charge w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary text-sm" 
+                   placeholder="0" min="0" step="0.01" value="${charge}" onchange="updateDeliveryOptionsJson()">
+        </div>
+        <div class="w-full sm:w-32">
+            <label class="block text-xs font-medium text-neutral-600 mb-1">Days</label>
+            <input type="text" class="delivery-days w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary text-sm" 
+                   placeholder="e.g., 3-5" value="${days}" onchange="updateDeliveryOptionsJson()">
+        </div>
+        <div class="flex items-end">
+            <button type="button" onclick="removeDeliveryOption(this)" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm whitespace-nowrap">
+                Remove
+            </button>
+        </div>
+    `;
+    
+    container.appendChild(row);
+    updateDeliveryOptionsJson();
+}
+
+function removeDeliveryOption(button) {
+    const row = button.closest('.delivery-option-row');
+    row.remove();
+    updateDeliveryOptionsJson();
+}
+
+function updateDeliveryOptionsJson() {
+    const container = document.getElementById('delivery-options-container');
+    const rows = container.querySelectorAll('.delivery-option-row');
+    const options = [];
+    
+    rows.forEach(row => {
+        const name = row.querySelector('.delivery-name').value.trim();
+        const charge = parseFloat(row.querySelector('.delivery-charge').value) || 0;
+        const days = row.querySelector('.delivery-days').value.trim();
+        
+        if (name) {
+            options.push({
+                name: name,
+                charge: charge,
+                days: days
+            });
+        }
+    });
+    
+    const jsonInput = document.getElementById('order_delivery_options_json');
+    jsonInput.value = options.length > 0 ? JSON.stringify(options) : '';
+}
 </script>
 
 <!-- Quick Create Category Modal -->
@@ -419,6 +567,36 @@ function generateSlug(text) {
         .trim()
         .replace(/^-+|-+$/g, '');
 }
+
+function toggleFreeProduct(checkbox) {
+    const priceInput = document.getElementById('product-price');
+    if (checkbox.checked) {
+        priceInput.value = 0;
+        priceInput.disabled = true;
+    } else {
+        priceInput.disabled = false;
+        if (priceInput.value == 0) {
+            priceInput.value = '';
+        }
+    }
+}
+
+// Auto-check free checkbox when price is set to 0
+document.addEventListener('DOMContentLoaded', function() {
+    const priceInput = document.getElementById('product-price');
+    const freeCheckbox = document.getElementById('product-is-free');
+    
+    if (priceInput && freeCheckbox) {
+        priceInput.addEventListener('input', function() {
+            if (parseFloat(this.value) === 0 && !this.disabled) {
+                freeCheckbox.checked = true;
+                this.disabled = true;
+            } else if (parseFloat(this.value) > 0 && freeCheckbox.checked) {
+                freeCheckbox.checked = false;
+            }
+        });
+    }
+});
 </script>
 @endsection
 

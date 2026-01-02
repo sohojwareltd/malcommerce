@@ -16,6 +16,7 @@ function initProductSections() {
             const productComparePrice = container.dataset.productComparePrice;
             const productInStock = container.dataset.productInStock === '1';
             const productStockQuantity = container.dataset.productStockQuantity;
+            const orderSettings = JSON.parse(container.dataset.orderSettings || '{}');
             
             if (!layout || !Array.isArray(layout) || layout.length === 0) {
                 container.innerHTML = '<div class="p-8 text-center text-gray-600"><p>No page content available.</p><p class="text-sm mt-2">Please create a page layout in the admin panel.</p></div>';
@@ -32,7 +33,8 @@ function initProductSections() {
                 productPrice,
                 productComparePrice,
                 productInStock,
-                productStockQuantity
+                productStockQuantity,
+                orderSettings
             }));
         } catch (error) {
             console.error('Error rendering product sections:', error);

@@ -55,6 +55,20 @@
 @section('content')
 @if($product->page_layout && is_array($product->page_layout) && count($product->page_layout) > 0)
     <!-- Page Builder Content (Full Page) -->
+    @php
+        // Use product-specific settings with fallback to global settings
+        $orderFormSettings = [
+            'title' => $product->order_form_title ?: \App\Models\Setting::get('order_form_title', 'অর্ডার করুন'),
+            'buttonText' => $product->order_button_text ?: \App\Models\Setting::get('order_button_text', 'অর্ডার নিশ্চিত করুন'),
+            'hideSummary' => $product->order_hide_summary ?? \App\Models\Setting::get('order_hide_summary', false),
+            'hideQuantity' => $product->order_hide_quantity ?? \App\Models\Setting::get('order_hide_quantity', false),
+            'deliveryOptions' => $product->order_delivery_options 
+                ? json_decode($product->order_delivery_options, true) 
+                : json_decode(\App\Models\Setting::get('order_delivery_options', '[]'), true),
+            'minQuantity' => (int) ($product->order_min_quantity ?: \App\Models\Setting::get('order_min_quantity', 0)),
+            'maxQuantity' => (int) ($product->order_max_quantity ?: \App\Models\Setting::get('order_max_quantity', 0)),
+        ];
+    @endphp
     <div id="custom-sections" 
          data-layout="{{ json_encode($product->page_layout) }}"
          data-product-id="{{ $product->id }}"
@@ -64,7 +78,8 @@
          data-product-price="{{ $product->price }}"
          data-product-compare-price="{{ $product->compare_at_price ?? '' }}"
          data-product-in-stock="{{ $product->in_stock ? '1' : '0' }}"
-         data-product-stock-quantity="{{ $product->stock_quantity }}">
+         data-product-stock-quantity="{{ $product->stock_quantity }}"
+         data-order-settings="{{ json_encode($orderFormSettings) }}">
         <!-- Loading indicator -->
         <div class="flex items-center justify-center min-h-screen">
             <div class="text-center">

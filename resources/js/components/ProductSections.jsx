@@ -20,7 +20,7 @@ const RenderText = ({ content, className = '', style = {}, tag = 'div' }) => {
     }
 };
 
-const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity }) => {
+const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity, orderSettings = {} }) => {
     useEffect(() => {
         // Initialize countdown timers for pricing sections
         layout?.forEach((section, index) => {
@@ -76,13 +76,27 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         if (!isPrimary) return null;
 
         const [quantity, setQuantity] = useState(1);
+        const [selectedDelivery, setSelectedDelivery] = useState(null);
         const price = parseFloat(productPrice) || 0;
-        const totalPrice = quantity * price;
-        const maxQuantity = parseInt(productStockQuantity) || 999;
+        const deliveryOptions = orderSettings.deliveryOptions || [];
+        const minQuantity = parseInt(orderSettings.minQuantity || 0);
+        const maxQuantitySetting = parseInt(orderSettings.maxQuantity || 0);
+        const hideSummary = orderSettings.hideSummary || false;
+        const hideQuantity = orderSettings.hideQuantity || false;
+        const orderFormTitle = orderSettings.title || 'অর্ডার করুন';
+        const orderButtonText = orderSettings.buttonText || 'অর্ডার নিশ্চিত করুন';
+        
+        const deliveryCharge = selectedDelivery !== null && deliveryOptions[selectedDelivery] 
+            ? parseFloat(deliveryOptions[selectedDelivery].charge || 0) 
+            : 0;
+        const totalPrice = (quantity * price) + deliveryCharge;
+        const stockQuantity = parseInt(productStockQuantity) || 999;
+        const maxQuantity = maxQuantitySetting > 0 ? Math.min(stockQuantity, maxQuantitySetting) : stockQuantity;
+        const effectiveMinQuantity = Math.max(1, minQuantity);
 
         const handleQuantityChange = (delta) => {
             const newQuantity = quantity + delta;
-            if (newQuantity >= 1 && newQuantity <= maxQuantity) {
+            if (newQuantity >= effectiveMinQuantity && newQuantity <= maxQuantity) {
                 setQuantity(newQuantity);
             }
         };
@@ -125,12 +139,13 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                             
                             {/* Order Form */}
                             <div className="card">
-                            <h2 className="text-2xl font-bold mb-6 text-gray-900 font-bangla">অর্ডার করুন</h2>
+                            <h2 className="text-2xl font-bold mb-6 text-gray-900 font-bangla">{orderFormTitle}</h2>
                             <form action="/orders" method="POST" id={`product-order-form-${index}`} className="space-y-4">
                                 <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
                                 <input type="hidden" name="product_id" value={productId} />
                                 
                                 {/* Quantity */}
+                                {!hideQuantity && (
                                 <div className="mb-6">
                                     <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">পরিমাণ</label>
                                     <div className="flex items-center gap-3">
@@ -146,10 +161,10 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             name="quantity"
                                             value={quantity}
                                             onChange={(e) => {
-                                                const val = parseInt(e.target.value) || 1;
-                                                if (val >= 1 && val <= maxQuantity) setQuantity(val);
+                                                const val = parseInt(e.target.value) || effectiveMinQuantity;
+                                                if (val >= effectiveMinQuantity && val <= maxQuantity) setQuantity(val);
                                             }}
-                                            min="1"
+                                            min={effectiveMinQuantity}
                                             max={maxQuantity}
                                             className="w-20 text-center border border-gray-300 rounded-lg px-2 py-2 font-bold focus:ring-2 focus:ring-primary focus:border-transparent"
                                             required
@@ -164,6 +179,8 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         <span className="text-gray-600 font-bangla text-sm">(স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি)</span>
                                     </div>
                                 </div>
+                                )}
+                                {hideQuantity && <input type="hidden" name="quantity" value={quantity} />}
                                 
                                 {/* Customer Information */}
                                 <div className="space-y-4 mb-6">
@@ -208,26 +225,59 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     </div>
                                 </div>
 
+                                {/* Delivery Options */}
+                                {deliveryOptions.length > 0 && (
+                                <div className="mb-6">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">
+                                        ডেলিভারি অপশন
+                                    </label>
+                                    <div className="space-y-2">
+                                        {deliveryOptions.map((option, optIndex) => (
+                                            <label key={optIndex} className="flex items-center gap-3 p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                                <input 
+                                                    type="radio" 
+                                                    name="delivery_option" 
+                                                    value={optIndex}
+                                                    checked={selectedDelivery === optIndex}
+                                                    onChange={() => setSelectedDelivery(optIndex)}
+                                                    className="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className="font-semibold text-gray-900 font-bangla">{option.name || 'Standard'}</div>
+                                                    <div className="text-sm text-gray-600 font-bangla">
+                                                        ৳{parseFloat(option.charge || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                        {option.days && ` - ${option.days} দিন`}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                                )}
+
                                 {/* Order Summary */}
+                                {!hideSummary && (
                                 <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
                                     <h3 className="font-semibold text-gray-900 mb-4 font-bangla">অর্ডার সারাংশ</h3>
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-700 font-bangla">পণ্যের মূল্য</span>
-                                            <span className="font-semibold text-gray-900">৳{price.toLocaleString('en-IN')}</span>
+                                            <span className="font-semibold text-gray-900">৳{(price * quantity).toLocaleString('en-IN')}</span>
                                         </div>
+                                        {!hideQuantity && (
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-700 font-bangla">পরিমাণ</span>
                                             <span className="font-semibold text-gray-900">{quantity} টি</span>
                                         </div>
+                                        )}
                                         <div className="flex justify-between items-center text-sm text-gray-600">
                                             <span className="font-bangla">ডেলিভারি চার্জ</span>
-                                            <span className="font-bangla text-green-600">ফ্রি</span>
+                                            <span className="font-bangla">{deliveryCharge > 0 ? `৳${deliveryCharge.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : 'ফ্রি'}</span>
                                         </div>
                                         <div className="border-t border-gray-300 pt-3 mt-3">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-lg font-semibold text-gray-900 font-bangla">মোট</span>
-                                                <span className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>৳{totalPrice.toLocaleString('en-IN')}</span>
+                                                <span className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>৳{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -235,13 +285,30 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         💳 ক্যাশ অন ডেলিভারি - অগ্রীম কোন টাকা ছাড়াই অর্ডার করুন
                                     </p>
                                 </div>
+                                )}
+
+                                {minAmount > 0 && totalPrice < minAmount && (
+                                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <p className="text-sm text-yellow-800 font-bangla">
+                                        সর্বনিম্ন অর্ডার পরিমাণ: ৳{minAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    </p>
+                                </div>
+                                )}
+                                {maxAmount > 0 && totalPrice > maxAmount && (
+                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <p className="text-sm text-red-800 font-bangla">
+                                        সর্বোচ্চ অর্ডার পরিমাণ: ৳{maxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    </p>
+                                </div>
+                                )}
 
                                 <button 
                                     type="submit"
-                                    className="w-full btn-primary font-bangla text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                                    className={`w-full btn-primary font-bangla text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 ${((minAmount > 0 && totalPrice < minAmount) || (maxAmount > 0 && totalPrice > maxAmount)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     style={{ backgroundColor: 'var(--color-primary)' }}
+                                    disabled={(minAmount > 0 && totalPrice < minAmount) || (maxAmount > 0 && totalPrice > maxAmount)}
                                 >
-                                    অর্ডার নিশ্চিত করুন - ৳{totalPrice.toLocaleString('en-IN')}
+                                    {orderButtonText} - ৳{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                 </button>
                             </form>
                             </div>

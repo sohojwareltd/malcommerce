@@ -249,6 +249,55 @@
         </button>
     </div>
     
+    <!-- Order Form Settings -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold mb-4">Order Form Settings</h2>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Order Form Title</label>
+                <input type="text" name="order_form_title" value="{{ \App\Models\Setting::get('order_form_title', 'অর্ডার করুন') }}" placeholder="অর্ডার করুন" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">Customize the order form heading text</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Order Button Text</label>
+                <input type="text" name="order_button_text" value="{{ \App\Models\Setting::get('order_button_text', 'অর্ডার নিশ্চিত করুন') }}" placeholder="অর্ডার নিশ্চিত করুন" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">Customize the submit button text</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">Minimum Order Amount (৳)</label>
+                    <input type="number" name="order_min_amount" value="{{ \App\Models\Setting::get('order_min_amount', 0) }}" min="0" step="0.01" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-neutral-500 mt-1">Set minimum order amount (0 = no minimum)</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">Maximum Order Amount (৳)</label>
+                    <input type="number" name="order_max_amount" value="{{ \App\Models\Setting::get('order_max_amount', 0) }}" min="0" step="0.01" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-neutral-500 mt-1">Set maximum order amount (0 = no maximum)</p>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Custom Charge (৳)</label>
+                <input type="number" name="order_custom_charge" value="{{ \App\Models\Setting::get('order_custom_charge', 0) }}" min="0" step="0.01" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">Additional charge added to all orders (e.g., service charge, processing fee)</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Delivery Options (JSON)</label>
+                <textarea name="order_delivery_options" rows="4" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-mono text-sm">{{ \App\Models\Setting::get('order_delivery_options', '[]') }}</textarea>
+                <p class="text-xs text-neutral-500 mt-1">JSON format: [{"name":"Standard","charge":50,"days":"3-5"},{"name":"Express","charge":100,"days":"1-2"}]</p>
+            </div>
+            <div class="space-y-2">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="order_hide_summary" value="1" {{ \App\Models\Setting::get('order_hide_summary', false) ? 'checked' : '' }} class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
+                    <span class="text-sm font-medium text-neutral-700">Hide Order Summary</span>
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="order_hide_quantity" value="1" {{ \App\Models\Setting::get('order_hide_quantity', false) ? 'checked' : '' }} class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
+                    <span class="text-sm font-medium text-neutral-700">Hide Quantity Selector</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    
     <!-- Analytics Settings -->
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold mb-4">Analytics</h2>

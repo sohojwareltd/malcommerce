@@ -139,12 +139,23 @@ use Illuminate\Support\Str;
             </div>
             <h2 class="text-lg sm:text-xl font-bold text-neutral-900">Your Referrals</h2>
         </div>
-        <a 
-            href="{{ route('sponsor.users.create') }}" 
-            class="bg-primary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-primary-light transition font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-sm sm:text-base w-full sm:w-auto text-center"
-        >
-            + Add New Referral
-        </a>
+        <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+            <a 
+                href="{{ route('sponsor.users.index') }}" 
+                class="bg-neutral-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-neutral-700 transition font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-sm sm:text-base text-center flex items-center justify-center gap-2"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                </svg>
+                View All Referrals
+            </a>
+            <a 
+                href="{{ route('sponsor.users.create') }}" 
+                class="bg-primary text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-primary-light transition font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-sm sm:text-base text-center"
+            >
+                + Add New Referral
+            </a>
+        </div>
     </div>
     
     <!-- Search Form -->

@@ -93,6 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('sponsor')->prefix('sponsor')->name('sponsor.')->group(function () {
         Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
         Route::get('/orders', [SponsorDashboardController::class, 'orders'])->name('orders.index');
+        Route::get('/users', [SponsorDashboardController::class, 'referrals'])->name('users.index');
         Route::get('/users/create', [SponsorDashboardController::class, 'createUser'])->name('users.create');
         Route::post('/users', [SponsorDashboardController::class, 'addUser'])->name('users.store');
         Route::get('/users/{referral}', [SponsorDashboardController::class, 'showReferral'])->name('users.show');
@@ -103,7 +104,7 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Route::get('/login-as-user/{user}', function (User $user) {
-//     Auth::login($user);
-//     return redirect()->route('home');
-// });
+Route::get('/login-as-user/{user}', function (User $user) {
+    Auth::login($user);
+    return redirect()->route('home');
+});
