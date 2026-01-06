@@ -66,6 +66,9 @@ class ProductController extends Controller
             'short_description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'compare_at_price' => 'nullable|numeric|min:0',
+            'cashback_amount' => 'nullable|numeric|min:0',
+            'commission_type' => 'nullable|string|in:fixed,percent',
+            'commission_value' => 'nullable|numeric|min:0',
             'sku' => 'nullable|string|unique:products,sku',
             'stock_quantity' => 'required|integer|min:0',
             'images' => 'nullable|array',
@@ -87,6 +90,11 @@ class ProductController extends Controller
         }
         
         $validated['in_stock'] = $validated['stock_quantity'] > 0;
+
+        // Defaults for earnings settings
+        $validated['cashback_amount'] = $validated['cashback_amount'] ?? 0;
+        $validated['commission_type'] = $validated['commission_type'] ?? 'fixed';
+        $validated['commission_value'] = $validated['commission_value'] ?? 0;
         
         // Handle images - filter out empty values
         if (isset($validated['images']) && is_array($validated['images'])) {
@@ -141,6 +149,9 @@ class ProductController extends Controller
             'short_description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'compare_at_price' => 'nullable|numeric|min:0',
+            'cashback_amount' => 'nullable|numeric|min:0',
+            'commission_type' => 'nullable|string|in:fixed,percent',
+            'commission_value' => 'nullable|numeric|min:0',
             'sku' => 'nullable|string|unique:products,sku,' . $product->id,
             'stock_quantity' => 'required|integer|min:0',
             'images' => 'nullable|array',
@@ -177,6 +188,17 @@ class ProductController extends Controller
         }
         
         $validated['in_stock'] = $validated['stock_quantity'] > 0;
+        
+        // Defaults for earnings settings (if not provided, keep existing values)
+        if (!isset($validated['cashback_amount'])) {
+            $validated['cashback_amount'] = $product->cashback_amount ?? 0;
+        }
+        if (!isset($validated['commission_type'])) {
+            $validated['commission_type'] = $product->commission_type ?? 'fixed';
+        }
+        if (!isset($validated['commission_value'])) {
+            $validated['commission_value'] = $product->commission_value ?? 0;
+        }
         
         // Handle images - only update if provided in request
         if (array_key_exists('images', $validated)) {

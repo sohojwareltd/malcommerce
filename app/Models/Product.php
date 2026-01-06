@@ -15,6 +15,9 @@ class Product extends Model
         'description',
         'short_description',
         'price',
+        'cashback_amount',
+        'commission_type',
+        'commission_value',
         'compare_at_price',
         'sku',
         'stock_quantity',
@@ -39,6 +42,8 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'cashback_amount' => 'decimal:2',
+            'commission_value' => 'decimal:2',
             'compare_at_price' => 'decimal:2',
             'stock_quantity' => 'integer',
             'in_stock' => 'boolean',

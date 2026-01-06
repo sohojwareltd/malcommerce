@@ -28,6 +28,10 @@ class User extends Authenticatable
         'address',
         'photo',
         'comment',
+        'balance',
+        'withdrawal_methods',
+        'default_withdrawal_method',
+        'minimum_withdrawal_limit',
     ];
 
     /**
@@ -50,6 +54,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'balance' => 'decimal:2',
+            'withdrawal_methods' => 'array',
+            'minimum_withdrawal_limit' => 'decimal:2',
         ];
     }
 
@@ -72,6 +79,16 @@ class User extends Authenticatable
     public function customerOrders()
     {
         return $this->hasMany(Order::class, 'user_id');
+    }
+
+    public function earnings()
+    {
+        return $this->hasMany(Earning::class, 'sponsor_id');
+    }
+
+    public function withdrawals()
+    {
+        return $this->hasMany(Withdrawal::class, 'sponsor_id');
     }
 
     // Helper methods

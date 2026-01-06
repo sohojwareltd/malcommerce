@@ -101,7 +101,7 @@ use Illuminate\Support\Str;
         </div>
         <div>
             <h3 class="text-green-100 text-xs sm:text-sm font-medium mb-1 sm:mb-2">Income</h3>
-            <p class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold truncate">৳{{ number_format($income ?? 0, 2) }}</p>
+            <p class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold truncate">৳{{ number_format(Auth::user()->balance ?? 0, 2) }}</p>
         </div>
     </div>
 </div>

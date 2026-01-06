@@ -78,6 +78,36 @@ use Illuminate\Support\Facades\Storage;
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Orders</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Orders</span>
                     </a>
+                    <a href="{{ route('sponsor.earnings.index') }}" 
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Earnings' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('sponsor.earnings.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Earnings</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Earnings</span>
+                    </a>
+                    <a href="{{ route('sponsor.withdrawals.index') }}" 
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Withdrawals' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('sponsor.withdrawals.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 11h10M4 15h7M4 19h16"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Withdrawals</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Withdrawals</span>
+                    </a>
+                    <a href="{{ route('sponsor.withdrawal-methods') }}" 
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Withdrawal Methods' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('sponsor.withdrawal-methods') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Withdrawal Methods</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Withdrawal Methods</span>
+                    </a>
                     <a href="{{ route('sponsor.users.index') }}" 
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'My Referrals' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('sponsor.users.index') || request()->routeIs('sponsor.users.show') || request()->routeIs('sponsor.users.edit') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
@@ -149,7 +179,7 @@ use Illuminate\Support\Facades\Storage;
                     <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-neutral-800 truncate flex-1 ml-2 sm:ml-0">@yield('title', 'Dashboard')</h1>
                     <div class="flex items-center gap-2 sm:gap-3">
                         @php
-                            $income = Auth::user()->orders()->where('status', '!=', 'cancelled')->sum('total_price');
+                            $income = Auth::user()->balance;
                         @endphp
                         <div class="hidden sm:flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
                             <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

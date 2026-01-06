@@ -117,7 +117,7 @@ class OrderController extends Controller
             'referral_code' => $referralCode,
             'status' => 'pending',
         ]);
-        
+
         // Update stock
         $product->decrement('stock_quantity', $request->quantity);
         if ($product->stock_quantity <= 0) {

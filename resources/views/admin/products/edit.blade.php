@@ -74,6 +74,33 @@
             <input type="number" name="sort_order" value="{{ old('sort_order', $product->sort_order) }}" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
         </div>
     </div>
+
+    <!-- Earning Settings -->
+    <div class="mt-6 border-t border-neutral-200 pt-6">
+        <h2 class="text-xl font-bold mb-4">Earning Settings</h2>
+        <p class="text-sm text-neutral-600 mb-4">Configure customer cashback and sponsor commission for this product.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Cashback Amount (৳)</label>
+                <input type="number" name="cashback_amount" step="0.01" min="0" value="{{ old('cashback_amount', $product->cashback_amount) }}" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">Amount given back to the customer per order.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Commission Type</label>
+                <select name="commission_type" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    @php $commissionType = old('commission_type', $product->commission_type ?? 'fixed'); @endphp
+                    <option value="fixed" {{ $commissionType === 'fixed' ? 'selected' : '' }}>Fixed (৳)</option>
+                    <option value="percent" {{ $commissionType === 'percent' ? 'selected' : '' }}>Percent (%)</option>
+                </select>
+                <p class="text-xs text-neutral-500 mt-1">How sponsor commission is calculated.</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-neutral-700 mb-2">Commission Value</label>
+                <input type="number" name="commission_value" step="0.01" min="0" value="{{ old('commission_value', $product->commission_value) }}" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <p class="text-xs text-neutral-500 mt-1">If fixed: amount in ৳. If percent: percentage of order total.</p>
+            </div>
+        </div>
+    </div>
     
     <div class="mt-6">
         <label class="block text-sm font-medium text-neutral-700 mb-2">Product Images</label>

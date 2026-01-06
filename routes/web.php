@@ -81,6 +81,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sales', [AdminDashboardController::class, 'salesReport'])->name('reports.sales');
         Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings');
         Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update');
+
+        // Withdrawals management
+        Route::get('/withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index');
+        Route::get('/withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\WithdrawalController::class, 'show'])->name('withdrawals.show');
+        Route::put('/withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\WithdrawalController::class, 'update'])->name('withdrawals.update');
         
         // Admin profile routes
         Route::get('/profile', [AdminDashboardController::class, 'editProfile'])->name('profile.edit');
@@ -92,10 +97,21 @@ Route::middleware('auth')->group(function () {
     // Sponsor/Affiliate routes
     Route::middleware('sponsor')->prefix('sponsor')->name('sponsor.')->group(function () {
         Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
-        // Backward-compatible route for legacy links
-        Route::get('/orders', fn () => redirect()->route('sponsor.orders.referral-orders'))->name('orders.index');
+
+        // Earnings & withdrawals
+        Route::get('/earnings', [\App\Http\Controllers\Sponsor\EarningController::class, 'index'])->name('earnings.index');
+        Route::get('/withdrawals', [\App\Http\Controllers\Sponsor\WithdrawalController::class, 'index'])->name('withdrawals.index');
+        Route::get('/withdrawals/create', [\App\Http\Controllers\Sponsor\WithdrawalController::class, 'create'])->name('withdrawals.create');
+        Route::post('/withdrawals', [\App\Http\Controllers\Sponsor\WithdrawalController::class, 'store'])->name('withdrawals.store');
+        Route::match(['get', 'post'], '/withdrawal-methods', [\App\Http\Controllers\Sponsor\WithdrawalController::class, 'methods'])->name('withdrawal-methods');
+        Route::post('/withdrawal-methods/{methodKey}/default', [\App\Http\Controllers\Sponsor\WithdrawalController::class, 'setDefaultMethod'])->name('withdrawal-methods.default');
+        Route::delete('/withdrawal-methods/{methodKey}', [\App\Http\Controllers\Sponsor\WithdrawalController::class, 'deleteMethod'])->name('withdrawal-methods.delete');
+
+        // Orders (my vs referral)
+        Route::get('/orders', fn () => redirect()->route('sponsor.orders.referral-orders'))->name('orders.index'); // legacy
         Route::get('/orders/my-orders', [SponsorDashboardController::class, 'myOrders'])->name('orders.my-orders');
         Route::get('/orders/referral-orders', [SponsorDashboardController::class, 'referralOrders'])->name('orders.referral-orders');
+
         Route::get('/users', [SponsorDashboardController::class, 'referrals'])->name('users.index');
         Route::get('/users/create', [SponsorDashboardController::class, 'createUser'])->name('users.create');
         Route::post('/users', [SponsorDashboardController::class, 'addUser'])->name('users.store');

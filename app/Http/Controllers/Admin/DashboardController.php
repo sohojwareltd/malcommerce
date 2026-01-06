@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\Setting;
+use App\Services\EarningService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -232,18 +233,51 @@ class DashboardController extends Controller
         return view('admin.orders.show', compact('order'));
     }
     
-    public function updateOrderStatus(Request $request, Order $order)
+    public function updateOrderStatus(Request $request, Order $order, EarningService $earningService)
     {
         $request->validate([
             'status' => 'required|in:pending,processing,shipped,delivered,cancelled',
             'notes' => 'nullable|string|max:1000',
         ]);
         
-        $order->status = $request->status;
+        $oldStatus = $order->status;
+        $newStatus = $request->status;
+        
+        $order->status = $newStatus;
         if ($request->filled('notes')) {
             $order->notes = $request->notes;
         }
         $order->save();
+        
+        // Create earnings when order is marked as delivered (only if it wasn't already delivered)
+        if ($newStatus === 'delivered' && $oldStatus !== 'delivered') {
+            // Check if earnings already exist for this order to prevent duplicates
+            $existingEarnings = $order->earnings()->count();
+            
+            if ($existingEarnings === 0) {
+                try {
+                    // Load relationships
+                    $order->load(['product', 'user', 'sponsor']);
+                    
+                    if ($order->product && $order->user) {
+                        // Create cashback earning for the customer
+                        $earningService->createCashbackEarning($order, $order->product, $order->user);
+                        
+                        // Create referral commission for sponsor (if present)
+                        if ($order->sponsor_id && $order->sponsor) {
+                            $earningService->createReferralEarning($order, $order->product, $order->sponsor, $order->user);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    \Log::error('Earning creation failed when marking order as delivered', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                    // Do not fail the status update if earnings fail
+                }
+            }
+        }
         
         return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Order status updated successfully!');

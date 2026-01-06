@@ -52,6 +52,11 @@ class Order extends Model
         return $this->belongsTo(User::class, 'sponsor_id');
     }
 
+    public function earnings()
+    {
+        return $this->hasMany(Earning::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
