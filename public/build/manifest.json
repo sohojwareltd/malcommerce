@@ -1,10 +1,10 @@
 {
-  "_ProductSections-CDUDZosu.js": {
-    "file": "assets/ProductSections-CDUDZosu.js",
+  "_ProductSections-B0jz4j-n.js": {
+    "file": "assets/ProductSections-B0jz4j-n.js",
     "name": "ProductSections"
   },
   "resources/css/app.css": {
-    "file": "assets/app-FovzB-AI.css",
+    "file": "assets/app-BpHjFwjN.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -19,21 +19,21 @@
     "isEntry": true
   },
   "resources/js/page-builder.js": {
-    "file": "assets/page-builder-DmxsTGCq.js",
+    "file": "assets/page-builder-D0QYyRgg.js",
     "name": "page-builder",
     "src": "resources/js/page-builder.js",
     "isEntry": true,
     "imports": [
-      "_ProductSections-CDUDZosu.js"
+      "_ProductSections-B0jz4j-n.js"
     ]
   },
   "resources/js/product-sections.js": {
-    "file": "assets/product-sections-DiRCu5Po.js",
+    "file": "assets/product-sections-CKsKdD8y.js",
     "name": "product-sections",
     "src": "resources/js/product-sections.js",
     "isEntry": true,
     "imports": [
-      "_ProductSections-CDUDZosu.js"
+      "_ProductSections-B0jz4j-n.js"
     ]
   }
 }
