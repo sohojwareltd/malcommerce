@@ -1,4 +1,4 @@
-@extends('layouts.sponsor')
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @extends('layouts.sponsor')
 
 @section('title', 'Partner Dashboard')
 

@@ -35,6 +35,15 @@ class OrderController extends Controller
         $minQuantity = (int) ($product->order_min_quantity ?: \App\Models\Setting::get('order_min_quantity', 0));
         $maxQuantity = (int) ($product->order_max_quantity ?: \App\Models\Setting::get('order_max_quantity', 0));
         
+        // Validate delivery option is required when delivery options exist
+        if (!empty($deliveryOptions)) {
+            $request->validate([
+                'delivery_option' => 'required|integer',
+            ], [
+                'delivery_option.required' => 'Please select a delivery option.',
+            ]);
+        }
+        
         // Calculate delivery charge
         $deliveryCharge = 0;
         if ($request->has('delivery_option') && !empty($deliveryOptions)) {

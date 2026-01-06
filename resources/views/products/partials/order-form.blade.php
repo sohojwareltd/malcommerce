@@ -46,8 +46,15 @@
         totalPrice: {{ ($product->price * max(1, $minQuantity)) }},
         minQuantity: {{ max(1, $minQuantity) }},
         maxQuantity: {{ min($product->stock_quantity ?? 999, $maxQuantity > 0 ? $maxQuantity : 999) }},
+        hasDeliveryOptions: {{ !empty($deliveryOptions) ? 'true' : 'false' }},
         updateTotal() {
             this.totalPrice = (this.quantity * this.price) + this.deliveryCharge;
+        },
+        canSubmit() {
+            if (this.quantity < this.minQuantity && this.minQuantity > 0) return false;
+            if (this.quantity > this.maxQuantity && this.maxQuantity > 0) return false;
+            if (this.hasDeliveryOptions && !this.selectedDelivery) return false;
+            return true;
         }
     }" @input="updateTotal()">
         @csrf
@@ -138,7 +145,7 @@
         @if(!empty($deliveryOptions))
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-3 font-bangla">
-                ডেলিভারি অপশন
+                ডেলিভারি অপশন <span class="text-red-500">*</span>
             </label>
             <div class="space-y-2">
                 @foreach($deliveryOptions as $index => $option)
@@ -150,6 +157,7 @@
                         x-model="selectedDelivery"
                         @change="deliveryCharge = {{ $option['charge'] ?? 0 }}; updateTotal();"
                         class="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
+                        required
                     >
                     <div class="flex-1">
                         <div class="font-semibold text-gray-900 font-bangla">{{ $option['name'] ?? 'Standard' }}</div>
@@ -162,6 +170,11 @@
                     </div>
                 </label>
                 @endforeach
+            </div>
+            <div x-show="hasDeliveryOptions && !selectedDelivery" class="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-sm text-yellow-800 font-bangla">
+                    দয়া করে একটি ডেলিভারি অপশন নির্বাচন করুন
+                </p>
             </div>
         </div>
         @endif
@@ -217,8 +230,8 @@
             type="submit"
             class="w-full btn-primary font-bangla text-lg py-4 rounded-xl shadow-lg hover:shadow-xl"
             style="background-color: var(--color-primary);"
-            :disabled="(quantity < {{ $minQuantity }} && {{ $minQuantity }} > 0) || (quantity > {{ $maxQuantity }} && {{ $maxQuantity }} > 0)"
-            :class="(quantity < {{ $minQuantity }} && {{ $minQuantity }} > 0) || (quantity > {{ $maxQuantity }} && {{ $maxQuantity }} > 0) ? 'opacity-50 cursor-not-allowed' : ''"
+            :disabled="!canSubmit()"
+            :class="!canSubmit() ? 'opacity-50 cursor-not-allowed' : ''"
         >
             <span>{{ $orderButtonText }} - ৳<span x-text="totalPrice.toLocaleString('bn-BD')"></span></span>
         </button>

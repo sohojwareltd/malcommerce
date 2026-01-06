@@ -229,7 +229,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 {deliveryOptions.length > 0 && (
                                 <div className="mb-6">
                                     <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">
-                                        ডেলিভারি অপশন
+                                        ডেলিভারি অপশন <span className="text-red-500">*</span>
                                     </label>
                                     <div className="space-y-2">
                                         {deliveryOptions.map((option, optIndex) => (
@@ -241,6 +241,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                                     checked={selectedDelivery === optIndex}
                                                     onChange={() => setSelectedDelivery(optIndex)}
                                                     className="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
+                                                    required
                                                 />
                                                 <div className="flex-1">
                                                     <div className="font-semibold text-gray-900 font-bangla">{option.name || 'Standard'}</div>
@@ -252,6 +253,13 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             </label>
                                         ))}
                                     </div>
+                                    {selectedDelivery === null && (
+                                        <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                            <p className="text-sm text-yellow-800 font-bangla">
+                                                দয়া করে একটি ডেলিভারি অপশন নির্বাচন করুন
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                                 )}
 
@@ -287,26 +295,35 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 </div>
                                 )}
 
-                                {minAmount > 0 && totalPrice < minAmount && (
+                                {effectiveMinQuantity > 0 && quantity < effectiveMinQuantity && (
                                 <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                                     <p className="text-sm text-yellow-800 font-bangla">
-                                        সর্বনিম্ন অর্ডার পরিমাণ: ৳{minAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                        সর্বনিম্ন অর্ডার পরিমাণ: {effectiveMinQuantity} টি
                                     </p>
                                 </div>
                                 )}
-                                {maxAmount > 0 && totalPrice > maxAmount && (
+                                {maxQuantity > 0 && quantity > maxQuantity && (
                                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                                     <p className="text-sm text-red-800 font-bangla">
-                                        সর্বোচ্চ অর্ডার পরিমাণ: ৳{maxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                        সর্বোচ্চ অর্ডার পরিমাণ: {maxQuantity} টি
                                     </p>
                                 </div>
                                 )}
 
                                 <button 
                                     type="submit"
-                                    className={`w-full btn-primary font-bangla text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 ${((minAmount > 0 && totalPrice < minAmount) || (maxAmount > 0 && totalPrice > maxAmount)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`w-full btn-primary font-bangla text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 ${
+                                        (effectiveMinQuantity > 0 && quantity < effectiveMinQuantity) || 
+                                        (maxQuantity > 0 && quantity > maxQuantity) ||
+                                        (deliveryOptions.length > 0 && selectedDelivery === null)
+                                            ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
                                     style={{ backgroundColor: 'var(--color-primary)' }}
-                                    disabled={(minAmount > 0 && totalPrice < minAmount) || (maxAmount > 0 && totalPrice > maxAmount)}
+                                    disabled={
+                                        (effectiveMinQuantity > 0 && quantity < effectiveMinQuantity) || 
+                                        (maxQuantity > 0 && quantity > maxQuantity) ||
+                                        (deliveryOptions.length > 0 && selectedDelivery === null)
+                                    }
                                 >
                                     {orderButtonText} - ৳{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                 </button>
