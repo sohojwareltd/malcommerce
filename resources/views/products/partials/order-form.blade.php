@@ -198,23 +198,27 @@
         </div>
         @endif
 
-        <div x-show="totalPrice < {{ $minAmount }} && {{ $minAmount }} > 0" class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+        @if($minQuantity > 0)
+        <div x-show="quantity < {{ $minQuantity }}" class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p class="text-sm text-yellow-800 font-bangla">
-                সর্বনিম্ন অর্ডার পরিমাণ: ৳{{ number_format($minAmount, 2) }}
+                সর্বনিম্ন অর্ডার পরিমাণ: {{ $minQuantity }} টি
             </p>
         </div>
-        <div x-show="totalPrice > {{ $maxAmount }} && {{ $maxAmount }} > 0" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        @endif
+        @if($maxQuantity > 0)
+        <div x-show="quantity > {{ $maxQuantity }}" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p class="text-sm text-red-800 font-bangla">
-                সর্বোচ্চ অর্ডার পরিমাণ: ৳{{ number_format($maxAmount, 2) }}
+                সর্বোচ্চ অর্ডার পরিমাণ: {{ $maxQuantity }} টি
             </p>
         </div>
+        @endif
 
         <button 
             type="submit"
             class="w-full btn-primary font-bangla text-lg py-4 rounded-xl shadow-lg hover:shadow-xl"
             style="background-color: var(--color-primary);"
-            :disabled="(totalPrice < {{ $minAmount }} && {{ $minAmount }} > 0) || (totalPrice > {{ $maxAmount }} && {{ $maxAmount }} > 0)"
-            :class="(totalPrice < {{ $minAmount }} && {{ $minAmount }} > 0) || (totalPrice > {{ $maxAmount }} && {{ $maxAmount }} > 0) ? 'opacity-50 cursor-not-allowed' : ''"
+            :disabled="(quantity < {{ $minQuantity }} && {{ $minQuantity }} > 0) || (quantity > {{ $maxQuantity }} && {{ $maxQuantity }} > 0)"
+            :class="(quantity < {{ $minQuantity }} && {{ $minQuantity }} > 0) || (quantity > {{ $maxQuantity }} && {{ $maxQuantity }} > 0) ? 'opacity-50 cursor-not-allowed' : ''"
         >
             <span>{{ $orderButtonText }} - ৳<span x-text="totalPrice.toLocaleString('bn-BD')"></span></span>
         </button>
