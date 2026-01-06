@@ -11,7 +11,7 @@
             </svg>
         </div>
         
-        <h1 class="text-3xl font-bold mb-4">Order Placed Successfully!</h1>
+        <h1 class="text-3xl font-bold text-green-600 mb-4">Order Placed Successfully!</h1>
         <p class="text-neutral-600 mb-6">Thank you for your order. We'll process it shortly.</p>
         
         <div class="bg-neutral-50 rounded-lg p-6 mb-6 text-left">
