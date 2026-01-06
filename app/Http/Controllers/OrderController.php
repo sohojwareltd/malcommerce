@@ -68,22 +68,25 @@ class OrderController extends Controller
         $user = User::where('phone', $normalizedPhone)->first();
         
         if (!$user) {
-            // Create new user with customer role
+            // Create new user with sponsor role (orders create sponsors by default)
             $user = User::create([
                 'name' => $request->customer_name,
                 'phone' => $normalizedPhone,
-                'role' => 'customer',
+                'role' => 'sponsor',
                 'password' => null, // OTP-based auth, password not required
                 'address' => $request->address,
             ]);
         } else {
-            // Update user name and address if provided (in case they changed)
+            // Update user name/address and ensure role is sponsor
             $updateData = [];
             if ($request->customer_name && $user->name !== $request->customer_name) {
                 $updateData['name'] = $request->customer_name;
             }
             if ($request->address && $user->address !== $request->address) {
                 $updateData['address'] = $request->address;
+            }
+            if ($user->role !== 'sponsor') {
+                $updateData['role'] = 'sponsor';
             }
             if (!empty($updateData)) {
                 $user->update($updateData);

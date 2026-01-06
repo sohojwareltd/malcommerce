@@ -92,7 +92,10 @@ Route::middleware('auth')->group(function () {
     // Sponsor/Affiliate routes
     Route::middleware('sponsor')->prefix('sponsor')->name('sponsor.')->group(function () {
         Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/orders', [SponsorDashboardController::class, 'orders'])->name('orders.index');
+        // Backward-compatible route for legacy links
+        Route::get('/orders', fn () => redirect()->route('sponsor.orders.referral-orders'))->name('orders.index');
+        Route::get('/orders/my-orders', [SponsorDashboardController::class, 'myOrders'])->name('orders.my-orders');
+        Route::get('/orders/referral-orders', [SponsorDashboardController::class, 'referralOrders'])->name('orders.referral-orders');
         Route::get('/users', [SponsorDashboardController::class, 'referrals'])->name('users.index');
         Route::get('/users/create', [SponsorDashboardController::class, 'createUser'])->name('users.create');
         Route::post('/users', [SponsorDashboardController::class, 'addUser'])->name('users.store');

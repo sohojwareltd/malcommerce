@@ -16,27 +16,46 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Get orders from referrals (users sponsored by this sponsor) AND sponsor's own orders
-        // Orders where user_id belongs to users where sponsor_id = current user's id OR user_id = current user's id
-        $referralUserIds = $user->referrals()->pluck('id');
-        $allUserIds = $referralUserIds->push($user->id)->unique();
+        // Get orders where sponsor_id = current user's id (referral orders - count as revenue)
+        $referralOrders = Order::where('sponsor_id', $user->id)
+            ->where('status', '!=', 'cancelled')
+            ->sum('total_price');
+        
+        // Get orders where user_id = current user's id (my orders - don't count as revenue)
+        $myOrdersCount = Order::where('user_id', $user->id)->count();
+        $referralOrdersCount = Order::where('sponsor_id', $user->id)->count();
         
         $stats = [
             'total_referrals' => $user->referrals()->count(),
-            'total_orders' => Order::whereIn('user_id', $allUserIds)->count(),
-            'pending_orders' => Order::whereIn('user_id', $allUserIds)->where('status', 'pending')->count(),
+            'total_orders' => $myOrdersCount + $referralOrdersCount,
+            'pending_orders' => Order::where('user_id', $user->id)->where('status', 'pending')->count() + 
+                              Order::where('sponsor_id', $user->id)->where('status', 'pending')->count(),
         ];
         
-        $recentOrders = Order::whereIn('user_id', $allUserIds)
+        // Get recent orders (both my orders and referral orders)
+        $myRecentOrders = Order::where('user_id', $user->id)
             ->with(['product', 'user'])
             ->orderBy('created_at', 'desc')
-            ->take(10)
+            ->take(5)
             ->get()
-            ->map(function($order) use ($user) {
-                // Add order type: 'my_order' if it's sponsor's own order, 'referral_order' if from referral
-                $order->order_type = $order->user_id == $user->id ? 'my_order' : 'referral_order';
+            ->map(function($order) {
+                $order->order_type = 'my_order';
                 return $order;
             });
+        
+        $referralRecentOrders = Order::where('sponsor_id', $user->id)
+            ->with(['product', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function($order) {
+                $order->order_type = 'referral_order';
+                return $order;
+            });
+        
+        $recentOrders = $myRecentOrders->merge($referralRecentOrders)
+            ->sortByDesc('created_at')
+            ->take(10);
         
         // Build referrals query with search
         $referralsQuery = $user->referrals()->withCount('customerOrders as orders_count');
@@ -385,17 +404,66 @@ class DashboardController extends Controller
     }
     
     /**
-     * Show all orders for the current sponsor with search and filters
+     * Show my orders (where user_id = sponsor's id) - these don't count as revenue
      */
-    public function orders(Request $request)
+    public function myOrders(Request $request)
     {
         $user = Auth::user();
         
-        // Get orders from referrals (users sponsored by this sponsor) AND sponsor's own orders
-        $referralUserIds = $user->referrals()->pluck('id');
-        $allUserIds = $referralUserIds->push($user->id)->unique();
+        $query = Order::where('user_id', $user->id)
+            ->with(['product', 'user']);
         
-        $query = Order::whereIn('user_id', $allUserIds)
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', '%' . $search . '%')
+                  ->orWhere('customer_name', 'like', '%' . $search . '%')
+                  ->orWhere('customer_phone', 'like', '%' . $search . '%')
+                  ->orWhereHas('product', function($productQuery) use ($search) {
+                      $productQuery->where('name', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+        
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+        
+        // Get per page value from request, default to 20
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+        
+        $orders = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        
+        // Calculate summary stats
+        $stats = [
+            'total_orders' => Order::where('user_id', $user->id)->count(),
+            'total_amount' => Order::where('user_id', $user->id)->where('status', '!=', 'cancelled')->sum('total_price'),
+            'pending_orders' => Order::where('user_id', $user->id)->where('status', 'pending')->count(),
+            'delivered_orders' => Order::where('user_id', $user->id)->where('status', 'delivered')->count(),
+        ];
+        
+        return view('sponsor.orders.my-orders', compact('orders', 'stats'));
+    }
+    
+    /**
+     * Show referral orders (where sponsor_id = sponsor's id) - these count as revenue
+     */
+    public function referralOrders(Request $request)
+    {
+        $user = Auth::user();
+        
+        $query = Order::where('sponsor_id', $user->id)
             ->with(['product', 'user']);
         
         // Search functionality
@@ -428,24 +496,20 @@ class DashboardController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
         
-        $orders = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        // Get per page value from request, default to 20
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
         
-        // Add order type to each order
-        $orders->getCollection()->transform(function($order) use ($user) {
-            $order->order_type = $order->user_id == $user->id ? 'my_order' : 'referral_order';
-            return $order;
-        });
+        $orders = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
         
-        // Calculate summary stats
+        // Calculate summary stats (these count as revenue)
         $stats = [
-            'total_orders' => Order::whereIn('user_id', $allUserIds)->count(),
-            'total_revenue' => Order::whereIn('user_id', $allUserIds)->where('status', '!=', 'cancelled')->sum('total_price'),
-            'pending_orders' => Order::whereIn('user_id', $allUserIds)->where('status', 'pending')->count(),
-            'delivered_orders' => Order::whereIn('user_id', $allUserIds)->where('status', 'delivered')->count(),
-            'my_orders' => Order::where('user_id', $user->id)->count(),
-            'referral_orders' => Order::whereIn('user_id', $referralUserIds)->count(),
+            'total_orders' => Order::where('sponsor_id', $user->id)->count(),
+            'total_revenue' => Order::where('sponsor_id', $user->id)->where('status', '!=', 'cancelled')->sum('total_price'),
+            'pending_orders' => Order::where('sponsor_id', $user->id)->where('status', 'pending')->count(),
+            'delivered_orders' => Order::where('sponsor_id', $user->id)->where('status', 'delivered')->count(),
         ];
         
-        return view('sponsor.orders.index', compact('orders', 'stats'));
+        return view('sponsor.orders.referral-orders', compact('orders', 'stats'));
     }
 }

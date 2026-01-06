@@ -370,13 +370,23 @@ use Illuminate\Support\Str;
 
 <!-- Recent Orders -->
 <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 lg:mb-8 border border-neutral-100 overflow-x-hidden">
-    <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-        <div class="bg-orange-500 rounded-lg p-1.5 sm:p-2">
-            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-3 sm:mb-4">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <div class="bg-orange-500 rounded-lg p-1.5 sm:p-2">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+            </div>
+            <h2 class="text-lg sm:text-xl font-bold text-neutral-900">Recent Orders</h2>
         </div>
-        <h2 class="text-lg sm:text-xl font-bold text-neutral-900">Recent Orders</h2>
+        <div class="flex flex-col sm:flex-row gap-2">
+            <a href="{{ route('sponsor.orders.my-orders') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-sm text-center">
+                View My Orders
+            </a>
+            <a href="{{ route('sponsor.orders.referral-orders') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition font-semibold text-sm text-center">
+                View Referral Orders
+            </a>
+        </div>
     </div>
     
     <!-- Desktop Table View -->

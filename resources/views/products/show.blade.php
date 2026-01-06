@@ -157,65 +157,68 @@
                     </div>
                     @endif
                     
-                    <!-- Order Form -->
-                    @if($product->in_stock)
+                </div>
+            </div>
+
+            <!-- Order Form (Full Width Row) -->
+            <div class="mt-12">
+                @if($product->in_stock)
                     <div id="order-form-section">
                         @include('products.partials.order-form', ['product' => $product])
                     </div>
-                    @else
+                @else
                     <div class="card text-center py-8">
                         <p class="text-gray-600 font-bangla text-lg">এই পণ্যটি বর্তমানে স্টকে নেই</p>
                     </div>
-                    @endif
-                    
-                    <!-- Description Tabs -->
-                    @if($product->description)
-                    <div class="mt-12" x-data="{ activeTab: 'description' }">
-                        <div class="border-b border-gray-200 mb-6">
-                            <nav class="flex gap-6">
-                                <button 
-                                    @click="activeTab = 'description'" 
-                                    :class="activeTab === 'description' ? 'border-b-2 font-semibold text-gray-900' : 'text-gray-600 hover:text-gray-900'"
-                                    class="pb-3 font-bangla transition-colors"
-                                    style="border-bottom-color: activeTab === 'description' ? 'var(--color-primary)' : 'transparent';"
-                                >
-                                    বিবরণ
-                                </button>
-                                <button 
-                                    @click="activeTab = 'shipping'" 
-                                    :class="activeTab === 'shipping' ? 'border-b-2 font-semibold text-gray-900' : 'text-gray-600 hover:text-gray-900'"
-                                    class="pb-3 font-bangla transition-colors"
-                                    style="border-bottom-color: activeTab === 'shipping' ? 'var(--color-primary)' : 'transparent';"
-                                >
-                                    ডেলিভারি তথ্য
-                                </button>
-                            </nav>
-                        </div>
-                        
-                        <div x-show="activeTab === 'description'" x-transition class="prose max-w-none">
-                            <div class="text-gray-700 font-bangla leading-relaxed whitespace-pre-line">
-                                {!! nl2br(e($product->description)) !!}
-                            </div>
-                        </div>
-                        
-                        <div x-show="activeTab === 'shipping'" x-transition class="space-y-4 font-bangla">
-                            <div class="p-4 bg-gray-50 rounded-lg">
-                                <h3 class="font-semibold text-gray-900 mb-2">🚚 ডেলিভারি</h3>
-                                <p class="text-gray-700">সারা বাংলাদেশে ফ্রি হোম ডেলিভারি।</p>
-                            </div>
-                            <div class="p-4 bg-gray-50 rounded-lg">
-                                <h3 class="font-semibold text-gray-900 mb-2">💳 পেমেন্ট</h3>
-                                <p class="text-gray-700">ক্যাশ অন ডেলিভারি (COD) - ডেলিভারির সময় পেমেন্ট করুন।</p>
-                            </div>
-                            <div class="p-4 bg-gray-50 rounded-lg">
-                                <h3 class="font-semibold text-gray-900 mb-2">⏰ ডেলিভারি সময়</h3>
-                                <p class="text-gray-700">৩-৫ কার্যদিবস (অর্ডার নিশ্চিত হওয়ার পর থেকে)।</p>
-                            </div>
-                        </div>
+                @endif
+            </div>
+
+            <!-- Description Tabs -->
+            @if($product->description)
+            <div class="mt-12" x-data="{ activeTab: 'description' }">
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="flex gap-6">
+                        <button 
+                            @click="activeTab = 'description'" 
+                            :class="activeTab === 'description' ? 'border-b-2 font-semibold text-gray-900' : 'text-gray-600 hover:text-gray-900'"
+                            class="pb-3 font-bangla transition-colors"
+                            style="border-bottom-color: activeTab === 'description' ? 'var(--color-primary)' : 'transparent';"
+                        >
+                            বিবরণ
+                        </button>
+                        <button 
+                            @click="activeTab = 'shipping'" 
+                            :class="activeTab === 'shipping' ? 'border-b-2 font-semibold text-gray-900' : 'text-gray-600 hover:text-gray-900'"
+                            class="pb-3 font-bangla transition-colors"
+                            style="border-bottom-color: activeTab === 'shipping' ? 'var(--color-primary)' : 'transparent';"
+                        >
+                            ডেলিভারি তথ্য
+                        </button>
+                    </nav>
+                </div>
+                
+                <div x-show="activeTab === 'description'" x-transition class="prose max-w-none">
+                    <div class="text-gray-700 font-bangla leading-relaxed whitespace-pre-line">
+                        {!! nl2br(e($product->description)) !!}
                     </div>
-                    @endif
+                </div>
+                
+                <div x-show="activeTab === 'shipping'" x-transition class="space-y-4 font-bangla">
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h3 class="font-semibold text-gray-900 mb-2">🚚 ডেলিভারি</h3>
+                        <p class="text-gray-700">সারা বাংলাদেশে ফ্রি হোম ডেলিভারি।</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h3 class="font-semibold text-gray-900 mb-2">💳 পেমেন্ট</h3>
+                        <p class="text-gray-700">ক্যাশ অন ডেলিভারি (COD) - ডেলিভারির সময় পেমেন্ট করুন।</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <h3 class="font-semibold text-gray-900 mb-2">⏰ ডেলিভারি সময়</h3>
+                        <p class="text-gray-700">৩-৫ কার্যদিবস (অর্ডার নিশ্চিত হওয়ার পর থেকে)।</p>
+                    </div>
                 </div>
             </div>
+            @endif
         </div>
     </div>
     
