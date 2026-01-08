@@ -44,6 +44,29 @@ use Illuminate\Support\Facades\Storage;
         </div>
         
         <div class="p-6">
+            <!-- Password Required Alert -->
+            @if(empty($user->password) || session('password_required'))
+                <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-semibold text-yellow-800 mb-1">Password Required</h3>
+                            <p class="text-sm text-yellow-700">Please set a password to continue using the admin panel. You can set it in the "Change Password" tab below.</p>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    // Auto-switch to password tab if password is required
+                    document.addEventListener('DOMContentLoaded', function() {
+                        if (window.location.hash === '#password' || {{ empty($user->password) ? 'true' : 'false' }}) {
+                            switchTab('password');
+                        }
+                    });
+                </script>
+            @endif
+            
             <!-- Success Messages -->
             @if(session('success'))
                 <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">

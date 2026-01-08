@@ -283,6 +283,55 @@ class DashboardController extends Controller
             ->with('success', 'Order status updated successfully!');
     }
     
+    public function editOrder(Order $order)
+    {
+        $order->load('product');
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+        return view('admin.orders.edit', compact('order', 'products'));
+    }
+    
+    public function updateOrder(Request $request, Order $order)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'unit_price' => 'required|numeric|min:0',
+            'delivery_charge' => 'nullable|numeric|min:0',
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'required|string|max:20',
+            'address' => 'required|string',
+        ]);
+        
+        // Normalize phone number
+        try {
+            $normalizedPhone = $this->normalizePhone($request->customer_phone);
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['customer_phone' => $e->getMessage()]);
+        }
+        
+        // Calculate total price
+        $subtotal = $request->unit_price * $request->quantity;
+        $deliveryCharge = $request->delivery_charge ?? 0;
+        $totalPrice = $subtotal + $deliveryCharge;
+        
+        // Update order
+        $order->update([
+            'product_id' => $request->product_id,
+            'quantity' => $request->quantity,
+            'unit_price' => $request->unit_price,
+            'delivery_charge' => $deliveryCharge,
+            'total_price' => $totalPrice,
+            'customer_name' => $request->customer_name,
+            'customer_phone' => $normalizedPhone,
+            'address' => $request->address,
+        ]);
+        
+        return redirect()->route('admin.orders.show', $order)
+            ->with('success', 'Order updated successfully!');
+    }
+    
     public function sponsors(Request $request)
     {
         $query = User::where('role', 'sponsor')
@@ -888,13 +937,15 @@ class DashboardController extends Controller
         $request->validate($rules);
         
         // Check current password if user has a password set
-        if ($user->password && !\Hash::check($request->current_password, $user->password)) {
+        if ($user->password && $request->filled('current_password') && !\Hash::check($request->current_password, $user->password)) {
             return redirect()->back()
+                ->withInput()
                 ->withErrors(['current_password' => 'The current password is incorrect.']);
         }
         
+        // Update password (Laravel will auto-hash due to 'hashed' cast in User model)
         $user->update([
-            'password' => bcrypt($request->password),
+            'password' => $request->password,
         ]);
         
         return redirect()->to(route('admin.profile.edit') . '#password')

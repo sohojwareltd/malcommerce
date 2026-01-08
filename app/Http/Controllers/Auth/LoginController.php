@@ -35,6 +35,56 @@ class LoginController extends Controller
     }
     
     /**
+     * Check login method for user (password or OTP)
+     */
+    public function checkLoginMethod(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|max:20',
+        ]);
+
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
+
+        $user = User::where('phone', $phone)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number not found.',
+                'redirect_to_register' => true
+            ], 422);
+        }
+        
+        // For admin/sponsor users with password, they should use password login
+        // For admin users, redirect to admin login
+        if ($user->isAdmin()) {
+            return response()->json([
+                'success' => true,
+                'is_admin' => true,
+                'has_password' => !empty($user->password),
+                'redirect_to_admin_login' => true,
+                'message' => 'Please use admin login page.'
+            ]);
+        }
+        
+        // For sponsor users with password, show password login option
+        // For sponsor users without password, allow OTP (first time)
+        return response()->json([
+            'success' => true,
+            'is_sponsor' => $user->isSponsor(),
+            'has_password' => !empty($user->password),
+            'email' => $user->email ?? '',
+        ]);
+    }
+    
+    /**
      * Send OTP for login
      */
     public function sendOtp(Request $request)
@@ -67,6 +117,16 @@ class LoginController extends Controller
                 'message' => 'Phone number not found. Please register first.',
                 'redirect_to_register' => true,
                 'phone' => $displayPhone
+            ], 422);
+        }
+        
+        // If admin/sponsor user has password, they should use password login
+        if (($user->isAdmin() || $user->isSponsor()) && !empty($user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please use password login. OTP login is only available for first-time setup.',
+                'use_password_login' => true,
+                'phone' => $phone
             ], 422);
         }
 
@@ -142,6 +202,20 @@ class LoginController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        // If user is admin or sponsor and doesn't have password, redirect to profile to set password
+        if (($user->isAdmin() || $user->isSponsor()) && empty($user->password)) {
+            $redirectUrl = $user->isAdmin() 
+                ? route('admin.profile.edit') . '#password'
+                : route('sponsor.profile.edit') . '#password';
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful! Please set a password to continue.',
+                'redirect' => $redirectUrl,
+                'requires_password_setup' => true
+            ]);
+        }
+
         // Redirect based on user role
         $redirectUrl = route('home');
         if ($user->isAdmin()) {
@@ -158,36 +232,64 @@ class LoginController extends Controller
     }
 
     /**
-     * Legacy login method (for backward compatibility if needed)
+     * Password login method (phone-based)
      */
     public function login(Request $request)
     {
-        // For admin/sponsor accounts that might still have passwords
         $request->validate([
-            'email' => 'required|email',
+            'phone' => 'required|string|max:20',
             'password' => 'required',
         ]);
         
-        if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
-            $request->session()->regenerate();
-            
-            $user = Auth::user();
-            if ($user->isAdmin()) {
-                return redirect()->intended(route('admin.dashboard'));
-            } elseif ($user->isSponsor()) {
-                return redirect()->intended(route('sponsor.dashboard'));
-            }
-            
-            return redirect()->intended(route('home'));
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->withErrors(['phone' => $e->getMessage()]);
         }
         
-        throw ValidationException::withMessages([
-            'email' => ['The provided credentials do not match our records.'],
-        ]);
+        // Find user by phone
+        $user = User::where('phone', $phone)->first();
+        
+        if (!$user) {
+            return back()
+                ->withInput()
+                ->withErrors(['phone' => 'The provided phone number does not match our records.']);
+        }
+        
+        // Check if user has a password
+        if (empty($user->password)) {
+            return back()
+                ->withInput()
+                ->withErrors(['phone' => 'Password not set. Please use OTP login to set up your password first.']);
+        }
+        
+        // Verify password directly
+        if (!\Hash::check($request->password, $user->password)) {
+            return back()
+                ->withInput()
+                ->withErrors(['password' => 'The provided password is incorrect.']);
+        }
+        
+        // Login the user directly
+        Auth::login($user, $request->filled('remember'));
+        $request->session()->regenerate();
+        
+        // Redirect based on user role
+        if ($user->isAdmin()) {
+            return redirect()->intended(route('admin.dashboard'));
+        } elseif ($user->isSponsor()) {
+            return redirect()->intended(route('sponsor.dashboard'));
+        }
+        
+        return redirect()->intended(route('home'));
     }
     
     /**
      * Show admin login form
+     * If user has password, show password-first login with OTP option
+     * If user doesn't have password, show OTP-only login (first time)
      */
     public function showAdminLoginForm()
     {
@@ -200,16 +302,85 @@ class LoginController extends Controller
     }
     
     /**
+     * Check if admin user has password and return appropriate login method
+     */
+    public function checkAdminLoginMethod(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|max:20',
+        ]);
+
+        try {
+            $phone = $this->normalizePhone($request->phone);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
+
+        $user = User::where('phone', $phone)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Phone number not found.'
+            ], 422);
+        }
+        
+      
+        
+        // If user has password, they should use password login (with OTP option)
+        // If user doesn't have password, they must use OTP (first time)
+        return response()->json([
+            'success' => true,
+            'has_password' => !empty($user->password),
+            'email' => $user->email ?? '',
+        ]);
+    }
+    
+    /**
      * Admin login with password
+     * Also supports phone-based password login
      */
     public function adminLoginPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'nullable|email',
+            'phone' => 'nullable|string|max:20',
             'password' => 'required',
         ]);
         
-        if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
+        $credentials = [];
+        
+        // Support both email and phone login
+        if ($request->filled('email')) {
+            $credentials['email'] = $request->email;
+        } elseif ($request->filled('phone')) {
+            try {
+                $phone = $this->normalizePhone($request->phone);
+                $user = User::where('phone', $phone)->first();
+                if ($user && $user->isAdmin()) {
+                    $credentials['email'] = $user->email;
+                } else {
+                    return back()->withErrors([
+                        'phone' => 'Invalid phone number or you do not have permission.',
+                    ])->withInput();
+                }
+            } catch (\Exception $e) {
+                return back()->withErrors([
+                    'phone' => $e->getMessage(),
+                ])->withInput();
+            }
+        } else {
+            return back()->withErrors([
+                'email' => 'Email or phone number is required.',
+            ])->withInput();
+        }
+        
+        $credentials['password'] = $request->password;
+        
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
             $user = Auth::user();
             
             // Only allow admin users
@@ -225,7 +396,7 @@ class LoginController extends Controller
         }
         
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'password' => 'The provided credentials do not match our records.',
         ])->withInput();
     }
     
@@ -343,6 +514,16 @@ class LoginController extends Controller
         // Login user
         Auth::login($user);
         $request->session()->regenerate();
+
+        // If user doesn't have password, redirect to profile to set password
+        if (empty($user->password)) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful! Please set a password to continue.',
+                'redirect' => route('admin.profile.edit') . '#password',
+                'requires_password_setup' => true
+            ]);
+        }
 
         return response()->json([
             'success' => true,

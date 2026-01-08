@@ -22,7 +22,8 @@
     @endphp
     @if(!empty($heroSlides))
         <div class="relative bg-white pattern-dots overflow-hidden">
-            <div class="hero-slider">
+            <div class="w-full lg:w-[70%] lg:mx-auto">
+                <div class="hero-slider">
                 @foreach($heroSlides as $slide)
                     @php
                         $hasImage = !empty($slide['image']);
@@ -57,33 +58,35 @@
                                 <img src="{{ $slide['image'] }}" alt="{{ $slide['title'] ?? 'Hero Slide' }}" class="hero-slide-image">
                                 <div class="hero-slide-overlay"></div>
                                 <div class="hero-slide-content-wrapper absolute inset-0 flex {{ $placementFlexClass }}">
-                                    <div class="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-16 {{ $placementWidthClass }}">
-                                        <div class="hero-slide-content" style="text-align: {{ $placementTextAlign }};">
-                                            @if(!empty($slide['title']))
-                                                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-bangla" style="color: {{ $titleColor }};">
-                                                    {{ $slide['title'] }}
-                                                </h1>
-                                            @endif
-                                            @if(!empty($slide['subtitle']))
-                                                <p class="text-xl md:text-2xl mb-8 font-bangla" style="color: {{ $subtitleColor }};">
-                                                    {{ $slide['subtitle'] }}
-                                                </p>
-                                            @endif
-                                            @if(!empty($slide['cta']) && !empty($slide['link']))
-                                                <a href="{{ $slide['link'] }}"
-                                                    class="inline-block font-bangla text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                                                    style="background-color: {{ $buttonBgColor }}; color: {{ $buttonTextColor }};">
-                                                    <span>{{ $slide['cta'] }}</span>
-                                                    <i class="fas fa-arrow-right ml-2"></i>
-                                                </a>
-                                            @endif
+                                    <div class="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-16 max-w-full sm:max-w-[540px] md:max-w-[720px] lg:max-w-[960px] xl:max-w-[1140px] 2xl:max-w-[1320px] mx-auto">
+                                        <div class="{{ $placementWidthClass }}">
+                                            <div class="hero-slide-content" style="text-align: {{ $placementTextAlign }};">
+                                                @if(!empty($slide['title']))
+                                                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-bangla" style="color: {{ $titleColor }};">
+                                                        {{ $slide['title'] }}
+                                                    </h1>
+                                                @endif
+                                                @if(!empty($slide['subtitle']))
+                                                    <p class="text-xl md:text-2xl mb-8 font-bangla" style="color: {{ $subtitleColor }};">
+                                                        {{ $slide['subtitle'] }}
+                                                    </p>
+                                                @endif
+                                                @if(!empty($slide['cta']) && !empty($slide['link']))
+                                                    <a href="{{ $slide['link'] }}"
+                                                        class="inline-block font-bangla text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                                                        style="background-color: {{ $buttonBgColor }}; color: {{ $buttonTextColor }};">
+                                                        <span>{{ $slide['cta'] }}</span>
+                                                        <i class="fas fa-arrow-right ml-2"></i>
+                                                    </a>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         @else
                             <div class="hero-slide-no-image bg-white">
-                                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+                                <div class="w-full px-4 sm:px-6 lg:px-8 py-16 md:py-24 max-w-full sm:max-w-[540px] md:max-w-[720px] lg:max-w-[960px] xl:max-w-[1140px] 2xl:max-w-[1320px] mx-auto">
                                     <div class="hero-slide-content text-center max-w-3xl mx-auto">
                                         @if(!empty($slide['title']))
                                             <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-bangla" style="color: {{ $titleColor }};">
@@ -109,6 +112,7 @@
                         @endif
                     </div>
                 @endforeach
+                </div>
             </div>
         </div>
     @endif

@@ -8,9 +8,14 @@
         <h1 class="text-3xl font-bold">Order Details</h1>
         <p class="text-neutral-600 mt-1">Order #{{ $order->order_number }}</p>
     </div>
-    <a href="{{ route('admin.orders.index') }}" class="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition">
-        ← Back to Orders
-    </a>
+    <div class="flex gap-2">
+        <a href="{{ route('admin.orders.edit', $order) }}" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition font-semibold">
+            Edit Order
+        </a>
+        <a href="{{ route('admin.orders.index') }}" class="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition">
+            ← Back to Orders
+        </a>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -39,6 +44,10 @@
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Unit Price</dt>
                     <dd class="mt-1 text-sm">৳{{ number_format($order->unit_price, 2) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-neutral-500">Delivery Charge</dt>
+                    <dd class="mt-1 text-sm">৳{{ number_format($order->delivery_charge ?? 0, 2) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Total Price</dt>

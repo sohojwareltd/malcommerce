@@ -7,26 +7,42 @@
     <div class="bg-white rounded-lg shadow-lg p-8">
         <h2 class="text-2xl font-bold text-center mb-6">Admin Login</h2>
         
-        <!-- Login Method Tabs -->
-        <div class="flex gap-2 mb-6 border-b border-neutral-200">
-            <button id="password-tab" class="flex-1 py-2 px-4 text-center font-semibold border-b-2 border-primary text-primary transition">
-                Password
-            </button>
-            <button id="otp-tab" class="flex-1 py-2 px-4 text-center font-semibold text-neutral-600 hover:text-primary transition">
-                OTP
-            </button>
-        </div>
-        
-        <!-- Password Login Form -->
-        <div id="password-login" class="login-method">
-            <form id="password-form" method="POST" action="{{ route('admin.login.password') }}">
+        <!-- Phone Check Step (First) -->
+        <div id="phone-check-step">
+            <form id="check-phone-form">
                 @csrf
                 
                 <div class="mb-4">
+                    <label for="check-phone" class="block text-sm font-medium text-neutral-700 mb-2">Phone Number</label>
+                    <input type="tel" name="phone" id="check-phone" required autofocus 
+                           placeholder="01XXXXXXXXX" 
+                           autocomplete="tel"
+                           inputmode="numeric"
+                           class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <p class="mt-1 text-xs text-neutral-500">Enter your phone number to continue</p>
+                    <div id="check-phone-error" class="mt-1 text-sm text-red-600 hidden"></div>
+                </div>
+                
+                <button type="submit" id="check-phone-btn" class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light transition">
+                    Continue
+                </button>
+            </form>
+        </div>
+        
+        <!-- Password Login Form (Shown if user has password) -->
+        <div id="password-login" class="login-method hidden">
+            <div class="mb-4 flex items-center justify-between">
+                <p class="text-sm text-neutral-700">Login with password or <button type="button" id="switch-to-otp" class="text-primary hover:underline font-semibold">use OTP</button></p>
+            </div>
+            
+            <form id="password-form" method="POST" action="{{ route('admin.login.password') }}">
+                @csrf
+                <input type="hidden" name="phone" id="password-phone">
+                
+                <div class="mb-4">
                     <label for="email" class="block text-sm font-medium text-neutral-700 mb-2">Email</label>
-                    <input type="email" name="email" id="email" required autofocus 
+                    <input type="email" name="email" id="email" required 
                            placeholder="admin@example.com" 
-                           value="{{ old('email') }}"
                            class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                     @error('email')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -54,8 +70,11 @@
             </form>
         </div>
         
-        <!-- OTP Login Form -->
+        <!-- OTP Login Form (Shown if user has no password or chooses OTP) -->
         <div id="otp-login" class="login-method hidden">
+            <div class="mb-4 flex items-center justify-between">
+                <p class="text-sm text-neutral-700">Login with OTP or <button type="button" id="switch-to-password" class="text-primary hover:underline font-semibold">use password</button></p>
+            </div>
             <div id="phone-step">
                 <form id="send-otp-form">
                     @csrf
@@ -117,29 +136,105 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Tab switching
-    const passwordTab = document.getElementById('password-tab');
-    const otpTab = document.getElementById('otp-tab');
+    // Elements
+    const phoneCheckStep = document.getElementById('phone-check-step');
     const passwordLogin = document.getElementById('password-login');
     const otpLogin = document.getElementById('otp-login');
+    const checkPhoneForm = document.getElementById('check-phone-form');
+    const checkPhoneInput = document.getElementById('check-phone');
+    const checkPhoneBtn = document.getElementById('check-phone-btn');
+    const checkPhoneError = document.getElementById('check-phone-error');
+    const passwordPhoneInput = document.getElementById('password-phone');
+    const emailInput = document.getElementById('email');
+    const switchToOtpBtn = document.getElementById('switch-to-otp');
+    const switchToPasswordBtn = document.getElementById('switch-to-password');
     
-    passwordTab.addEventListener('click', function() {
-        passwordTab.classList.add('border-b-2', 'border-primary', 'text-primary');
-        passwordTab.classList.remove('text-neutral-600');
-        otpTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
-        otpTab.classList.add('text-neutral-600');
-        passwordLogin.classList.remove('hidden');
-        otpLogin.classList.add('hidden');
+    let userPhone = '';
+    let userEmail = '';
+    let hasPassword = false;
+    
+    // Format phone input
+    checkPhoneInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
     });
     
-    otpTab.addEventListener('click', function() {
-        otpTab.classList.add('border-b-2', 'border-primary', 'text-primary');
-        otpTab.classList.remove('text-neutral-600');
-        passwordTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
-        passwordTab.classList.add('text-neutral-600');
-        otpLogin.classList.remove('hidden');
-        passwordLogin.classList.add('hidden');
+    // Check phone and determine login method
+    checkPhoneForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const phone = checkPhoneInput.value.trim();
+        if (!phone || phone.length < 10) {
+            showError(checkPhoneError, 'Please enter a valid phone number');
+            return;
+        }
+
+        checkPhoneBtn.disabled = true;
+        checkPhoneBtn.textContent = 'Checking...';
+        clearError(checkPhoneError);
+
+        try {
+            const response = await fetch('{{ route("admin.login.check-method") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('#check-phone-form input[name="_token"]').value
+                },
+                body: JSON.stringify({ phone: phone })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                userPhone = phone;
+                userEmail = data.email || '';
+                hasPassword = data.has_password;
+                
+                // Hide phone check step
+                phoneCheckStep.classList.add('hidden');
+                
+                if (hasPassword) {
+                    // Show password login (default)
+                    passwordLogin.classList.remove('hidden');
+                    passwordPhoneInput.value = phone;
+                    if (userEmail) {
+                        emailInput.value = userEmail;
+                    }
+                    emailInput.focus();
+                } else {
+                    // Show OTP login (first time user)
+                    otpLogin.classList.remove('hidden');
+                    phoneInput.value = phone;
+                    phoneInput.focus();
+                }
+            } else {
+                showError(checkPhoneError, data.message || 'Phone number not found');
+                checkPhoneBtn.disabled = false;
+                checkPhoneBtn.textContent = 'Continue';
+            }
+        } catch (error) {
+            showError(checkPhoneError, 'An error occurred. Please try again.');
+            checkPhoneBtn.disabled = false;
+            checkPhoneBtn.textContent = 'Continue';
+        }
     });
+    
+    // Switch between password and OTP
+    if (switchToOtpBtn) {
+        switchToOtpBtn.addEventListener('click', function() {
+            passwordLogin.classList.add('hidden');
+            otpLogin.classList.remove('hidden');
+            phoneInput.value = userPhone;
+            phoneInput.focus();
+        });
+    }
+    
+    if (switchToPasswordBtn) {
+        switchToPasswordBtn.addEventListener('click', function() {
+            otpLogin.classList.add('hidden');
+            passwordLogin.classList.remove('hidden');
+            emailInput.focus();
+        });
+    }
     
     // OTP Login functionality
     const phoneStep = document.getElementById('phone-step');
@@ -162,9 +257,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let otpAbortController = null;
 
     // Format phone input
-    phoneInput.addEventListener('input', function(e) {
-        e.target.value = e.target.value.replace(/[^0-9]/g, '');
-    });
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    }
 
     // OTP input formatting
     otpInput.addEventListener('input', function(e) {
@@ -246,6 +343,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.success) {
+                // If password setup required, show message
+                if (data.requires_password_setup) {
+                    alert(data.message || 'Please set a password to continue.');
+                }
                 window.location.href = data.redirect || '{{ route("admin.dashboard") }}';
             } else {
                 showError(otpError, data.message || 'Invalid OTP code');

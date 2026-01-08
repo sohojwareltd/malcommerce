@@ -17,7 +17,22 @@ use Illuminate\Support\Facades\Storage;
     </a>
 </div>
 
-<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">
+@if(empty($user->password) || session('password_required'))
+    <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div class="flex-1">
+                <h3 class="text-sm font-semibold text-yellow-800 mb-1">Password Required</h3>
+                <p class="text-sm text-yellow-700">Please set a password to continue using the partner dashboard. You can set it in the "Change Password" section below.</p>
+            </div>
+        </div>
+    </div>
+@endif
+
+<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl mb-6">
+    <h2 class="text-xl font-bold mb-4">Profile Information</h2>
     <form action="{{ route('sponsor.profile.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
@@ -104,6 +119,74 @@ use Illuminate\Support\Facades\Storage;
         </div>
     </form>
 </div>
+
+<!-- Password Section -->
+<div class="bg-white rounded-lg shadow-md p-6 max-w-2xl" id="password-section">
+    <h2 class="text-xl font-bold mb-4">Change Password</h2>
+    <form action="{{ route('sponsor.profile.update-password') }}" method="POST">
+        @csrf
+        @method('PUT')
+        
+        @if($user->password)
+        <div class="mb-4">
+            <label for="current_password" class="block text-sm font-medium text-neutral-700 mb-2">Current Password <span class="text-red-500">*</span></label>
+            <input type="password" name="current_password" id="current_password" required 
+                   class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+            @error('current_password')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+        @else
+        <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <p class="text-sm font-medium text-blue-800">No Password Set</p>
+                    <p class="text-sm text-blue-700 mt-1">You don't have a password set yet. You can set one now to enable password-based login.</p>
+                </div>
+            </div>
+        </div>
+        @endif
+        
+        <div class="mb-4">
+            <label for="password" class="block text-sm font-medium text-neutral-700 mb-2">New Password <span class="text-red-500">*</span></label>
+            <input type="password" name="password" id="password" required 
+                   class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+            <p class="mt-1 text-xs text-neutral-500">Minimum 8 characters</p>
+            @error('password')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+        
+        <div class="mb-6">
+            <label for="password_confirmation" class="block text-sm font-medium text-neutral-700 mb-2">Confirm New Password <span class="text-red-500">*</span></label>
+            <input type="password" name="password_confirmation" id="password_confirmation" required 
+                   class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+        </div>
+        
+        <div class="flex gap-4">
+            <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold">
+                {{ $user->password ? 'Update Password' : 'Set Password' }}
+            </button>
+            <a href="{{ route('sponsor.dashboard') }}" class="px-6 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition font-semibold">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+@if(empty($user->password) || session('password_required'))
+<script>
+    // Scroll to password section if password is required
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.location.hash === '#password' || {{ empty($user->password) ? 'true' : 'false' }}) {
+            document.getElementById('password-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+</script>
+@endif
 
 @push('scripts')
 <script>

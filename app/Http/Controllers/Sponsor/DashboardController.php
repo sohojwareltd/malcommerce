@@ -309,8 +309,42 @@ class DashboardController extends Controller
         
         $user->update($data);
         
-        return redirect()->route('sponsor.dashboard')
+        return redirect()->route('sponsor.profile.edit')
             ->with('success', 'Profile updated successfully!');
+    }
+    
+    /**
+     * Update sponsor password
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+        
+        // If user has a password, require current password; otherwise it's optional
+        $rules = [
+            'password' => 'required|min:8|confirmed',
+        ];
+        
+        if ($user->password) {
+            $rules['current_password'] = 'required';
+        }
+        
+        $request->validate($rules);
+        
+        // Check current password if user has a password set
+        if ($user->password && $request->filled('current_password') && !\Hash::check($request->current_password, $user->password)) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['current_password' => 'The current password is incorrect.']);
+        }
+        
+        // Update password (Laravel will auto-hash due to 'hashed' cast in User model)
+        $user->update([
+            'password' => $request->password,
+        ]);
+        
+        return redirect()->route('sponsor.profile.edit')
+            ->with('success', 'Password updated successfully!');
     }
     
     /**

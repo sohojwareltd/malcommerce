@@ -27,12 +27,14 @@ Route::middleware([TrackReferral::class])->group(function () {
 // Authentication routes (no referral tracking needed, guest only)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login/check-method', [LoginController::class, 'checkLoginMethod'])->name('login.check-method');
     Route::post('/login/send-otp', [LoginController::class, 'sendOtp'])->name('login.send-otp');
     Route::post('/login/verify-otp', [LoginController::class, 'verifyOtp'])->name('login.verify-otp');
     Route::post('/login', [LoginController::class, 'login']); // Legacy password-based login
     
     // Admin login routes
     Route::get('/admin/login', [LoginController::class, 'showAdminLoginForm'])->name('admin.login');
+    Route::post('/admin/login/check-method', [LoginController::class, 'checkAdminLoginMethod'])->name('admin.login.check-method');
     Route::post('/admin/login', [LoginController::class, 'adminLoginPassword'])->name('admin.login.password');
     Route::post('/admin/login/send-otp', [LoginController::class, 'adminSendOtp'])->name('admin.login.send-otp');
     Route::post('/admin/login/verify-otp', [LoginController::class, 'adminVerifyOtp'])->name('admin.login.verify-otp');
@@ -47,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     
     // Admin routes
-    Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['admin', 'require.password.setup'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/products/{product}/builder', [AdminProductController::class, 'builder'])->name('products.builder');
         Route::resource('products', AdminProductController::class);
@@ -60,8 +62,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/categories/{category}', [AdminDashboardController::class, 'destroyCategory'])->name('categories.destroy');
         
         Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index');
-        Route::get('/orders/{order}', [AdminDashboardController::class, 'showOrder'])->name('orders.show');
+        Route::get('/orders/{order}/edit', [AdminDashboardController::class, 'editOrder'])->name('orders.edit');
+        Route::put('/orders/{order}', [AdminDashboardController::class, 'updateOrder'])->name('orders.update');
         Route::put('/orders/{order}/status', [AdminDashboardController::class, 'updateOrderStatus'])->name('orders.updateStatus');
+        Route::get('/orders/{order}', [AdminDashboardController::class, 'showOrder'])->name('orders.show');
         
         Route::get('/sponsors', [AdminDashboardController::class, 'sponsors'])->name('sponsors.index');
         Route::get('/sponsors/create', [AdminDashboardController::class, 'createSponsor'])->name('sponsors.create');
@@ -95,7 +99,7 @@ Route::middleware('auth')->group(function () {
     });
     
     // Sponsor/Affiliate routes
-    Route::middleware('sponsor')->prefix('sponsor')->name('sponsor.')->group(function () {
+    Route::middleware(['sponsor', 'require.password.setup'])->prefix('sponsor')->name('sponsor.')->group(function () {
         Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
 
         // Earnings & withdrawals
@@ -120,6 +124,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/users/{referral}', [SponsorDashboardController::class, 'updateReferral'])->name('users.update');
         Route::get('/profile/edit', [SponsorDashboardController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [SponsorDashboardController::class, 'updateProfile'])->name('profile.update');
+        Route::put('/profile/password', [SponsorDashboardController::class, 'updatePassword'])->name('profile.update-password');
     });
 });
 

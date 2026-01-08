@@ -7,28 +7,80 @@
     <div class="bg-white rounded-lg shadow-lg p-8">
         <h2 class="text-2xl font-bold text-center mb-6 font-bangla">লগইন করুন</h2>
         
-        <div id="phone-step">
-            <form id="send-otp-form">
+        <!-- Login Method Tabs -->
+        <div class="flex gap-2 mb-6 border-b border-neutral-200">
+            <button id="password-tab" class="flex-1 py-2 px-4 text-center font-semibold {{ $errors->has('phone') || $errors->has('password') ? 'border-b-2 border-primary text-primary' : 'text-neutral-600 hover:text-primary' }} transition">
+                Password
+            </button>
+            <button id="otp-tab" class="flex-1 py-2 px-4 text-center font-semibold {{ $errors->has('phone') || $errors->has('password') ? 'text-neutral-600 hover:text-primary' : 'border-b-2 border-primary text-primary' }} transition">
+                OTP
+            </button>
+        </div>
+        
+        <!-- Password Login Form -->
+        <div id="password-login" class="login-method {{ $errors->has('phone') || $errors->has('password') ? '' : 'hidden' }}">
+            <form id="password-form" method="POST" action="{{ route('login') }}">
                 @csrf
                 
                 <div class="mb-4">
-                    <label for="phone" class="block text-sm font-medium text-neutral-700 mb-2 font-bangla">ফোন নম্বর</label>
-                    <input type="tel" name="phone" id="phone" required autofocus 
+                    <label for="password-phone" class="block text-sm font-medium text-neutral-700 mb-2 font-bangla">ফোন নম্বর</label>
+                    <input type="tel" name="phone" id="password-phone" required autofocus 
+                           value="{{ old('phone') }}"
                            placeholder="01XXXXXXXXX" 
                            autocomplete="tel"
                            inputmode="numeric"
-                           class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla">
+                           class="w-full px-4 py-2 border {{ $errors->has('phone') ? 'border-red-500' : 'border-neutral-300' }} rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla">
                     <p class="mt-1 text-xs text-neutral-500 font-bangla">আপনার ১১ সংখ্যার মোবাইল নম্বর দিন</p>
-                    <div id="phone-error" class="mt-1 text-sm text-red-600 hidden"></div>
+                    @error('phone')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 
-                <button type="submit" id="send-otp-btn" class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light transition font-bangla">
-                    OTP পাঠান
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-medium text-neutral-700 mb-2 font-bangla">Password</label>
+                    <input type="password" name="password" id="password" required 
+                           placeholder="Enter your password"
+                           class="w-full px-4 py-2 border {{ $errors->has('password') ? 'border-red-500' : 'border-neutral-300' }} rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    @error('password')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                <div class="mb-4 flex items-center">
+                    <input type="checkbox" name="remember" id="remember" class="h-4 w-4 text-primary focus:ring-primary border-neutral-300 rounded">
+                    <label for="remember" class="ml-2 block text-sm text-neutral-700 font-bangla">Remember me</label>
+                </div>
+                
+                <button type="submit" id="password-submit-btn" class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light transition font-bangla">
+                    Login with Password
                 </button>
             </form>
         </div>
         
-        <div id="otp-step" class="hidden">
+        <!-- OTP Login Form -->
+        <div id="otp-login" class="login-method {{ $errors->has('phone') || $errors->has('password') ? 'hidden' : '' }}">
+            <div id="phone-step">
+                <form id="send-otp-form">
+                    @csrf
+                    
+                    <div class="mb-4">
+                        <label for="phone" class="block text-sm font-medium text-neutral-700 mb-2 font-bangla">ফোন নম্বর</label>
+                        <input type="tel" name="phone" id="phone" required autofocus 
+                               placeholder="01XXXXXXXXX" 
+                               autocomplete="tel"
+                               inputmode="numeric"
+                               class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla">
+                        <p class="mt-1 text-xs text-neutral-500 font-bangla">আপনার ১১ সংখ্যার মোবাইল নম্বর দিন</p>
+                        <div id="phone-error" class="mt-1 text-sm text-red-600 hidden"></div>
+                    </div>
+                    
+                    <button type="submit" id="send-otp-btn" class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light transition font-bangla">
+                        OTP পাঠান
+                    </button>
+                </form>
+            </div>
+        
+            <div id="otp-step" class="hidden">
             <div class="mb-4">
                 <p class="text-sm text-neutral-700 mb-4 font-bangla">
                     <span id="phone-display"></span> নম্বরে OTP পাঠানো হয়েছে
@@ -57,6 +109,7 @@
                     <span id="resend-text">পুনরায় OTP পাঠান (৬০ সেকেন্ড অপেক্ষা করুন)</span>
                 </button>
             </form>
+            </div>
         </div>
         
         <p class="mt-6 text-center text-sm text-neutral-600 font-bangla">
@@ -67,6 +120,42 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
+    const passwordTab = document.getElementById('password-tab');
+    const otpTab = document.getElementById('otp-tab');
+    const passwordLogin = document.getElementById('password-login');
+    const otpLogin = document.getElementById('otp-login');
+    
+    // Initialize tab state based on errors
+    const hasPasswordErrors = {{ $errors->has('phone') || $errors->has('password') ? 'true' : 'false' }};
+    if (hasPasswordErrors) {
+        passwordTab.classList.add('border-b-2', 'border-primary', 'text-primary');
+        passwordTab.classList.remove('text-neutral-600');
+        otpTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
+        otpTab.classList.add('text-neutral-600');
+        passwordLogin.classList.remove('hidden');
+        otpLogin.classList.add('hidden');
+    }
+    
+    passwordTab.addEventListener('click', function() {
+        passwordTab.classList.add('border-b-2', 'border-primary', 'text-primary');
+        passwordTab.classList.remove('text-neutral-600');
+        otpTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
+        otpTab.classList.add('text-neutral-600');
+        passwordLogin.classList.remove('hidden');
+        otpLogin.classList.add('hidden');
+    });
+    
+    otpTab.addEventListener('click', function() {
+        otpTab.classList.add('border-b-2', 'border-primary', 'text-primary');
+        otpTab.classList.remove('text-neutral-600');
+        passwordTab.classList.remove('border-b-2', 'border-primary', 'text-primary');
+        passwordTab.classList.add('text-neutral-600');
+        otpLogin.classList.remove('hidden');
+        passwordLogin.classList.add('hidden');
+    });
+    
+    // OTP Login elements
     const phoneStep = document.getElementById('phone-step');
     const otpStep = document.getElementById('otp-step');
     const sendOtpForm = document.getElementById('send-otp-form');
@@ -81,6 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const verifyOtpBtn = document.getElementById('verify-otp-btn');
     const resendOtpBtn = document.getElementById('resend-otp-btn');
     const resendText = document.getElementById('resend-text');
+    
+    // Password login elements
+    const passwordForm = document.getElementById('password-form');
+    const passwordPhoneInput = document.getElementById('password-phone');
     
     let resendTimer = null;
     let resendCountdown = 60;
@@ -103,6 +196,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Format phone input
     phoneInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    });
+    
+    // Format password phone input
+    passwordPhoneInput.addEventListener('input', function(e) {
         e.target.value = e.target.value.replace(/[^0-9]/g, '');
     });
 
@@ -156,6 +254,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = '{{ route("register") }}?phone=' + encodeURIComponent(displayPhone);
                     return;
                 }
+                
+                // If password login is required, automatically switch to password tab
+                if (data.use_password_login) {
+                    // Switch to password tab
+                    passwordTab.click();
+                    // Set phone number
+                    passwordPhoneInput.value = phone;
+                    passwordPhoneInput.focus();
+                    return;
+                }
+                
                 showError(phoneError, data.message || 'OTP পাঠাতে ব্যর্থ হয়েছে');
                 sendOtpBtn.disabled = false;
                 sendOtpBtn.textContent = 'OTP পাঠান';

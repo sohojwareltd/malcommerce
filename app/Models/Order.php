@@ -13,6 +13,7 @@ class Order extends Model
         'quantity',
         'unit_price',
         'total_price',
+        'delivery_charge',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -34,6 +35,7 @@ class Order extends Model
             'quantity' => 'integer',
             'unit_price' => 'decimal:2',
             'total_price' => 'decimal:2',
+            'delivery_charge' => 'decimal:2',
         ];
     }
 

@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'sponsor' => \App\Http\Middleware\SponsorMiddleware::class,
+            'require.password.setup' => \App\Http\Middleware\RequirePasswordSetup::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
