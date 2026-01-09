@@ -1,6 +1,6 @@
 {
-  "_ProductSections-DMpF5138.js": {
-    "file": "assets/ProductSections-DMpF5138.js",
+  "_ProductSections-9PF5xByM.js": {
+    "file": "assets/ProductSections-9PF5xByM.js",
     "name": "ProductSections"
   },
   "resources/css/app.css": {
@@ -19,21 +19,21 @@
     "isEntry": true
   },
   "resources/js/page-builder.js": {
-    "file": "assets/page-builder-CUpfgN-c.js",
+    "file": "assets/page-builder-d7Dyfwvg.js",
     "name": "page-builder",
     "src": "resources/js/page-builder.js",
     "isEntry": true,
     "imports": [
-      "_ProductSections-DMpF5138.js"
+      "_ProductSections-9PF5xByM.js"
     ]
   },
   "resources/js/product-sections.js": {
-    "file": "assets/product-sections-rnmIhRdf.js",
+    "file": "assets/product-sections-BRaY90hF.js",
     "name": "product-sections",
     "src": "resources/js/product-sections.js",
     "isEntry": true,
     "imports": [
-      "_ProductSections-DMpF5138.js"
+      "_ProductSections-9PF5xByM.js"
     ]
   }
 }

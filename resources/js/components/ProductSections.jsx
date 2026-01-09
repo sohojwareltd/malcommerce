@@ -148,35 +148,59 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 {!hideQuantity && (
                                 <div className="mb-6">
                                     <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">পরিমাণ</label>
-                                    <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-                                        <button 
-                                            type="button"
-                                            onClick={() => handleQuantityChange(-1)}
-                                            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700 flex-shrink-0"
-                                        >
-                                            -
-                                        </button>
-                                        <input 
-                                            type="number"
-                                            name="quantity"
-                                            value={quantity}
-                                            onChange={(e) => {
-                                                const val = parseInt(e.target.value) || effectiveMinQuantity;
-                                                if (val >= effectiveMinQuantity && val <= maxQuantity) setQuantity(val);
-                                            }}
-                                            min={effectiveMinQuantity}
-                                            max={maxQuantity}
-                                            className="w-16 md:w-20 text-center border border-gray-300 rounded-lg px-1 md:px-2 py-2 font-bold focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base flex-shrink-0"
-                                            required
-                                        />
-                                        <button 
-                                            type="button"
-                                            onClick={() => handleQuantityChange(1)}
-                                            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700 flex-shrink-0"
-                                        >
-                                            +
-                                        </button>
-                                        <span className="text-gray-600 font-bangla text-xs md:text-sm whitespace-nowrap hidden md:inline">(স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি)</span>
+                                    <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+                                        {/* Product Image and Title */}
+                                        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                                            {productImage ? (
+                                                <img 
+                                                    src={productImage} 
+                                                    alt={productName} 
+                                                    className="w-14 h-14 md:w-20 md:h-20 rounded-lg object-cover border border-gray-200 shadow-sm flex-shrink-0"
+                                                />
+                                            ) : (
+                                                <div className="w-14 h-14 md:w-20 md:h-20 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                                                    <svg className="w-7 h-7 md:w-10 md:h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0 overflow-hidden">
+                                                <h3 className="font-semibold text-gray-900 font-bangla text-sm md:text-base truncate">{productName}</h3>
+                                                <p className="text-xs md:text-sm text-gray-600 font-bangla whitespace-nowrap">৳{price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Quantity Controls */}
+                                        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                                            <button 
+                                                type="button"
+                                                onClick={() => handleQuantityChange(-1)}
+                                                className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700"
+                                            >
+                                                -
+                                            </button>
+                                            <input 
+                                                type="number"
+                                                name="quantity"
+                                                value={quantity}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value) || effectiveMinQuantity;
+                                                    if (val >= effectiveMinQuantity && val <= maxQuantity) setQuantity(val);
+                                                }}
+                                                min={effectiveMinQuantity}
+                                                max={maxQuantity}
+                                                className="w-16 md:w-20 text-center border border-gray-300 rounded-lg px-1 md:px-2 py-2 font-bold focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
+                                                required
+                                            />
+                                            <button 
+                                                type="button"
+                                                onClick={() => handleQuantityChange(1)}
+                                                className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                        <span className="text-gray-600 font-bangla text-xs md:text-sm hidden md:inline whitespace-nowrap">(স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি)</span>
                                     </div>
                                     <div className="mt-2 md:hidden">
                                         <span className="text-gray-600 font-bangla text-sm">স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি</span>
@@ -223,7 +247,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             rows="4"
                                             required
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla resize-none"
-                                            placeholder="বাড়ি নম্বর, রোড, এলাকা, জেলা"
+                                            placeholder=""
                                         ></textarea>
                                     </div>
                                 </div>
@@ -273,7 +297,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-700 font-bangla">পণ্যের মূল্য</span>
-                                            <span className="font-semibold text-gray-900">৳{(price * quantity).toLocaleString('en-IN')}</span>
+                                            <span className="font-semibold text-gray-900">৳{(price * quantity).toLocaleString('bn-BD')}</span>
                                         </div>
                                         {!hideQuantity && (
                                         <div className="flex justify-between items-center">
@@ -283,12 +307,12 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         )}
                                         <div className="flex justify-between items-center text-sm text-gray-600">
                                             <span className="font-bangla">ডেলিভারি চার্জ</span>
-                                            <span className="font-bangla">{deliveryCharge > 0 ? `৳${deliveryCharge.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : 'ফ্রি'}</span>
+                                            <span className="font-bangla">{deliveryCharge > 0 ? `৳${deliveryCharge.toLocaleString('bn-BD')}` : 'ফ্রি'}</span>
                                         </div>
                                         <div className="border-t border-gray-300 pt-3 mt-3">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-lg font-semibold text-gray-900 font-bangla">মোট</span>
-                                                <span className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>৳{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                                <span className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>৳{totalPrice.toLocaleString('bn-BD')}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -328,7 +352,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         (deliveryOptions.length > 0 && selectedDelivery === null)
                                     }
                                 >
-                                    <span className="whitespace-normal">{orderButtonText} - ৳{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    <span className="whitespace-normal">{orderButtonText} - ৳{totalPrice.toLocaleString('bn-BD')}</span>
                                 </button>
                             </form>
                             </div>
