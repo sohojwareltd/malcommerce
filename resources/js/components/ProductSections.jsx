@@ -76,9 +76,9 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         if (!isPrimary) return null;
 
         const [quantity, setQuantity] = useState(1);
-        const [selectedDelivery, setSelectedDelivery] = useState(null);
-        const price = parseFloat(productPrice) || 0;
         const deliveryOptions = orderSettings.deliveryOptions || [];
+        const [selectedDelivery, setSelectedDelivery] = useState(deliveryOptions.length > 0 ? 0 : null);
+        const price = parseFloat(productPrice) || 0;
         const minQuantity = parseInt(orderSettings.minQuantity || 0);
         const maxQuantitySetting = parseInt(orderSettings.maxQuantity || 0);
         const hideSummary = orderSettings.hideSummary || false;
@@ -93,6 +93,8 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         const stockQuantity = parseInt(productStockQuantity) || 999;
         const maxQuantity = maxQuantitySetting > 0 ? Math.min(stockQuantity, maxQuantitySetting) : stockQuantity;
         const effectiveMinQuantity = Math.max(1, minQuantity);
+
+        // Initialize first delivery option if available (handled in useState initialization above)
 
         const handleQuantityChange = (delta) => {
             const newQuantity = quantity + delta;
@@ -114,31 +116,9 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     </div>
                 )}
                 {productId && productInStock && (
-                    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Product Info */}
-                            <div className="card">
-                                <div className="mb-4">
-                                    {productImage ? (
-                                        <img 
-                                            src={productImage} 
-                                            alt={productName} 
-                                            className="w-full h-64 object-cover rounded-lg mb-4"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-64 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                                            <span className="text-gray-400 font-bangla">No Image</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <h2 className="text-2xl font-bold mb-3 text-gray-900 font-bangla">{productName}</h2>
-                                {productShortDescription && (
-                                    <p className="text-gray-700 font-bangla leading-relaxed">{productShortDescription}</p>
-                                )}
-                            </div>
-                            
-                            {/* Order Form */}
-                            <div className="card overflow-hidden">
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                        {/* Order Form */}
+                        <div className="card overflow-hidden">
                             <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-900 font-bangla break-words">{orderFormTitle}</h2>
                             <form action="/orders" method="POST" id={`product-order-form-${index}`} className="space-y-4">
                                 <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
@@ -166,7 +146,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             )}
                                             <div className="flex-1 min-w-0 overflow-hidden">
                                                 <h3 className="font-semibold text-gray-900 font-bangla text-sm md:text-base truncate">{productName}</h3>
-                                                <p className="text-xs md:text-sm text-gray-600 font-bangla whitespace-nowrap">৳{price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                                <p className="text-xs md:text-sm text-gray-600 font-bangla whitespace-nowrap">৳{price.toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                             </div>
                                         </div>
                                         
@@ -273,20 +253,13 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                                 <div className="flex-1">
                                                     <div className="font-semibold text-gray-900 font-bangla">{option.name || 'Standard'}</div>
                                                     <div className="text-sm text-gray-600 font-bangla">
-                                                        ৳{parseFloat(option.charge || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                        ৳{parseFloat(option.charge || 0).toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         {option.days && ` - ${option.days} দিন`}
                                                     </div>
                                                 </div>
                                             </label>
                                         ))}
                                     </div>
-                                    {selectedDelivery === null && (
-                                        <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                            <p className="text-sm text-yellow-800 font-bangla">
-                                                দয়া করে একটি ডেলিভারি অপশন নির্বাচন করুন
-                                            </p>
-                                        </div>
-                                    )}
                                 </div>
                                 )}
 
@@ -342,20 +315,19 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     className={`w-full btn-primary font-bangla text-base md:text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 break-words ${
                                         (effectiveMinQuantity > 0 && quantity < effectiveMinQuantity) || 
                                         (maxQuantity > 0 && quantity > maxQuantity) ||
-                                        (deliveryOptions.length > 0 && selectedDelivery === null)
+                                        (deliveryOptions.length > 0 && (selectedDelivery === null || selectedDelivery === undefined))
                                             ? 'opacity-50 cursor-not-allowed' : ''
                                     }`}
                                     style={{ backgroundColor: 'var(--color-primary)' }}
                                     disabled={
                                         (effectiveMinQuantity > 0 && quantity < effectiveMinQuantity) || 
                                         (maxQuantity > 0 && quantity > maxQuantity) ||
-                                        (deliveryOptions.length > 0 && selectedDelivery === null)
+                                        (deliveryOptions.length > 0 && (selectedDelivery === null || selectedDelivery === undefined))
                                     }
                                 >
                                     <span className="whitespace-normal">{orderButtonText} - ৳{totalPrice.toLocaleString('bn-BD')}</span>
                                 </button>
                             </form>
-                            </div>
                         </div>
                     </div>
                 )}
