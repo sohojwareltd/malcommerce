@@ -138,8 +138,8 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                             </div>
                             
                             {/* Order Form */}
-                            <div className="card">
-                            <h2 className="text-2xl font-bold mb-6 text-gray-900 font-bangla">{orderFormTitle}</h2>
+                            <div className="card overflow-hidden">
+                            <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-900 font-bangla break-words">{orderFormTitle}</h2>
                             <form action="/orders" method="POST" id={`product-order-form-${index}`} className="space-y-4">
                                 <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
                                 <input type="hidden" name="product_id" value={productId} />
@@ -148,11 +148,11 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 {!hideQuantity && (
                                 <div className="mb-6">
                                     <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">পরিমাণ</label>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                                         <button 
                                             type="button"
                                             onClick={() => handleQuantityChange(-1)}
-                                            className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700"
+                                            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700 flex-shrink-0"
                                         >
                                             -
                                         </button>
@@ -166,17 +166,20 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             }}
                                             min={effectiveMinQuantity}
                                             max={maxQuantity}
-                                            className="w-20 text-center border border-gray-300 rounded-lg px-2 py-2 font-bold focus:ring-2 focus:ring-primary focus:border-transparent"
+                                            className="w-16 md:w-20 text-center border border-gray-300 rounded-lg px-1 md:px-2 py-2 font-bold focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base flex-shrink-0"
                                             required
                                         />
                                         <button 
                                             type="button"
                                             onClick={() => handleQuantityChange(1)}
-                                            className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700"
+                                            className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700 flex-shrink-0"
                                         >
                                             +
                                         </button>
-                                        <span className="text-gray-600 font-bangla text-sm">(স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি)</span>
+                                        <span className="text-gray-600 font-bangla text-xs md:text-sm whitespace-nowrap hidden md:inline">(স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি)</span>
+                                    </div>
+                                    <div className="mt-2 md:hidden">
+                                        <span className="text-gray-600 font-bangla text-sm">স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি</span>
                                     </div>
                                 </div>
                                 )}
@@ -312,7 +315,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
 
                                 <button 
                                     type="submit"
-                                    className={`w-full btn-primary font-bangla text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 ${
+                                    className={`w-full btn-primary font-bangla text-base md:text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 break-words ${
                                         (effectiveMinQuantity > 0 && quantity < effectiveMinQuantity) || 
                                         (maxQuantity > 0 && quantity > maxQuantity) ||
                                         (deliveryOptions.length > 0 && selectedDelivery === null)
@@ -325,7 +328,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         (deliveryOptions.length > 0 && selectedDelivery === null)
                                     }
                                 >
-                                    {orderButtonText} - ৳{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    <span className="whitespace-normal">{orderButtonText} - ৳{totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                                 </button>
                             </form>
                             </div>
