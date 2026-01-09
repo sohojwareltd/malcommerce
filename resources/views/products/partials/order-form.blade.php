@@ -17,8 +17,8 @@
 
     
     <!-- Order Form -->
-    <div class="card">
-    <h2 class="text-2xl font-bold mb-6 text-gray-900 font-bangla">{{ $orderFormTitle }}</h2>
+    <div class="card overflow-hidden">
+    <h2 class="text-xl md:text-2xl font-bold mb-6 text-gray-900 font-bangla break-words">{{ $orderFormTitle }}</h2>
 
     <form action="{{ route('orders.store') }}" method="POST" x-data="{ 
         quantity: {{ max(1, $minQuantity) }}, 
@@ -56,30 +56,30 @@
             <label class="block text-sm font-medium text-gray-700 mb-3 font-bangla">
                 পরিমাণ
             </label>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 md:gap-4 flex-wrap">
                 {{-- Product Image and Title --}}
-                <div class="flex items-center gap-3 flex-1">
+                <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
                     @if($product->main_image)
-                        <img src="{{ $product->main_image }}" alt="{{ $product->name }}" class="w-16 h-16 md:w-20 md:h-20 rounded-lg object-cover border border-gray-200 shadow-sm">
+                        <img src="{{ $product->main_image }}" alt="{{ $product->name }}" class="w-14 h-14 md:w-20 md:h-20 rounded-lg object-cover border border-gray-200 shadow-sm flex-shrink-0">
                     @else
-                        <div class="w-16 h-16 md:w-20 md:h-20 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
-                            <svg class="w-8 h-8 md:w-10 md:h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-14 h-14 md:w-20 md:h-20 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-7 h-7 md:w-10 md:h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                         </div>
                     @endif
-                    <div class="flex-1 min-w-0">
+                    <div class="flex-1 min-w-0 overflow-hidden">
                         <h3 class="font-semibold text-gray-900 font-bangla text-sm md:text-base truncate">{{ $product->name }}</h3>
-                        <p class="text-sm text-gray-600 font-bangla">৳{{ number_format($product->price, 2) }}</p>
+                        <p class="text-xs md:text-sm text-gray-600 font-bangla whitespace-nowrap">৳{{ number_format($product->price, 2) }}</p>
                     </div>
                 </div>
                 
                 {{-- Quantity Controls --}}
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
                     <button 
                         type="button"
                         @click="if(quantity > minQuantity) { quantity--; updateTotal(); }"
-                        class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700"
+                        class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700"
                     >
                         -
                     </button>
@@ -90,18 +90,18 @@
                         @input="updateTotal()"
                         x-bind:min="minQuantity"
                         x-bind:max="maxQuantity"
-                        class="w-20 text-center border border-gray-300 rounded-lg px-2 py-2 font-bold focus:ring-2 focus:ring-primary focus:border-transparent"
+                        class="w-16 md:w-20 text-center border border-gray-300 rounded-lg px-1 md:px-2 py-2 font-bold focus:ring-2 focus:ring-primary focus:border-transparent text-sm md:text-base"
                         required
                     >
                     <button 
                         type="button"
                         @click="if(quantity < maxQuantity) { quantity++; updateTotal(); }"
-                        class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700"
+                        class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition font-bold text-gray-700"
                     >
                         +
                     </button>
                 </div>
-                <span class="text-gray-600 font-bangla text-sm hidden md:inline">(স্টকে: {{ $product->stock_quantity ?? '∞' }} টি)</span>
+                <span class="text-gray-600 font-bangla text-xs md:text-sm hidden md:inline whitespace-nowrap">(স্টকে: {{ $product->stock_quantity ?? '∞' }} টি)</span>
             </div>
             <div class="mt-2 md:hidden">
                 <span class="text-gray-600 font-bangla text-sm">স্টকে: {{ $product->stock_quantity ?? '∞' }} টি</span>
@@ -241,12 +241,12 @@
 
         <button 
             type="submit"
-            class="w-full btn-primary font-bangla text-lg py-4 rounded-xl shadow-lg hover:shadow-xl"
+            class="w-full btn-primary font-bangla text-base md:text-lg py-4 rounded-xl shadow-lg hover:shadow-xl break-words"
             style="background-color: var(--color-primary);"
             :disabled="!canSubmit()"
             :class="!canSubmit() ? 'opacity-50 cursor-not-allowed' : ''"
         >
-            <span>{{ $orderButtonText }} - ৳<span x-text="totalPrice.toLocaleString('bn-BD')"></span></span>
+            <span class="whitespace-normal">{{ $orderButtonText }} - ৳<span x-text="totalPrice.toLocaleString('bn-BD')"></span></span>
         </button>
     </form>
     </div>
