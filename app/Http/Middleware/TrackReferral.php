@@ -27,6 +27,11 @@ class TrackReferral
             session(['referral_code' => $request->cookie('referral_code')]);
         }
         
+        // Store product parameter if present (for redirect after login)
+        if ($request->has('product')) {
+            session(['login_redirect_product' => $request->query('product')]);
+        }
+        
         return $next($request);
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Sponsor\DashboardController as SponsorDashboardController;
@@ -24,8 +25,8 @@ Route::middleware([TrackReferral::class])->group(function () {
     Route::get('/orders/success/{orderNumber}', [OrderController::class, 'success'])->name('orders.success');
 });
 
-// Authentication routes (no referral tracking needed, guest only)
-Route::middleware('guest')->group(function () {
+// Authentication routes (with referral tracking, guest only)
+Route::middleware(['guest', TrackReferral::class])->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login/check-method', [LoginController::class, 'checkLoginMethod'])->name('login.check-method');
     Route::post('/login/send-otp', [LoginController::class, 'sendOtp'])->name('login.send-otp');
@@ -42,6 +43,13 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register/send-otp', [RegisterController::class, 'sendOtp'])->name('register.send-otp');
     Route::post('/register/verify-otp', [RegisterController::class, 'verifyOtp'])->name('register.verify-otp');
+    
+    // Password reset routes
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showForgotPasswordForm'])->name('password.request');
+    Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendResetOtp'])->name('password.send-otp');
+    Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyResetOtp'])->name('password.verify-otp');
+    Route::get('/reset-password', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('password.reset');
+    Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
 });
 
 // Logout (requires auth)

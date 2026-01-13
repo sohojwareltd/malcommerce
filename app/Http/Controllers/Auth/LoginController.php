@@ -198,6 +198,16 @@ class LoginController extends Controller
         // Clear session data
         session()->forget(['otp_phone', 'otp_type', 'otp_sent_at']);
 
+        // Assign referral if user doesn't have a sponsor and referral code exists in session
+        if (empty($user->sponsor_id) && session()->has('referral_code')) {
+            $referralCode = session('referral_code');
+            $sponsor = User::where('affiliate_code', $referralCode)->first();
+            if ($sponsor && $sponsor->id !== $user->id) {
+                $user->sponsor_id = $sponsor->id;
+                $user->save();
+            }
+        }
+
         // Login user
         Auth::login($user);
         $request->session()->regenerate();
@@ -216,9 +226,15 @@ class LoginController extends Controller
             ]);
         }
 
-        // Redirect based on user role
+        // Redirect based on user role or product parameter
         $redirectUrl = route('home');
-        if ($user->isAdmin()) {
+        
+        // Check if there's a product parameter in request or session to redirect to after login
+        $productSlug = $request->input('product') ?? session('login_redirect_product');
+        if ($productSlug) {
+            session()->forget('login_redirect_product');
+            $redirectUrl = route('products.show', $productSlug);
+        } elseif ($user->isAdmin()) {
             $redirectUrl = route('admin.dashboard');
         } elseif ($user->isSponsor()) {
             $redirectUrl = route('sponsor.dashboard');
@@ -272,9 +288,26 @@ class LoginController extends Controller
                 ->withErrors(['password' => 'The provided password is incorrect.']);
         }
         
+        // Assign referral if user doesn't have a sponsor and referral code exists in session
+        if (empty($user->sponsor_id) && session()->has('referral_code')) {
+            $referralCode = session('referral_code');
+            $sponsor = User::where('affiliate_code', $referralCode)->first();
+            if ($sponsor && $sponsor->id !== $user->id) {
+                $user->sponsor_id = $sponsor->id;
+                $user->save();
+            }
+        }
+
         // Login the user directly
         Auth::login($user, $request->filled('remember'));
         $request->session()->regenerate();
+        
+        // Check if there's a product parameter in request or session to redirect to after login
+        $productSlug = $request->input('product') ?? session('login_redirect_product');
+        if ($productSlug) {
+            session()->forget('login_redirect_product');
+            return redirect()->intended(route('products.show', $productSlug));
+        }
         
         // Redirect based on user role
         if ($user->isAdmin()) {

@@ -73,7 +73,7 @@ class DashboardController extends Controller
         
         $referrals = $referralsQuery->latest()->take(10)->get();
         
-        $affiliateLink = url('/') . '?ref=' . $user->affiliate_code;
+        $affiliateLink = route('login') . '?ref=' . $user->affiliate_code;
         
         // Get all active products for affiliate links
         $products = Product::where('is_active', true)->orderBy('name')->get();

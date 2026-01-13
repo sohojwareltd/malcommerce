@@ -576,7 +576,7 @@ use Illuminate\Support\Str;
                     <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                         <input 
                             type="text" 
-                            value="{{ route('products.show', $product->slug) }}?ref={{ Auth::user()->affiliate_code }}" 
+                            value="{{ route('login') }}?ref={{ Auth::user()->affiliate_code }}&product={{ $product->slug }}" 
                             readonly 
                             class="flex-1 px-2 sm:px-3 py-2 text-xs border-2 border-purple-200 rounded-lg bg-white font-mono focus:ring-2 focus:ring-purple-500 focus:border-purple-500 truncate"
                             id="partner-link-{{ $product->id }}"
