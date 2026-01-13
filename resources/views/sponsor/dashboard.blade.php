@@ -505,10 +505,59 @@ use Illuminate\Support\Str;
     <div class="space-y-3 max-h-96 overflow-y-auto pr-1 sm:pr-2">
         @forelse($products as $product)
         <div class="border-2 border-purple-100 rounded-lg p-3 sm:p-4 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200">
-            <div class="flex items-start justify-between gap-3 sm:gap-4">
+            <div class="flex items-start gap-3 sm:gap-4">
+                <!-- Product Image -->
+                <div class="flex-shrink-0">
+                    @if($product->main_image)
+                        <img src="{{ Storage::disk('public')->url($product->main_image) }}" alt="{{ $product->name }}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border-2 border-purple-200 shadow-sm">
+                    @else
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-purple-100 border-2 border-purple-200 flex items-center justify-center">
+                            <svg class="w-8 h-8 sm:w-10 sm:h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                    @endif
+                </div>
+                
+                <!-- Product Info and Link -->
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-semibold text-sm sm:text-base text-neutral-900 mb-1 truncate">{{ $product->name }}</h3>
-                    <p class="text-xs text-purple-600 font-medium mb-2">Price: ৳{{ number_format($product->price, 2) }}</p>
+                    <h3 class="font-semibold text-sm sm:text-base text-neutral-900 mb-2 truncate">{{ $product->name }}</h3>
+                    
+                    <!-- Product Details Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                        <div class="bg-white rounded-lg p-2 border border-purple-100">
+                            <p class="text-xs text-neutral-500 mb-0.5">Price</p>
+                            <p class="text-sm font-bold text-purple-600">৳{{ number_format($product->price, 2) }}</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-2 border border-purple-100">
+                            <p class="text-xs text-neutral-500 mb-0.5">Commission</p>
+                            <p class="text-sm font-bold text-green-600">
+                                @if($product->commission_type === 'percentage')
+                                    {{ number_format($product->commission_value, 2) }}%
+                                @else
+                                    ৳{{ number_format($product->commission_value, 2) }}
+                                @endif
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-lg p-2 border border-purple-100">
+                            <p class="text-xs text-neutral-500 mb-0.5">Cashback</p>
+                            <p class="text-sm font-bold text-blue-600">৳{{ number_format($product->cashback_amount ?? 0, 2) }}</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-2 border border-purple-100 sm:col-span-1">
+                            <p class="text-xs text-neutral-500 mb-0.5">Total Earn</p>
+                            <p class="text-sm font-bold text-orange-600">
+                                @php
+                                    $commission = $product->commission_type === 'percentage' 
+                                        ? ($product->price * $product->commission_value / 100)
+                                        : $product->commission_value;
+                                    $totalEarn = $commission + ($product->cashback_amount ?? 0);
+                                @endphp
+                                ৳{{ number_format($totalEarn, 2) }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Affiliate Link -->
                     <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                         <input 
                             type="text" 
