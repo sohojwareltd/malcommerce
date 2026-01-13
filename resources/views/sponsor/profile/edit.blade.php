@@ -154,7 +154,7 @@ use Illuminate\Support\Facades\Storage;
             <label for="password" class="block text-sm font-medium text-neutral-700 mb-2">New Password <span class="text-red-500">*</span></label>
             <input type="password" name="password" id="password" required 
                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
-            <p class="mt-1 text-xs text-neutral-500">Minimum 8 characters</p>
+            <p class="mt-1 text-xs text-neutral-500">Minimum 6 characters</p>
             @error('password')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror

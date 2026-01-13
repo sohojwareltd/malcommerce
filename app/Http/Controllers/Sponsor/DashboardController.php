@@ -322,7 +322,7 @@ class DashboardController extends Controller
         
         // If user has a password, require current password; otherwise it's optional
         $rules = [
-            'password' => 'required|min:8|confirmed',
+            'password' => 'required|min:6|confirmed',
         ];
         
         if ($user->password) {

@@ -115,18 +115,44 @@ use Illuminate\Support\Str;
         </div>
         <h2 class="text-lg sm:text-xl font-bold text-blue-900">Referral Link</h2>
     </div>
-    <div class="flex flex-col sm:flex-row gap-2">
-        <input type="text" value="{{ $affiliateLink }}" readonly class="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-blue-200 rounded-lg bg-white font-mono text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 truncate" id="general-partner-link">
-        <button onclick="copyPartnerLink('general-partner-link')" class="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition font-semibold shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap">
-            Copy Link
-        </button>
+    <div class="flex flex-col lg:flex-row gap-4 sm:gap-6">
+        <!-- QR Code Section -->
+        <div class="flex-shrink-0 flex flex-col items-center">
+            <div class="bg-white rounded-lg p-3 sm:p-4 border-2 border-blue-200 shadow-md">
+                <img 
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($affiliateLink) }}" 
+                    alt="QR Code for Referral Link" 
+                    class="w-40 h-40 sm:w-48 sm:h-48"
+                    id="qr-code-image"
+                >
+            </div>
+            <button 
+                onclick="downloadQRCode()" 
+                class="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg flex items-center gap-2"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Download QR Code
+            </button>
+        </div>
+        
+        <!-- Link Section -->
+        <div class="flex-1 flex flex-col gap-2">
+            <div class="flex flex-col sm:flex-row gap-2">
+                <input type="text" value="{{ $affiliateLink }}" readonly class="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-blue-200 rounded-lg bg-white font-mono text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 truncate" id="general-partner-link">
+                <button onclick="copyPartnerLink('general-partner-link')" class="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition font-semibold shadow-md hover:shadow-lg text-sm sm:text-base whitespace-nowrap">
+                    Copy Link
+                </button>
+            </div>
+            <p class="text-xs sm:text-sm text-blue-700 flex items-start gap-2">
+                <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Share this link or scan the QR code to earn commissions on all products!</span>
+            </p>
+        </div>
     </div>
-    <p class="text-xs sm:text-sm text-blue-700 mt-2 sm:mt-3 flex items-start gap-2">
-        <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <span>Share this link to earn commissions on all products!</span>
-    </p>
 </div>
 
 <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-neutral-100 overflow-x-hidden">
@@ -594,6 +620,16 @@ function copyPartnerLink(inputId) {
         document.execCommand('copy');
         alert('Partner link copied to clipboard!');
     });
+}
+
+function downloadQRCode() {
+    const qrImage = document.getElementById('qr-code-image');
+    const link = document.createElement('a');
+    link.href = qrImage.src;
+    link.download = 'referral-qr-code.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 </script>
