@@ -543,18 +543,7 @@ use Illuminate\Support\Str;
                             <p class="text-xs text-neutral-500 mb-0.5">Cashback</p>
                             <p class="text-sm font-bold text-blue-600">৳{{ number_format($product->cashback_amount ?? 0, 2) }}</p>
                         </div>
-                        <div class="bg-white rounded-lg p-2 border border-purple-100 sm:col-span-1">
-                            <p class="text-xs text-neutral-500 mb-0.5">Total Earn</p>
-                            <p class="text-sm font-bold text-orange-600">
-                                @php
-                                    $commission = $product->commission_type === 'percentage' 
-                                        ? ($product->price * $product->commission_value / 100)
-                                        : $product->commission_value;
-                                    $totalEarn = $commission + ($product->cashback_amount ?? 0);
-                                @endphp
-                                ৳{{ number_format($totalEarn, 2) }}
-                            </p>
-                        </div>
+                       
                     </div>
                     
                     <!-- Affiliate Link -->
