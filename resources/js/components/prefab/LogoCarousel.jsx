@@ -42,7 +42,7 @@ const LogoCarousel = ({ content, style }) => {
     // Padding mapping
     const paddingClasses = {
         normal: 'py-12 md:py-16',
-        large: 'py-16 md:py-24'
+        large: 'py-8 md:py-12'
     };
 
     // Scroll speed mapping (pixels per frame)

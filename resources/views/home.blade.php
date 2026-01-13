@@ -86,7 +86,7 @@
                             </div>
                         @else
                             <div class="hero-slide-no-image bg-white">
-                                <div class="w-full px-4 sm:px-6 lg:px-8 py-16 md:py-24 max-w-full sm:max-w-[540px] md:max-w-[720px] lg:max-w-[960px] xl:max-w-[1140px] 2xl:max-w-[1320px] mx-auto">
+                                <div class="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-full sm:max-w-[540px] md:max-w-[720px] lg:max-w-[960px] xl:max-w-[1140px] 2xl:max-w-[1320px] mx-auto">
                                     <div class="hero-slide-content text-center max-w-3xl mx-auto">
                                         @if(!empty($slide['title']))
                                             <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-bangla" style="color: {{ $titleColor }};">

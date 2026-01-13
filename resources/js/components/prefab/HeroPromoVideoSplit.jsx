@@ -114,7 +114,7 @@ const HeroPromoVideoSplit = ({ content, style }) => {
 
     return (
         <section 
-            className="w-full py-16 md:py-24"
+            className="w-full py-8 md:py-12"
             style={getBackgroundStyle()}
         >
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

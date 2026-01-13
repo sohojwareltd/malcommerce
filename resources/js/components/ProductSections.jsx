@@ -743,7 +743,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 };
 
                 return (
-                    <section key={index} className="py-16 md:py-24"
+                    <section key={index} className="py-8 md:py-12"
                              style={getHeroBackgroundStyle()}>
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="text-center">
