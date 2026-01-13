@@ -57,9 +57,12 @@
                     @enderror
                 </div>
                 
-                <div class="mb-4 flex items-center">
-                    <input type="checkbox" name="remember" id="remember" class="h-4 w-4 text-primary focus:ring-primary border-neutral-300 rounded">
-                    <label for="remember" class="ml-2 block text-sm text-neutral-700 font-bangla">Remember me</label>
+                <div class="mb-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="remember" id="remember" class="h-4 w-4 text-primary focus:ring-primary border-neutral-300 rounded">
+                        <label for="remember" class="ml-2 block text-sm text-neutral-700 font-bangla">Remember me</label>
+                    </div>
+                    <a href="{{ route('password.request') }}" class="text-sm text-primary hover:underline font-bangla">পাসওয়ার্ড ভুলে গেছেন?</a>
                 </div>
                 
                 <button type="submit" id="password-submit-btn" class="w-full bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light transition font-bangla">
