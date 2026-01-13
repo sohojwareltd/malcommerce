@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\User;
 use App\Models\Setting;
 use App\Services\EarningService;
+use App\Services\SmsService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -278,6 +279,32 @@ class DashboardController extends Controller
                 }
             }
         }
+
+        // Send status update SMS if status actually changed
+        if ($oldStatus !== $newStatus) {
+            try {
+                $order->loadMissing('product');
+                $message = $this->buildStatusSmsMessage($order, $newStatus);
+                if ($message) {
+                    $smsService = app(SmsService::class);
+                    $smsResult = $smsService->send($order->customer_phone, $message);
+
+                    if (!$smsResult['success']) {
+                        \Log::warning('Failed to send status update SMS', [
+                            'order_id' => $order->id,
+                            'phone' => $order->customer_phone,
+                            'status' => $newStatus,
+                            'error' => $smsResult['error'] ?? 'Unknown error',
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Log::error('SMS sending exception on status change', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
         
         return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Order status updated successfully!');
@@ -372,6 +399,33 @@ class DashboardController extends Controller
     public function createSponsor()
     {
         return view('admin.sponsors.create');
+    }
+
+    /**
+     * Build SMS message for a status change using product-level templates.
+     */
+    protected function buildStatusSmsMessage(Order $order, string $status): ?string
+    {
+        $product = $order->product;
+        $templates = $product->sms_templates ?? [];
+        $template = $templates[$status] ?? null;
+
+        $defaultMessage = "Your order #{$order->order_number} is now " . ucfirst($status) . ".";
+        $message = $template ?: $defaultMessage;
+
+        $productName = $product ? $product->name : 'product';
+
+        $replacements = [
+            '{order_number}' => $order->order_number,
+            '{customer_name}' => $order->customer_name,
+            '{product_name}' => $productName,
+            '{status}' => ucfirst($status),
+            '{quantity}' => $order->quantity,
+            '{total_price}' => number_format($order->total_price, 0),
+            '{delivery_charge}' => number_format($order->delivery_charge ?? 0, 0),
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $message);
     }
     
     public function storeSponsor(Request $request)

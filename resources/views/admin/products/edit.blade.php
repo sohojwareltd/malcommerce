@@ -10,7 +10,33 @@
 <form action="{{ route('admin.products.update', $product) }}" method="POST" class="bg-white rounded-lg shadow-md p-6" onsubmit="updateDeliveryOptionsJson(); return true;">
     @csrf
     @method('PUT')
+
+    @php
+        $smsTemplates = old('sms_templates', $product->sms_templates ?? []);
+        $orderStatuses = [
+            'pending' => 'Pending',
+            'processing' => 'Processing',
+            'shipped' => 'Shipped',
+            'delivered' => 'Delivered',
+            'cancelled' => 'Cancelled',
+        ];
+    @endphp
+
+    <div class="border-b border-neutral-200 mb-6">
+        <div class="inline-flex rounded-lg border border-neutral-200 overflow-hidden">
+            <button type="button" data-tab-target="details" class="tab-button px-4 py-2 text-sm font-semibold text-primary bg-primary/10">
+                Product Details
+            </button>
+            <button type="button" data-tab-target="order" class="tab-button px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100">
+                Order Form
+            </button>
+            <button type="button" data-tab-target="sms" class="tab-button px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100">
+                SMS Settings
+            </button>
+        </div>
+    </div>
     
+    <div id="tab-details" class="tab-panel">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Name *</label>
@@ -134,59 +160,82 @@
         </label>
     </div>
     
-    <!-- Order Form Settings -->
-    <div class="mt-8 border-t border-neutral-200 pt-6">
-        <h2 class="text-xl font-bold mb-4">Order Form Settings</h2>
-        <p class="text-sm text-neutral-600 mb-4">Customize the order form for this product. Leave empty to use global settings.</p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-2">Order Form Title</label>
-                <input type="text" name="order_form_title" value="{{ old('order_form_title', $product->order_form_title) }}" placeholder="Leave empty for default" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
-                <p class="text-xs text-neutral-500 mt-1">Default: "অর্ডার করুন"</p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-2">Order Button Text</label>
-                <input type="text" name="order_button_text" value="{{ old('order_button_text', $product->order_button_text) }}" placeholder="Leave empty for default" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
-                <p class="text-xs text-neutral-500 mt-1">Default: "অর্ডার নিশ্চিত করুন"</p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-2">Minimum Order Quantity</label>
-                <input type="number" name="order_min_quantity" value="{{ old('order_min_quantity', $product->order_min_quantity) }}" min="0" step="1" placeholder="0 = no minimum" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
-                <p class="text-xs text-neutral-500 mt-1">Minimum number of items required per order</p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-2">Maximum Order Quantity</label>
-                <input type="number" name="order_max_quantity" value="{{ old('order_max_quantity', $product->order_max_quantity) }}" min="0" step="1" placeholder="0 = no maximum" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
-                <p class="text-xs text-neutral-500 mt-1">Maximum number of items allowed per order</p>
-            </div>
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-neutral-700 mb-2">Delivery Options</label>
-                <p class="text-xs text-neutral-500 mb-3">Leave empty to use global settings. Click "Add Delivery Option" to add a new row.</p>
-                
-                <div id="delivery-options-container" class="space-y-3 mb-3">
-                    <!-- Delivery options rows will be added here dynamically -->
+    </div> <!-- End tab-details -->
+
+    <div id="tab-order" class="tab-panel hidden">
+        <!-- Order Form Settings -->
+        <div class="mt-2">
+            <h2 class="text-xl font-bold mb-4">Order Form Settings</h2>
+            <p class="text-sm text-neutral-600 mb-4">Customize the order form for this product. Leave empty to use global settings.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">Order Form Title</label>
+                    <input type="text" name="order_form_title" value="{{ old('order_form_title', $product->order_form_title) }}" placeholder="Leave empty for default" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-neutral-500 mt-1">Default: "অর্ডার করুন"</p>
                 </div>
-                
-                <button type="button" onclick="addDeliveryOption()" class="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition text-sm font-medium">
-                    + Add Delivery Option
-                </button>
-                
-                <!-- Hidden input to store JSON -->
-                <input type="hidden" name="order_delivery_options" id="order_delivery_options_json" value="{{ old('order_delivery_options', $product->order_delivery_options ?: '') }}">
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">Order Button Text</label>
+                    <input type="text" name="order_button_text" value="{{ old('order_button_text', $product->order_button_text) }}" placeholder="Leave empty for default" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-neutral-500 mt-1">Default: "অর্ডার নিশ্চিত করুন"</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">Minimum Order Quantity</label>
+                    <input type="number" name="order_min_quantity" value="{{ old('order_min_quantity', $product->order_min_quantity) }}" min="0" step="1" placeholder="0 = no minimum" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-neutral-500 mt-1">Minimum number of items required per order</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">Maximum Order Quantity</label>
+                    <input type="number" name="order_max_quantity" value="{{ old('order_max_quantity', $product->order_max_quantity) }}" min="0" step="1" placeholder="0 = no maximum" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-neutral-500 mt-1">Maximum number of items allowed per order</p>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-neutral-700 mb-2">Delivery Options</label>
+                    <p class="text-xs text-neutral-500 mb-3">Leave empty to use global settings. Click "Add Delivery Option" to add a new row.</p>
+                    
+                    <div id="delivery-options-container" class="space-y-3 mb-3">
+                        <!-- Delivery options rows will be added here dynamically -->
+                    </div>
+                    
+                    <button type="button" onclick="addDeliveryOption()" class="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition text-sm font-medium">
+                        + Add Delivery Option
+                    </button>
+                    
+                    <!-- Hidden input to store JSON -->
+                    <input type="hidden" name="order_delivery_options" id="order_delivery_options_json" value="{{ old('order_delivery_options', $product->order_delivery_options ?: '') }}">
+                </div>
+            </div>
+            <div class="mt-4 space-y-2">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="order_hide_summary" value="1" {{ old('order_hide_summary', $product->order_hide_summary) ? 'checked' : '' }} class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
+                    <span class="text-sm font-medium text-neutral-700">Hide Order Summary</span>
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="order_hide_quantity" value="1" {{ old('order_hide_quantity', $product->order_hide_quantity) ? 'checked' : '' }} class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
+                    <span class="text-sm font-medium text-neutral-700">Hide Quantity Selector</span>
+                </label>
             </div>
         </div>
-        <div class="mt-4 space-y-2">
-            <label class="flex items-center gap-2">
-                <input type="checkbox" name="order_hide_summary" value="1" {{ old('order_hide_summary', $product->order_hide_summary) ? 'checked' : '' }} class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
-                <span class="text-sm font-medium text-neutral-700">Hide Order Summary</span>
-            </label>
-            <label class="flex items-center gap-2">
-                <input type="checkbox" name="order_hide_quantity" value="1" {{ old('order_hide_quantity', $product->order_hide_quantity) ? 'checked' : '' }} class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary">
-                <span class="text-sm font-medium text-neutral-700">Hide Quantity Selector</span>
-            </label>
+    </div> <!-- End tab-order -->
+
+    <div id="tab-sms" class="tab-panel hidden">
+        <div class="mt-2">
+            <h2 class="text-xl font-bold mb-4">SMS Settings</h2>
+            <p class="text-sm text-neutral-600 mb-4">Set custom SMS templates for each order status. Leave blank to use the default message.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @foreach($orderStatuses as $statusKey => $statusLabel)
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-sm font-semibold text-neutral-800">{{ $statusLabel }} Message</label>
+                        <span class="text-xs text-neutral-500 uppercase tracking-wide">{{ $statusKey }}</span>
+                    </div>
+                    <textarea name="sms_templates[{{ $statusKey }}]" rows="4" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary" placeholder="e.g., Order #{order_number} is now {{ strtolower($statusLabel) }}.">{{ $smsTemplates[$statusKey] ?? '' }}</textarea>
+                    <p class="text-xs text-neutral-500">Placeholders: {order_number}, {customer_name}, {product_name}, {status}, {quantity}, {total_price}, {delivery_charge}</p>
+                </div>
+                @endforeach
+            </div>
         </div>
-    </div>
+    </div> <!-- End tab-sms -->
     
     <div class="mt-6">
         <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition">
@@ -197,6 +246,30 @@
 </form>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    function activateTab(target) {
+        tabPanels.forEach(panel => {
+            panel.classList.toggle('hidden', panel.id !== `tab-${target}`);
+        });
+
+        tabButtons.forEach(button => {
+            const isActive = button.dataset.tabTarget === target;
+            button.classList.toggle('bg-primary/10', isActive);
+            button.classList.toggle('text-primary', isActive);
+            button.classList.toggle('text-neutral-700', !isActive);
+        });
+    }
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => activateTab(button.dataset.tabTarget));
+    });
+
+    activateTab('details');
+});
+
 let imageIndex = 0;
 
 function addImageUpload(imageUrl = '') {

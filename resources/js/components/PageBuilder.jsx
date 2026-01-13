@@ -147,6 +147,8 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
         const labels = {
             rich_text: 'Rich Text',
             image_gallery: 'Image Gallery',
+            image_slider: 'Image Slider',
+            video_slider: 'Video Slider',
             banner: 'Banner',
             faq: 'FAQs',
             testimonials: 'Testimonials',
@@ -359,6 +361,8 @@ const SectionAddButtons = ({ onAdd }) => {
     const sectionTypes = [
         { type: 'rich_text', label: 'Rich Text' },
         { type: 'image_gallery', label: 'Image Gallery' },
+        { type: 'image_slider', label: 'Image Slider' },
+        { type: 'video_slider', label: 'Video Slider' },
         { type: 'banner', label: 'Banner' },
         { type: 'faq', label: 'FAQs' },
         { type: 'testimonials', label: 'Testimonials' },
@@ -433,6 +437,10 @@ const SectionEditor = ({ section, index, updateSection, uploadImage, uploading }
                 return <SocialLinksEditor section={section} index={index} updateSection={updateSection} />;
             case 'contact_info':
                 return <ContactInfoEditor section={section} index={index} updateSection={updateSection} />;
+            case 'image_slider':
+                return <ImageSliderEditor section={section} index={index} updateSection={updateSection} uploadImage={uploadImage} uploading={uploading} />;
+            case 'video_slider':
+                return <VideoSliderEditor section={section} index={index} updateSection={updateSection} />;
             default:
                 return <div className="text-sm text-[#637381]">No editor available for this section type.</div>;
         }
@@ -446,6 +454,8 @@ const createDefaultSection = (type) => {
     const defaults = {
         rich_text: { type: 'rich_text', title: '', content: '' },
         image_gallery: { type: 'image_gallery', title: '', images: [] },
+        image_slider: { type: 'image_slider', title: '', images: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true },
+        video_slider: { type: 'video_slider', title: '', videos: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true },
         banner: { 
             type: 'banner', 
             title: '', 
@@ -462,7 +472,7 @@ const createDefaultSection = (type) => {
         video: { type: 'video', title: '', url: '' },
         specifications: { type: 'specifications', title: '', items: [] },
         comparison: { type: 'comparison', title: '', items: [] },
-        order_form: { type: 'order_form', title: '', content: '' },
+        order_form: { type: 'order_form', title: '', content: '', background_color: '' },
         call_to_action: { type: 'call_to_action', title: '', content: '', button_text: '', button_link: '#', background_color: '#008060', text_color: '#FFFFFF', button_color: '#FFFFFF', background_image: '' },
         tabs: { type: 'tabs', title: '', items: [] },
         grid: { type: 'grid', title: '', columns: 2, gap: 'medium', items: [] },
@@ -476,6 +486,7 @@ const createDefaultSection = (type) => {
             discount_text: '',
             html_content: '',
             video_url: '',
+            video_title: '',
             button_text: '', 
             button_link: '#',
             button2_text: '',
@@ -1026,6 +1037,33 @@ const OrderFormEditor = ({ section, index, updateSection }) => (
                 placeholder="Text to display above the order form"
             />
         </div>
+        <div>
+            <label className="text-sm font-medium block mb-1">Background Color (optional)</label>
+            <div className="flex items-center gap-3">
+                <input
+                    type="color"
+                    value={section.background_color || '#FFFFFF'}
+                    onChange={(e) => updateSection(index, 'background_color', e.target.value)}
+                    className="w-16 h-10 border border-neutral-300 rounded cursor-pointer"
+                />
+                <input
+                    type="text"
+                    value={section.background_color || ''}
+                    onChange={(e) => updateSection(index, 'background_color', e.target.value)}
+                    className="flex-1 px-3 py-2 border border-neutral-300 rounded text-sm font-mono"
+                    placeholder="#FFFFFF or leave empty for default"
+                />
+                {section.background_color && (
+                    <button
+                        onClick={() => updateSection(index, 'background_color', '')}
+                        className="text-red-500 text-sm px-2 py-1 hover:bg-red-50 rounded"
+                        type="button"
+                    >
+                        Clear
+                    </button>
+                )}
+            </div>
+        </div>
         <p className="text-xs text-neutral-500">Note: The order form will automatically use the product's price and stock information.</p>
     </div>
 );
@@ -1267,22 +1305,33 @@ const HeroEditor = ({ section, index, updateSection, uploadImage, uploading }) =
                     placeholder="https://www.youtube.com/embed/VIDEO_ID"
                 />
             </div>
+            <div>
+                <label className="text-sm font-medium block mb-1">Video Title (optional - shown underneath video)</label>
+                <input
+                    type="text"
+                    value={section.video_title || ''}
+                    onChange={(e) => updateSection(index, 'video_title', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    placeholder="Title to display underneath the video"
+                />
+            </div>
             
             <div className="border-t pt-3 mt-3">
                 <label className="text-sm font-semibold block mb-2">Button 1 (Primary)</label>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                    <input
-                        type="text"
+                <div className="mb-2">
+                    <label className="text-xs text-neutral-500 block mb-1">Button Text (HTML supported)</label>
+                    <textarea
                         value={section.button_text || ''}
                         onChange={(e) => updateSection(index, 'button_text', e.target.value)}
-                        className="px-3 py-2 border border-neutral-300 rounded text-sm"
-                        placeholder="Button Text"
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm font-mono text-xs mb-2"
+                        placeholder="Button Text (HTML supported)"
+                        rows={2}
                     />
                     <input
                         type="text"
                         value={section.button_link || '#'}
                         onChange={(e) => updateSection(index, 'button_link', e.target.value)}
-                        className="px-3 py-2 border border-neutral-300 rounded text-sm"
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
                         placeholder="Button Link"
                     />
                 </div>
@@ -1310,19 +1359,20 @@ const HeroEditor = ({ section, index, updateSection, uploadImage, uploading }) =
 
             <div className="border-t pt-3 mt-3">
                 <label className="text-sm font-semibold block mb-2">Button 2 (Secondary)</label>
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                    <input
-                        type="text"
+                <div className="mb-2">
+                    <label className="text-xs text-neutral-500 block mb-1">Button Text (HTML supported)</label>
+                    <textarea
                         value={section.button2_text || ''}
                         onChange={(e) => updateSection(index, 'button2_text', e.target.value)}
-                        className="px-3 py-2 border border-neutral-300 rounded text-sm"
-                        placeholder="Button Text"
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm font-mono text-xs mb-2"
+                        placeholder="Button Text (HTML supported)"
+                        rows={2}
                     />
                     <input
                         type="text"
                         value={section.button2_link || '#'}
                         onChange={(e) => updateSection(index, 'button2_link', e.target.value)}
-                        className="px-3 py-2 border border-neutral-300 rounded text-sm"
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
                         placeholder="Button Link"
                     />
                 </div>
@@ -1765,6 +1815,228 @@ const ContactInfoEditor = ({ section, index, updateSection }) => (
         </div>
     </div>
 );
+
+const ImageSliderEditor = ({ section, index, updateSection, uploadImage, uploading }) => {
+    const addImage = async () => {
+        const url = await uploadImage(index, 'slider');
+        if (url) {
+            const images = [...(section.images || []), url];
+            updateSection(index, 'images', images);
+        }
+    };
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className="text-sm font-medium block mb-1">Title (optional)</label>
+                <input
+                    type="text"
+                    value={section.title || ''}
+                    onChange={(e) => updateSection(index, 'title', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                />
+            </div>
+            <div>
+                <label className="text-sm font-medium block mb-2">Slider Images</label>
+                <div className="space-y-2">
+                    {(section.images || []).map((image, imgIndex) => (
+                        <div key={imgIndex} className="flex items-center gap-2 border border-neutral-300 rounded p-2">
+                            <img src={image} alt="" className="w-16 h-16 object-cover rounded" />
+                            <input
+                                type="text"
+                                value={image}
+                                onChange={(e) => {
+                                    const images = [...(section.images || [])];
+                                    images[imgIndex] = e.target.value;
+                                    updateSection(index, 'images', images);
+                                }}
+                                className="flex-1 px-2 py-1 border border-neutral-300 rounded text-sm"
+                            />
+                            <button
+                                onClick={() => {
+                                    const images = section.images.filter((_, i) => i !== imgIndex);
+                                    updateSection(index, 'images', images);
+                                }}
+                                className="text-red-500 px-2 py-1 text-sm"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        onClick={addImage}
+                        disabled={uploading[`${index}-slider`]}
+                        className="w-full bg-[#008060] text-white px-3 py-2 rounded text-sm hover:bg-[#006E52] disabled:opacity-50"
+                    >
+                        {uploading[`${index}-slider`] ? 'Uploading...' : '+ Add Image'}
+                    </button>
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 border-t pt-3 mt-3">
+                <div>
+                    <label className="text-sm font-medium block mb-1">Autoplay</label>
+                    <select
+                        value={section.autoplay ? 'true' : 'false'}
+                        onChange={(e) => updateSection(index, 'autoplay', e.target.value === 'true')}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-sm font-medium block mb-1">Autoplay Speed (ms)</label>
+                    <input
+                        type="number"
+                        value={section.autoplaySpeed || 5000}
+                        onChange={(e) => updateSection(index, 'autoplaySpeed', parseInt(e.target.value))}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                        min="1000"
+                        step="500"
+                    />
+                </div>
+                <div>
+                    <label className="text-sm font-medium block mb-1">Show Dots</label>
+                    <select
+                        value={section.dots ? 'true' : 'false'}
+                        onChange={(e) => updateSection(index, 'dots', e.target.value === 'true')}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-sm font-medium block mb-1">Show Arrows</label>
+                    <select
+                        value={section.arrows ? 'true' : 'false'}
+                        onChange={(e) => updateSection(index, 'arrows', e.target.value === 'true')}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const VideoSliderEditor = ({ section, index, updateSection }) => {
+    const addVideo = () => {
+        const videos = [...(section.videos || []), { url: '', title: '' }];
+        updateSection(index, 'videos', videos);
+    };
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className="text-sm font-medium block mb-1">Title (optional)</label>
+                <input
+                    type="text"
+                    value={section.title || ''}
+                    onChange={(e) => updateSection(index, 'title', e.target.value)}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                />
+            </div>
+            <div>
+                <label className="text-sm font-medium block mb-2">Slider Videos</label>
+                <div className="space-y-3">
+                    {(section.videos || []).map((video, vidIndex) => (
+                        <div key={vidIndex} className="border border-neutral-300 rounded p-3">
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-xs text-neutral-500">Video {vidIndex + 1}</span>
+                                <button
+                                    onClick={() => {
+                                        const videos = section.videos.filter((_, i) => i !== vidIndex);
+                                        updateSection(index, 'videos', videos);
+                                    }}
+                                    className="text-red-500 text-xs"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                            <input
+                                type="url"
+                                value={video.url || ''}
+                                onChange={(e) => {
+                                    const videos = [...(section.videos || [])];
+                                    videos[vidIndex] = { ...videos[vidIndex], url: e.target.value };
+                                    updateSection(index, 'videos', videos);
+                                }}
+                                className="w-full px-2 py-1 border border-neutral-300 rounded text-sm mb-2"
+                                placeholder="https://www.youtube.com/embed/VIDEO_ID"
+                            />
+                            <input
+                                type="text"
+                                value={video.title || ''}
+                                onChange={(e) => {
+                                    const videos = [...(section.videos || [])];
+                                    videos[vidIndex] = { ...videos[vidIndex], title: e.target.value };
+                                    updateSection(index, 'videos', videos);
+                                }}
+                                className="w-full px-2 py-1 border border-neutral-300 rounded text-sm"
+                                placeholder="Video Title (optional)"
+                            />
+                        </div>
+                    ))}
+                    <button
+                        onClick={addVideo}
+                        className="w-full border-2 border-dashed border-neutral-300 px-3 py-2 rounded text-sm text-neutral-500 hover:border-[#008060] hover:text-[#008060]"
+                    >
+                        + Add Video
+                    </button>
+                </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 border-t pt-3 mt-3">
+                <div>
+                    <label className="text-sm font-medium block mb-1">Autoplay</label>
+                    <select
+                        value={section.autoplay ? 'true' : 'false'}
+                        onChange={(e) => updateSection(index, 'autoplay', e.target.value === 'true')}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-sm font-medium block mb-1">Autoplay Speed (ms)</label>
+                    <input
+                        type="number"
+                        value={section.autoplaySpeed || 5000}
+                        onChange={(e) => updateSection(index, 'autoplaySpeed', parseInt(e.target.value))}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                        min="1000"
+                        step="500"
+                    />
+                </div>
+                <div>
+                    <label className="text-sm font-medium block mb-1">Show Dots</label>
+                    <select
+                        value={section.dots ? 'true' : 'false'}
+                        onChange={(e) => updateSection(index, 'dots', e.target.value === 'true')}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-sm font-medium block mb-1">Show Arrows</label>
+                    <select
+                        value={section.arrows ? 'true' : 'false'}
+                        onChange={(e) => updateSection(index, 'arrows', e.target.value === 'true')}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default PageBuilder;
 

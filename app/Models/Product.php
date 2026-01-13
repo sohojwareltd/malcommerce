@@ -36,6 +36,7 @@ class Product extends Model
         'order_delivery_options',
         'order_hide_summary',
         'order_hide_quantity',
+        'sms_templates',
     ];
 
     protected function casts(): array
@@ -57,6 +58,7 @@ class Product extends Model
             'order_custom_charge' => 'decimal:2',
             'order_hide_summary' => 'boolean',
             'order_hide_quantity' => 'boolean',
+            'sms_templates' => 'array',
         ];
     }
 

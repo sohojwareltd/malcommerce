@@ -83,6 +83,8 @@ class ProductController extends Controller
             'order_hide_summary' => 'boolean',
             'order_hide_quantity' => 'boolean',
             'is_free' => 'boolean',
+            'sms_templates' => 'nullable|array',
+            'sms_templates.*' => 'nullable|string|max:500',
         ]);
         
         if (empty($validated['slug'])) {
@@ -111,6 +113,17 @@ class ProductController extends Controller
         $validated['order_hide_summary'] = $request->has('order_hide_summary');
         $validated['order_hide_quantity'] = $request->has('order_hide_quantity');
         $validated['is_free'] = $request->has('is_free');
+
+        // Clean SMS templates (remove empty ones)
+        if (isset($validated['sms_templates']) && is_array($validated['sms_templates'])) {
+            $validated['sms_templates'] = array_filter(
+                array_map(fn($value) => is_string($value) ? trim($value) : '', $validated['sms_templates']),
+                fn($value) => $value !== ''
+            );
+            if (empty($validated['sms_templates'])) {
+                $validated['sms_templates'] = null;
+            }
+        }
         
         // If product is free, set price to 0
         if ($validated['is_free'] ?? false) {
@@ -167,6 +180,8 @@ class ProductController extends Controller
             'order_hide_summary' => 'boolean',
             'order_hide_quantity' => 'boolean',
             'is_free' => 'boolean',
+            'sms_templates' => 'nullable|array',
+            'sms_templates.*' => 'nullable|string|max:500',
         ]);
         
         // Handle page_layout - it comes as JSON string from the form
@@ -220,6 +235,21 @@ class ProductController extends Controller
         $validated['order_hide_summary'] = $request->has('order_hide_summary');
         $validated['order_hide_quantity'] = $request->has('order_hide_quantity');
         $validated['is_free'] = $request->has('is_free');
+
+        // Clean SMS templates (remove empty ones)
+        if (array_key_exists('sms_templates', $validated)) {
+            if (isset($validated['sms_templates']) && is_array($validated['sms_templates'])) {
+                $validated['sms_templates'] = array_filter(
+                    array_map(fn($value) => is_string($value) ? trim($value) : '', $validated['sms_templates']),
+                    fn($value) => $value !== ''
+                );
+                if (empty($validated['sms_templates'])) {
+                    $validated['sms_templates'] = null;
+                }
+            } else {
+                $validated['sms_templates'] = null;
+            }
+        }
         
         // If product is free, set price to 0
         if ($validated['is_free'] ?? false) {

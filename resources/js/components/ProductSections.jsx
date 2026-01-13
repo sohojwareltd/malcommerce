@@ -52,6 +52,87 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 }
             }
         });
+
+        // Initialize Slick carousels for image and video sliders
+        const initSliders = () => {
+            if (typeof window.$ !== 'undefined' && window.$.fn.slick) {
+                layout?.forEach((section, index) => {
+                    if (section.type === 'image_slider' || section.type === 'video_slider') {
+                        const sliderId = `slider-${index}`;
+                        const sliderElement = document.getElementById(sliderId);
+                        if (sliderElement && !window.$(sliderElement).hasClass('slick-initialized')) {
+                            // Show the slider container
+                            sliderElement.style.display = 'block';
+                            
+                            window.$(sliderElement).slick({
+                                slidesToShow: 1,
+                                slidesToScroll: 1,
+                                autoplay: section.autoplay !== false,
+                                autoplaySpeed: section.autoplaySpeed || 5000,
+                                dots: section.dots !== false,
+                                arrows: section.arrows !== false,
+                                fade: false,
+                                infinite: true,
+                                speed: 600,
+                                prevArrow: '<button type="button" class="slick-prev"><i class="fas fa-chevron-left"></i></button>',
+                                nextArrow: '<button type="button" class="slick-next"><i class="fas fa-chevron-right"></i></button>',
+                                responsive: [
+                                    {
+                                        breakpoint: 768,
+                                        settings: {
+                                            arrows: false,
+                                            slidesToShow: 1,
+                                            slidesToScroll: 1
+                                        }
+                                    }
+                                ]
+                            });
+                        }
+                    }
+                });
+            }
+        };
+
+        // Wait for DOM and jQuery to be ready
+        const initSlidersWithDelay = () => {
+            // Use setTimeout to ensure DOM is fully rendered
+            setTimeout(() => {
+                initSliders();
+            }, 200);
+        };
+
+        if (typeof window.$ !== 'undefined' && window.$.fn.slick) {
+            initSlidersWithDelay();
+        } else if (typeof window.$ !== 'undefined') {
+            // jQuery loaded but Slick might not be ready
+            window.$(document).ready(initSlidersWithDelay);
+        } else {
+            // Wait for jQuery to load
+            const checkJQuery = setInterval(() => {
+                if (typeof window.$ !== 'undefined' && window.$.fn.slick) {
+                    clearInterval(checkJQuery);
+                    initSlidersWithDelay();
+                }
+            }, 100);
+            
+            // Clear interval after 5 seconds if jQuery still not loaded
+            setTimeout(() => clearInterval(checkJQuery), 5000);
+        }
+
+        // Cleanup function
+        return () => {
+            if (typeof window.$ !== 'undefined' && window.$.fn.slick) {
+                layout?.forEach((section, index) => {
+                    if (section.type === 'image_slider' || section.type === 'video_slider') {
+                        const sliderId = `slider-${index}`;
+                        const sliderElement = document.getElementById(sliderId);
+                        if (sliderElement && window.$(sliderElement).hasClass('slick-initialized')) {
+                            window.$(sliderElement).slick('unslick');
+                        }
+                    }
+                });
+            }
+        };
     }, [layout]);
 
     if (!layout || !Array.isArray(layout)) {
@@ -118,7 +199,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 {productId && productInStock && (
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Order Form */}
-                        <div className="card overflow-hidden">
+                        <div className="card overflow-hidden" style={section.background_color ? { backgroundColor: section.background_color } : {}}>
                             <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-900 font-bangla break-words">{orderFormTitle}</h2>
                             <form action="/orders" method="POST" id={`product-order-form-${index}`} className="space-y-4">
                                 <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
@@ -373,6 +454,166 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    </section>
+                );
+            
+            case 'image_slider':
+                return (
+                    <section key={index} className="theme-section">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            {section.title && (
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                            )}
+                            {section.images && section.images.length > 0 ? (
+                                <>
+                                    <div id={`slider-${index}`} className="image-slider" style={{ display: 'none' }}>
+                                        {section.images.map((image, imgIndex) => (
+                                            <div key={imgIndex} className="slider-slide">
+                                                <img src={image} alt={`${section.title || 'Slide'} ${imgIndex + 1}`} className="w-full h-auto object-contain rounded-lg" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <style>{`
+                                        #slider-${index}.image-slider:not(.slick-initialized) .slider-slide {
+                                            display: none;
+                                        }
+                                        #slider-${index}.image-slider:not(.slick-initialized) .slider-slide:first-child {
+                                            display: block;
+                                        }
+                                        #slider-${index}.image-slider .slick-slide {
+                                            outline: none;
+                                        }
+                                        #slider-${index}.image-slider .slick-prev,
+                                        #slider-${index}.image-slider .slick-next {
+                                            z-index: 10;
+                                            width: 50px;
+                                            height: 50px;
+                                            background: rgba(255, 255, 255, 0.9);
+                                            border-radius: 50%;
+                                            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                            transition: all 0.2s ease;
+                                            color: var(--color-primary);
+                                            border: none;
+                                            cursor: pointer;
+                                        }
+                                        #slider-${index}.image-slider .slick-prev:hover,
+                                        #slider-${index}.image-slider .slick-next:hover {
+                                            background: white;
+                                            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+                                        }
+                                        #slider-${index}.image-slider .slick-prev {
+                                            left: 15px;
+                                        }
+                                        #slider-${index}.image-slider .slick-next {
+                                            right: 15px;
+                                        }
+                                        #slider-${index}.image-slider .slick-dots {
+                                            bottom: 15px;
+                                            z-index: 10;
+                                        }
+                                        #slider-${index}.image-slider .slick-dots li button {
+                                            width: 12px;
+                                            height: 12px;
+                                            border-radius: 50%;
+                                            background: var(--color-primary);
+                                            opacity: 0.5;
+                                            border: none;
+                                            cursor: pointer;
+                                        }
+                                        #slider-${index}.image-slider .slick-dots li.slick-active button {
+                                            opacity: 1;
+                                        }
+                                    `}</style>
+                                </>
+                            ) : (
+                                <p className="text-center text-gray-500 font-bangla py-8">No images added to slider</p>
+                            )}
+                        </div>
+                    </section>
+                );
+            
+            case 'video_slider':
+                return (
+                    <section key={index} className="theme-section">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            {section.title && (
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                            )}
+                            {section.videos && section.videos.length > 0 ? (
+                                <>
+                                    <div id={`slider-${index}`} className="video-slider" style={{ display: 'none' }}>
+                                        {section.videos.map((video, vidIndex) => (
+                                            <div key={vidIndex} className="slider-slide">
+                                                <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
+                                                    <iframe
+                                                        src={video.url}
+                                                        className="w-full h-full"
+                                                        allowFullScreen
+                                                        title={video.title || `Video ${vidIndex + 1}`}
+                                                    />
+                                                </div>
+                                                {video.title && (
+                                                    <h3 className="text-lg font-semibold text-gray-900 font-bangla mt-4 text-center">{video.title}</h3>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <style>{`
+                                        #slider-${index}.video-slider:not(.slick-initialized) .slider-slide {
+                                            display: none;
+                                        }
+                                        #slider-${index}.video-slider:not(.slick-initialized) .slider-slide:first-child {
+                                            display: block;
+                                        }
+                                        #slider-${index}.video-slider .slick-slide {
+                                            outline: none;
+                                        }
+                                        #slider-${index}.video-slider .slick-prev,
+                                        #slider-${index}.video-slider .slick-next {
+                                            z-index: 10;
+                                            width: 50px;
+                                            height: 50px;
+                                            background: rgba(255, 255, 255, 0.9);
+                                            border-radius: 50%;
+                                            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                            transition: all 0.2s ease;
+                                            color: var(--color-primary);
+                                            border: none;
+                                            cursor: pointer;
+                                        }
+                                        #slider-${index}.video-slider .slick-prev:hover,
+                                        #slider-${index}.video-slider .slick-next:hover {
+                                            background: white;
+                                            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+                                        }
+                                        #slider-${index}.video-slider .slick-prev {
+                                            left: 15px;
+                                        }
+                                        #slider-${index}.video-slider .slick-next {
+                                            right: 15px;
+                                        }
+                                        #slider-${index}.video-slider .slick-dots {
+                                            bottom: 15px;
+                                            z-index: 10;
+                                        }
+                                        #slider-${index}.video-slider .slick-dots li button {
+                                            width: 12px;
+                                            height: 12px;
+                                            border-radius: 50%;
+                                            background: var(--color-primary);
+                                            opacity: 0.5;
+                                            border: none;
+                                            cursor: pointer;
+                                        }
+                                        #slider-${index}.video-slider .slick-dots li.slick-active button {
+                                            opacity: 1;
+                                        }
+                                    `}</style>
+                                </>
+                            ) : (
+                                <p className="text-center text-gray-500 font-bangla py-8">No videos added to slider</p>
+                            )}
                         </div>
                     </section>
                 );
@@ -778,15 +1019,20 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     />
                                 )}
                                 {section.video_url && (
-                                    <div className="mb-8 md:mb-12 max-w-4xl mx-auto">
+                                    <div className="mb-8 md:mb-12 max-w-4xl mx-auto space-y-4">
                                         <div className="aspect-video rounded-lg overflow-hidden shadow-xl">
                                             <iframe
                                                 src={section.video_url}
                                                 className="w-full h-full"
                                                 allowFullScreen
-                                                title={section.title || 'Video'}
+                                                title={section.video_title || section.title || 'Video'}
                                             />
                                         </div>
+                                        {(section.video_title || section.title) && (
+                                            <h3 className="text-center text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 font-bangla" style={{ lineHeight: '1.2' }}>
+                                                {section.video_title || section.title}
+                                            </h3>
+                                        )}
                                     </div>
                                 )}
                                 {section.images && section.images[0] && !section.video_url && (
@@ -795,25 +1041,27 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     </div>
                                 )}
                                 {(section.button_text || section.button2_text) && (
-                                    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
+                                    <div className="flex flex-col md:flex-row flex-wrap items-stretch md:items-center justify-center gap-4 md:gap-6 w-full md:w-auto">
                                         {section.button_text && (
                                             <a href={section.button_link || '#'} 
-                                               className="inline-block font-bangla text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                               className="w-full md:w-auto block md:inline-block text-center font-bangla text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
                                                style={{
                                                    backgroundColor: section.button_bg_color || '#FFFFFF',
                                                    color: section.button_text_color || '#008060'
-                                               }}>
-                                                {section.button_text}
+                                               }}
+                                               dangerouslySetInnerHTML={containsHTML(section.button_text) ? { __html: section.button_text } : undefined}>
+                                                {!containsHTML(section.button_text) && section.button_text}
                                             </a>
                                         )}
                                         {section.button2_text && (
                                             <a href={section.button2_link || '#'} 
-                                               className="inline-block font-bangla text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                               className="w-full md:w-auto block md:inline-block text-center font-bangla text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
                                                style={{
                                                    backgroundColor: section.button2_bg_color || '#008060',
                                                    color: section.button2_text_color || '#FFFFFF'
-                                               }}>
-                                                {section.button2_text}
+                                               }}
+                                               dangerouslySetInnerHTML={containsHTML(section.button2_text) ? { __html: section.button2_text } : undefined}>
+                                                {!containsHTML(section.button2_text) && section.button2_text}
                                             </a>
                                         )}
                                     </div>
