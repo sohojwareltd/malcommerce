@@ -268,40 +268,48 @@
     @endpush
 
     <!-- Trust Section -->
+    @php
+        $homeFeatures = json_decode(\App\Models\Setting::get('home_features', '[]'), true);
+        if (empty($homeFeatures)) {
+            // Default features if not set
+            $homeFeatures = [
+                ['icon' => 'fas fa-truck', 'title' => 'ফ্রি ডেলিভারি', 'description' => 'সারা দেশে'],
+                ['icon' => 'fas fa-money-bill-wave', 'title' => 'ক্যাশ অন ডেলিভারি', 'description' => 'নিরাপদ পেমেন্ট'],
+                ['icon' => 'fas fa-shield-alt', 'title' => '৩০ দিন গ্যারান্টি', 'description' => 'মানি-ব্যাক'],
+                ['icon' => 'fas fa-headset', 'title' => '২৪/৭ সাপোর্ট', 'description' => 'সাহায্য পাওয়া যাবে'],
+            ];
+        }
+        // Filter out empty features
+        $homeFeatures = array_filter($homeFeatures, function($feature) {
+            return !empty($feature['title']) || !empty($feature['icon']);
+        });
+    @endphp
+    
+    @if(!empty($homeFeatures))
     <div class="bg-gray-50 border-y border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                <div class="flex flex-col items-center">
-                    <div class="text-4xl mb-2" style="color: var(--color-primary);">
-                        <i class="fas fa-truck"></i>
+                @foreach($homeFeatures as $feature)
+                    @if(!empty($feature['title']) || !empty($feature['icon']))
+                    <div class="flex flex-col items-center">
+                        @if(!empty($feature['icon']))
+                        <div class="text-4xl mb-2" style="color: var(--color-primary);">
+                            <i class="{{ $feature['icon'] }}"></i>
+                        </div>
+                        @endif
+                        @if(!empty($feature['title']))
+                        <h3 class="font-semibold text-gray-900 font-bangla mb-1">{{ $feature['title'] }}</h3>
+                        @endif
+                        @if(!empty($feature['description']))
+                        <p class="text-sm text-gray-600 font-bangla">{{ $feature['description'] }}</p>
+                        @endif
                     </div>
-                    <h3 class="font-semibold text-gray-900 font-bangla mb-1">ফ্রি ডেলিভারি</h3>
-                    <p class="text-sm text-gray-600 font-bangla">সারা দেশে</p>
-                </div>
-                <div class="flex flex-col items-center">
-                    <div class="text-4xl mb-2" style="color: var(--color-primary);">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-900 font-bangla mb-1">ক্যাশ অন ডেলিভারি</h3>
-                    <p class="text-sm text-gray-600 font-bangla">নিরাপদ পেমেন্ট</p>
-                </div>
-                <div class="flex flex-col items-center">
-                    <div class="text-4xl mb-2" style="color: var(--color-primary);">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-900 font-bangla mb-1">৩০ দিন গ্যারান্টি</h3>
-                    <p class="text-sm text-gray-600 font-bangla">মানি-ব্যাক</p>
-                </div>
-                <div class="flex flex-col items-center">
-                    <div class="text-4xl mb-2" style="color: var(--color-primary);">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-900 font-bangla mb-1">২৪/৭ সাপোর্ট</h3>
-                    <p class="text-sm text-gray-600 font-bangla">সাহায্য পাওয়া যাবে</p>
-                </div>
+                    @endif
+                @endforeach
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Featured Products Section -->
     @if ($featuredProducts->count() > 0)

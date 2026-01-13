@@ -816,6 +816,86 @@ class DashboardController extends Controller
             unset($data['hero_slider']);
         }
         
+        // Handle home_features as JSON
+        if (isset($data['home_features']) && is_array($data['home_features'])) {
+            $features = [];
+            foreach ($data['home_features'] as $feature) {
+                // Skip empty features
+                if (empty($feature['title']) && empty($feature['icon'])) {
+                    continue;
+                }
+                $features[] = [
+                    'icon' => $feature['icon'] ?? '',
+                    'title' => $feature['title'] ?? '',
+                    'description' => $feature['description'] ?? '',
+                ];
+            }
+            // Ensure we have exactly 4 features (pad with empty ones if needed)
+            while (count($features) < 4) {
+                $features[] = ['icon' => '', 'title' => '', 'description' => ''];
+            }
+            Setting::set('home_features', json_encode(array_slice($features, 0, 4)), 'json', 'home', 'Home page features');
+            unset($data['home_features']);
+        }
+        
+        // Handle footer_settings as JSON
+        if (isset($data['footer_settings']) && is_array($data['footer_settings'])) {
+            $footerSettings = $data['footer_settings'];
+            
+            // Process columns - clean up empty arrays and ensure proper structure
+            if (isset($footerSettings['columns']) && is_array($footerSettings['columns'])) {
+                $columns = [];
+                foreach ($footerSettings['columns'] as $column) {
+                    if (empty($column['title']) && empty($column['content']) && empty($column['links']) && empty($column['items'])) {
+                        continue; // Skip completely empty columns
+                    }
+                    
+                    $processedColumn = [
+                        'title' => $column['title'] ?? '',
+                        'type' => $column['type'] ?? 'text',
+                    ];
+                    
+                    if ($processedColumn['type'] === 'text') {
+                        $processedColumn['content'] = $column['content'] ?? '';
+                    } elseif ($processedColumn['type'] === 'links') {
+                        $processedColumn['links'] = [];
+                        if (isset($column['links']) && is_array($column['links'])) {
+                            foreach ($column['links'] as $link) {
+                                if (!empty($link['text']) || !empty($link['url'])) {
+                                    $processedColumn['links'][] = [
+                                        'text' => $link['text'] ?? '',
+                                        'url' => $link['url'] ?? ''
+                                    ];
+                                }
+                            }
+                        }
+                    } elseif (in_array($processedColumn['type'], ['service', 'badges'])) {
+                        $processedColumn['items'] = [];
+                        if (isset($column['items']) && is_array($column['items'])) {
+                            foreach ($column['items'] as $item) {
+                                if (!empty($item['text']) || !empty($item['icon'])) {
+                                    $processedColumn['items'][] = [
+                                        'icon' => $item['icon'] ?? '',
+                                        'text' => $item['text'] ?? ''
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                    
+                    $columns[] = $processedColumn;
+                }
+                // Ensure we have exactly 4 columns (pad with empty ones if needed)
+                while (count($columns) < 4) {
+                    $columns[] = ['title' => '', 'type' => 'text', 'content' => ''];
+                }
+                $footerSettings['columns'] = array_slice($columns, 0, 4);
+            }
+            
+            Setting::set('footer_settings', json_encode($footerSettings), 'json', 'footer', 'Footer settings and content');
+            unset($data['footer_settings']);
+        }
+        
         // Handle checkbox settings (they won't be in request if unchecked)
         Setting::set('order_hide_summary', $request->has('order_hide_summary') ? '1' : '0');
         Setting::set('order_hide_quantity', $request->has('order_hide_quantity') ? '1' : '0');

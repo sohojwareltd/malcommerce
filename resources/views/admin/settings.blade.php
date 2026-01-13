@@ -7,10 +7,33 @@
     <h1 class="text-3xl font-bold">Settings</h1>
 </div>
 
-<form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-8">
+<form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-8" id="settings-form">
     @csrf
     @method('POST')
     
+    <!-- Tabs Navigation -->
+    <div class="border-b border-neutral-200 mb-6">
+        <nav class="flex space-x-8" role="tablist">
+            <button type="button" onclick="switchTab('general')" id="tab-general" class="tab-button py-4 px-1 border-b-2 font-medium text-sm active" style="border-bottom-color: var(--color-primary); color: var(--color-primary);">
+                General
+            </button>
+            <button type="button" onclick="switchTab('design')" id="tab-design" class="tab-button py-4 px-1 border-b-2 font-medium text-sm border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300">
+                Design
+            </button>
+            <button type="button" onclick="switchTab('home')" id="tab-home" class="tab-button py-4 px-1 border-b-2 font-medium text-sm border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300">
+                Home Page
+            </button>
+            <button type="button" onclick="switchTab('footer')" id="tab-footer" class="tab-button py-4 px-1 border-b-2 font-medium text-sm border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300">
+                Footer
+            </button>
+            <button type="button" onclick="switchTab('analytics')" id="tab-analytics" class="tab-button py-4 px-1 border-b-2 font-medium text-sm border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300">
+                Analytics
+            </button>
+        </nav>
+    </div>
+    
+    <!-- General Settings Tab -->
+    <div id="tab-content-general" class="tab-content">
     <!-- General Settings -->
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold mb-4">General Settings</h2>
@@ -52,6 +75,10 @@
         </div>
     </div>
     
+    </div>
+    
+    <!-- Design Tab -->
+    <div id="tab-content-design" class="tab-content" style="display: none;">
     <!-- Color Palette Settings -->
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold mb-4">Color Palette</h2>
@@ -248,7 +275,211 @@
             + Add Slide
         </button>
     </div>
+    </div>
     
+    <!-- Home Page Tab -->
+    <div id="tab-content-home" class="tab-content" style="display: none;">
+    <!-- Home Features Settings -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold mb-4">Home Features</h2>
+        <p class="text-sm text-neutral-600 mb-4">Manage the features section displayed on the homepage. You can customize icons, titles, and descriptions for up to 4 features.</p>
+        
+        @php
+            $homeFeatures = json_decode(\App\Models\Setting::get('home_features', '[]'), true);
+            if (empty($homeFeatures)) {
+                $homeFeatures = [
+                    ['icon' => 'fas fa-truck', 'title' => 'ফ্রি ডেলিভারি', 'description' => 'সারা দেশে'],
+                    ['icon' => 'fas fa-money-bill-wave', 'title' => 'ক্যাশ অন ডেলিভারি', 'description' => 'নিরাপদ পেমেন্ট'],
+                    ['icon' => 'fas fa-shield-alt', 'title' => '৩০ দিন গ্যারান্টি', 'description' => 'মানি-ব্যাক'],
+                    ['icon' => 'fas fa-headset', 'title' => '২৪/৭ সাপোর্ট', 'description' => 'সাহায্য পাওয়া যাবে'],
+                ];
+            }
+            // Ensure we have exactly 4 features
+            while (count($homeFeatures) < 4) {
+                $homeFeatures[] = ['icon' => '', 'title' => '', 'description' => ''];
+            }
+            $homeFeatures = array_slice($homeFeatures, 0, 4);
+        @endphp
+        
+        <div id="home-features-container" class="space-y-4">
+            @foreach($homeFeatures as $index => $feature)
+                <div class="home-feature-item border border-neutral-300 rounded-lg p-4 bg-neutral-50">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-neutral-700">Feature {{ $index + 1 }}</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-700 mb-2">Icon Class</label>
+                            <input type="text" name="home_features[{{ $index }}][icon]" value="{{ $feature['icon'] ?? '' }}" placeholder="fas fa-truck" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                            <p class="text-xs text-neutral-500 mt-1">Font Awesome icon class (e.g., fas fa-truck)</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-700 mb-2">Title</label>
+                            <input type="text" name="home_features[{{ $index }}][title]" value="{{ $feature['title'] ?? '' }}" placeholder="Feature Title" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-700 mb-2">Description</label>
+                            <input type="text" name="home_features[{{ $index }}][description]" value="{{ $feature['description'] ?? '' }}" placeholder="Feature Description" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    </div>
+    
+    <!-- Footer Tab -->
+    <div id="tab-content-footer" class="tab-content" style="display: none;">
+    <!-- Footer Settings -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold mb-4">Footer Customization</h2>
+        <p class="text-sm text-neutral-600 mb-6">Customize all footer sections including columns, links, and copyright text.</p>
+        
+        @php
+            $footerSettings = json_decode(\App\Models\Setting::get('footer_settings', '{}'), true);
+            
+            // Default footer structure
+            $defaultFooter = [
+                'columns' => [
+                    [
+                        'title' => 'আমাদের সম্পর্কে',
+                        'content' => 'আমাদের অনলাইন শপে আপনাকে স্বাগতম। আমরা গুণগত মানসম্পন্ন পণ্য সরবরাহ করি।',
+                        'type' => 'text'
+                    ],
+                    [
+                        'title' => 'দ্রুত লিংক',
+                        'type' => 'links',
+                        'links' => [
+                            ['text' => 'হোম', 'url' => '/'],
+                            ['text' => 'সব পণ্য', 'url' => '/products']
+                        ]
+                    ],
+                    [
+                        'title' => 'গ্রাহক সেবা',
+                        'type' => 'service',
+                        'items' => [
+                            ['icon' => '📞', 'text' => '{{contact_phone}}'],
+                            ['icon' => '✉️', 'text' => '{{contact_email}}'],
+                            ['icon' => '🚚', 'text' => 'ফ্রি ডেলিভারি'],
+                            ['icon' => '💳', 'text' => 'ক্যাশ অন ডেলিভারি']
+                        ]
+                    ],
+                    [
+                        'title' => 'আমাদের প্রতিশ্রুতি',
+                        'type' => 'badges',
+                        'items' => [
+                            ['icon' => '✅', 'text' => '৩০ দিনের মানি-ব্যাক গ্যারান্টি'],
+                            ['icon' => '✅', 'text' => '১০০% অরিজিনাল পণ্য'],
+                            ['icon' => '✅', 'text' => 'নিরাপদ পেমেন্ট'],
+                            ['icon' => '✅', 'text' => '২৪/৭ গ্রাহক সেবা']
+                        ]
+                    ]
+                ],
+                'copyright' => '&copy; {{year}} {{site_name}}। সর্বস্বত্ব সংরক্ষিত।'
+            ];
+            
+            $footerData = array_merge($defaultFooter, $footerSettings);
+            if (!isset($footerData['columns'])) {
+                $footerData['columns'] = $defaultFooter['columns'];
+            }
+            if (!isset($footerData['copyright'])) {
+                $footerData['copyright'] = $defaultFooter['copyright'];
+            }
+        @endphp
+        
+        <!-- Footer Columns -->
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold mb-4">Footer Columns</h3>
+            <p class="text-sm text-neutral-600 mb-4">You can customize up to 4 columns in the footer.</p>
+            
+            <div id="footer-columns-container" class="space-y-6">
+                @for($i = 0; $i < 4; $i++)
+                    @php
+                        $column = $footerData['columns'][$i] ?? [
+                            'title' => '',
+                            'type' => 'text',
+                            'content' => '',
+                            'links' => [],
+                            'items' => []
+                        ];
+                    @endphp
+                    <div class="footer-column-item border border-neutral-300 rounded-lg p-4 bg-neutral-50">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-semibold text-neutral-700">Column {{ $i + 1 }}</h4>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-neutral-700 mb-2">Column Title</label>
+                                <input type="text" name="footer_settings[columns][{{ $i }}][title]" value="{{ $column['title'] ?? '' }}" placeholder="Column Title" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-neutral-700 mb-2">Column Type</label>
+                                <select name="footer_settings[columns][{{ $i }}][type]" class="column-type-select w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary" onchange="updateColumnType(this, {{ $i }})">
+                                    <option value="text" {{ ($column['type'] ?? 'text') === 'text' ? 'selected' : '' }}>Text Content</option>
+                                    <option value="links" {{ ($column['type'] ?? '') === 'links' ? 'selected' : '' }}>Links Menu</option>
+                                    <option value="service" {{ ($column['type'] ?? '') === 'service' ? 'selected' : '' }}>Service Items</option>
+                                    <option value="badges" {{ ($column['type'] ?? '') === 'badges' ? 'selected' : '' }}>Badges/Features</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Text Content -->
+                        <div class="column-content-text" style="{{ ($column['type'] ?? 'text') === 'text' ? '' : 'display: none;' }}">
+                            <label class="block text-sm font-medium text-neutral-700 mb-2">Content</label>
+                            <textarea name="footer_settings[columns][{{ $i }}][content]" rows="4" placeholder="Enter column content" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">{{ $column['content'] ?? '' }}</textarea>
+                            <p class="text-xs text-neutral-500 mt-1">You can use @{{ contact_phone }}, @{{ contact_email }}, @{{ site_name }} placeholders</p>
+                        </div>
+                        
+                        <!-- Links -->
+                        <div class="column-content-links" style="{{ ($column['type'] ?? '') === 'links' ? '' : 'display: none;' }}">
+                            <label class="block text-sm font-medium text-neutral-700 mb-2">Links</label>
+                            <div class="footer-links-container space-y-2" data-column="{{ $i }}">
+                                @if(isset($column['links']) && is_array($column['links']))
+                                    @foreach($column['links'] as $linkIndex => $link)
+                                        <div class="flex gap-2 footer-link-item">
+                                            <input type="text" name="footer_settings[columns][{{ $i }}][links][{{ $linkIndex }}][text]" value="{{ $link['text'] ?? '' }}" placeholder="Link Text" class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">
+                                            <input type="text" name="footer_settings[columns][{{ $i }}][links][{{ $linkIndex }}][url]" value="{{ $link['url'] ?? '' }}" placeholder="/url" class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                                            <button type="button" onclick="removeFooterLink(this)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">Remove</button>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+                            <button type="button" onclick="addFooterLink({{ $i }})" class="mt-2 px-4 py-2 bg-neutral-200 hover:bg-neutral-300 rounded-lg text-sm font-medium transition">+ Add Link</button>
+                        </div>
+                        
+                        <!-- Service Items / Badges -->
+                        <div class="column-content-service column-content-badges" style="{{ ($column['type'] ?? '') === 'service' || ($column['type'] ?? '') === 'badges' ? '' : 'display: none;' }}">
+                            <label class="block text-sm font-medium text-neutral-700 mb-2">Items</label>
+                            <div class="footer-items-container space-y-2" data-column="{{ $i }}">
+                                @if(isset($column['items']) && is_array($column['items']))
+                                    @foreach($column['items'] as $itemIndex => $item)
+                                        <div class="flex gap-2 footer-item-item">
+                                            <input type="text" name="footer_settings[columns][{{ $i }}][items][{{ $itemIndex }}][icon]" value="{{ $item['icon'] ?? '' }}" placeholder="Icon (📞, ✅, etc.)" class="w-24 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                                            <input type="text" name="footer_settings[columns][{{ $i }}][items][{{ $itemIndex }}][text]" value="{{ $item['text'] ?? '' }}" placeholder="Item Text" class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">
+                                            <button type="button" onclick="removeFooterItem(this)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">Remove</button>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+                            <button type="button" onclick="addFooterItem({{ $i }})" class="mt-2 px-4 py-2 bg-neutral-200 hover:bg-neutral-300 rounded-lg text-sm font-medium transition">+ Add Item</button>
+                        </div>
+                    </div>
+                @endfor
+            </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-4">Copyright Text</h3>
+            <input type="text" name="footer_settings[copyright]" value="{{ $footerData['copyright'] ?? '' }}" placeholder="&copy; @{{ year }} @{{ site_name }}। সর্বস্বত্ব সংরক্ষিত।" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">
+            <p class="text-xs text-neutral-500 mt-1">Use @{{ year }} for current year and @{{ site_name }} for site name</p>
+        </div>
+    </div>
+    </div>
+    
+    <!-- Analytics Tab -->
+    <div id="tab-content-analytics" class="tab-content" style="display: none;">
     <!-- Analytics Settings -->
     <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold mb-4">Analytics</h2>
@@ -265,6 +496,7 @@
             </div>
         </div>
     </div>
+    </div>
     
     <div>
         <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition">
@@ -275,6 +507,35 @@
 
 @push('scripts')
 <script>
+    // Tab switching functionality
+    function switchTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.style.display = 'none';
+        });
+        
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('active');
+            button.style.borderBottomColor = 'transparent';
+            button.style.color = '';
+        });
+        
+        // Show selected tab content
+        const selectedContent = document.getElementById('tab-content-' + tabName);
+        if (selectedContent) {
+            selectedContent.style.display = 'block';
+        }
+        
+        // Add active class to selected tab
+        const selectedTab = document.getElementById('tab-' + tabName);
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+            selectedTab.style.borderBottomColor = 'var(--color-primary)';
+            selectedTab.style.color = 'var(--color-primary)';
+        }
+    }
+    
     // Sync color picker with text input
     document.getElementById('primary-color').addEventListener('input', function(e) {
         document.getElementById('primary-color-text').value = e.target.value.toUpperCase();
@@ -528,6 +789,63 @@
             });
         });
     });
+    
+    // Footer Column Management
+    function updateColumnType(select, columnIndex) {
+        const columnItem = select.closest('.footer-column-item');
+        const type = select.value;
+        
+        // Hide all content types
+        columnItem.querySelectorAll('.column-content-text, .column-content-links, .column-content-service, .column-content-badges').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Show appropriate content type
+        if (type === 'text') {
+            const textContent = columnItem.querySelector('.column-content-text');
+            if (textContent) textContent.style.display = 'block';
+        } else if (type === 'links') {
+            const linksContent = columnItem.querySelector('.column-content-links');
+            if (linksContent) linksContent.style.display = 'block';
+        } else if (type === 'service' || type === 'badges') {
+            const serviceBadges = columnItem.querySelector('.column-content-service.column-content-badges');
+            if (serviceBadges) serviceBadges.style.display = 'block';
+        }
+    }
+    
+    function addFooterLink(columnIndex) {
+        const container = document.querySelector(`.footer-links-container[data-column="${columnIndex}"]`);
+        const linkCount = container.querySelectorAll('.footer-link-item').length;
+        const linkHtml = `
+            <div class="flex gap-2 footer-link-item">
+                <input type="text" name="footer_settings[columns][${columnIndex}][links][${linkCount}][text]" placeholder="Link Text" class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">
+                <input type="text" name="footer_settings[columns][${columnIndex}][links][${linkCount}][url]" placeholder="/url" class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <button type="button" onclick="removeFooterLink(this)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">Remove</button>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', linkHtml);
+    }
+    
+    function removeFooterLink(button) {
+        button.closest('.footer-link-item').remove();
+    }
+    
+    function addFooterItem(columnIndex) {
+        const container = document.querySelector(`.footer-items-container[data-column="${columnIndex}"]`);
+        const itemCount = container.querySelectorAll('.footer-item-item').length;
+        const itemHtml = `
+            <div class="flex gap-2 footer-item-item">
+                <input type="text" name="footer_settings[columns][${columnIndex}][items][${itemCount}][icon]" placeholder="Icon (📞, ✅)" class="w-24 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                <input type="text" name="footer_settings[columns][${columnIndex}][items][${itemCount}][text]" placeholder="Item Text" class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary font-bangla">
+                <button type="button" onclick="removeFooterItem(this)" class="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200">Remove</button>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', itemHtml);
+    }
+    
+    function removeFooterItem(button) {
+        button.closest('.footer-item-item').remove();
+    }
 </script>
 @endpush
 @endsection

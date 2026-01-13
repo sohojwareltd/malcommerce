@@ -177,6 +177,7 @@
             </div>
         @endif
             
+        @unless(isset($hideLayoutChrome) && $hideLayoutChrome)
         <!-- Header -->
         <header x-data="{ mobileMenuOpen: false }" class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
             @php
@@ -346,66 +347,128 @@
                 </div>
             </div>
         </header>
+        @endunless
         
         <!-- Main Content -->
         <main class="flex-1">
             @yield('content')
         </main>
         
+        @unless(isset($hideLayoutChrome) && $hideLayoutChrome)
         <!-- Footer -->
         <footer class="bg-gray-50 border-t border-gray-200 mt-16 pattern-dots">
+            @php
+                $footerSettings = json_decode(\App\Models\Setting::get('footer_settings', '{}'), true) ?? [];
+                $siteName = \App\Models\Setting::get('site_name', config('app.name'));
+                $contactPhone = \App\Models\Setting::get('contact_phone', '');
+                $contactEmail = \App\Models\Setting::get('contact_email', '');
+                $year = date('Y');
+                $defaultColumns = [
+                    [
+                        'title' => 'আমাদের সম্পর্কে',
+                        'type' => 'text',
+                        'content' => 'আমাদের অনলাইন শপে আপনাকে স্বাগতম। আমরা গুণগত মানসম্পন্ন পণ্য সরবরাহ করি।'
+                    ],
+                    [
+                        'title' => 'দ্রুত লিংক',
+                        'type' => 'links',
+                        'links' => [
+                            ['text' => 'হোম', 'url' => route('home')],
+                            ['text' => 'সব পণ্য', 'url' => route('products.index')],
+                        ]
+                    ],
+                    [
+                        'title' => 'গ্রাহক সেবা',
+                        'type' => 'service',
+                        'items' => [
+                            ['icon' => '📞', 'text' => $contactPhone],
+                            ['icon' => '✉️', 'text' => $contactEmail],
+                            ['icon' => '🚚', 'text' => 'ফ্রি ডেলিভারি'],
+                            ['icon' => '💳', 'text' => 'ক্যাশ অন ডেলিভারি'],
+                        ]
+                    ],
+                    [
+                        'title' => 'আমাদের প্রতিশ্রুতি',
+                        'type' => 'badges',
+                        'items' => [
+                            ['icon' => '✅', 'text' => '৩০ দিনের মানি-ব্যাক গ্যারান্টি'],
+                            ['icon' => '✅', 'text' => '১০০% অরিজিনাল পণ্য'],
+                            ['icon' => '✅', 'text' => 'নিরাপদ পেমেন্ট'],
+                            ['icon' => '✅', 'text' => '২৪/৭ গ্রাহক সেবা'],
+                        ]
+                    ],
+                ];
+                $columns = $footerSettings['columns'] ?? $defaultColumns;
+                while (count($columns) < 4) { $columns[] = ['title' => '', 'type' => 'text', 'content' => '']; }
+                $columns = array_slice($columns, 0, 4);
+                $copyright = $footerSettings['copyright'] ?? "&copy; {{ year }} {{ site_name }}। সর্বস্বত্ব সংরক্ষিত।";
+                $renderText = function($text) use ($siteName, $contactPhone, $contactEmail, $year) {
+                    return str_replace(
+                        [
+                            '{{ site_name }}', '@{{ site_name }}', '{{site_name}}', '@{{site_name}}',
+                            '{{ contact_phone }}', '@{{ contact_phone }}', '{{contact_phone}}', '@{{contact_phone}}',
+                            '{{ contact_email }}', '@{{ contact_email }}', '{{contact_email}}', '@{{contact_email}}',
+                            '{{ year }}', '@{{ year }}', '{{year}}', '@{{year}}',
+                        ],
+                        [
+                            $siteName, $siteName, $siteName, $siteName,
+                            $contactPhone, $contactPhone, $contactPhone, $contactPhone,
+                            $contactEmail, $contactEmail, $contactEmail, $contactEmail,
+                            $year, $year, $year, $year,
+                        ],
+                        $text ?? ''
+                    );
+                };
+            @endphp
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <!-- About -->
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">আমাদের সম্পর্কে</h3>
-                        <p class="text-gray-600 text-sm font-bangla leading-relaxed">{{ \App\Models\Setting::get('footer_about', 'আমাদের অনলাইন শপে আপনাকে স্বাগতম। আমরা গুণগত মানসম্পন্ন পণ্য সরবরাহ করি।') }}</p>
-                    </div>
-                    
-                    <!-- Quick Links -->
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">দ্রুত লিংক</h3>
-                        <ul class="space-y-2 text-sm">
-                            <li><a href="{{ route('home') }}" class="text-gray-600 hover:text-primary transition font-bangla">হোম</a></li>
-                            <li><a href="{{ route('products.index') }}" class="text-gray-600 hover:text-primary transition font-bangla">সব পণ্য</a></li>
-                            @if($categories->count() > 0)
-                                @foreach($categories->take(5) as $category)
-                                <li><a href="{{ route('products.index', ['category' => $category->id]) }}" class="text-gray-600 hover:text-primary transition font-bangla">{{ $category->name }}</a></li>
-                                @endforeach
+                    @foreach($columns as $column)
+                        <div>
+                            @if(!empty($column['title']))
+                                <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">{{ $renderText($column['title']) }}</h3>
                             @endif
-                        </ul>
-                    </div>
-                    
-                    <!-- Customer Service -->
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">গ্রাহক সেবা</h3>
-                        <ul class="space-y-2 text-sm text-gray-600 font-bangla">
-                            <li>📞 {{ \App\Models\Setting::get('contact_phone', '') }}</li>
-                            <li>✉️ {{ \App\Models\Setting::get('contact_email', 'info@example.com') }}</li>
-                            <li>🚚 ফ্রি ডেলিভারি</li>
-                            <li>💳 ক্যাশ অন ডেলিভারি</li>
-                        </ul>
-                    </div>
-                    
-                    <!-- Trust Badges -->
-                    <div>
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">আমাদের প্রতিশ্রুতি</h3>
-                        <ul class="space-y-2 text-sm text-gray-600 font-bangla">
-                            <li>✅ ৩০ দিনের মানি-ব্যাক গ্যারান্টি</li>
-                            <li>✅ ১০০% অরিজিনাল পণ্য</li>
-                            <li>✅ নিরাপদ পেমেন্ট</li>
-                            <li>✅ ২৪/৭ গ্রাহক সেবা</li>
-                        </ul>
-                    </div>
+                            
+                            @if(($column['type'] ?? 'text') === 'text')
+                                @if(!empty($column['content']))
+                                    <p class="text-gray-600 text-sm font-bangla leading-relaxed">{{ $renderText($column['content']) }}</p>
+                                @endif
+                            @elseif(($column['type'] ?? '') === 'links')
+                                @php $links = $column['links'] ?? []; @endphp
+                                @if(!empty($links))
+                                    <ul class="space-y-2 text-sm">
+                                        @foreach($links as $link)
+                                            @if(!empty($link['text']) || !empty($link['url']))
+                                                <li>
+                                                    <a href="{{ $link['url'] ?? '#' }}" class="text-gray-600 hover:text-primary transition font-bangla">{{ $renderText($link['text'] ?? '') }}</a>
+                                                </li>
+                                            @endif
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            @elseif(in_array(($column['type'] ?? ''), ['service', 'badges']))
+                                @php $items = $column['items'] ?? []; @endphp
+                                @if(!empty($items))
+                                    <ul class="space-y-2 text-sm text-gray-600 font-bangla">
+                                        @foreach($items as $item)
+                                            @if(!empty($item['text']) || !empty($item['icon']))
+                                                <li>{{ $item['icon'] ?? '' }} {{ $renderText($item['text'] ?? '') }}</li>
+                                            @endif
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
                 
                 <div class="mt-8 pt-8 border-t border-gray-200 text-center">
                     <p class="text-sm text-gray-600 font-bangla">
-                        &copy; {{ date('Y') }} {{ \App\Models\Setting::get('site_name', config('app.name')) }}। সর্বস্বত্ব সংরক্ষিত।
+                        {!! $renderText($copyright) !!}
                     </p>
                 </div>
             </div>
         </footer>
+        @endunless
     </div>
     
     <!-- jQuery (required for Slick) -->

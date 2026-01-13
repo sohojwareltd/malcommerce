@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @php
+    $hideLayoutChrome = $product->page_layout && is_array($product->page_layout) && count($product->page_layout) > 0;
     // Set product-specific meta tags for SEO and social sharing
     $productDescription = $product->short_description ?? $product->description ?? 'পণ্যের বিবরণ দেখুন';
     $productImage = $product->main_image;
