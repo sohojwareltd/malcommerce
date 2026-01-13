@@ -509,7 +509,7 @@ use Illuminate\Support\Str;
                 <!-- Product Image -->
                 <div class="flex-shrink-0">
                     @if($product->main_image)
-                        <img src="{{ Storage::disk('public')->url($product->main_image) }}" alt="{{ $product->name }}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border-2 border-purple-200 shadow-sm">
+                        <img src="{{ $product->main_image }}" alt="{{ $product->name }}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border-2 border-purple-200 shadow-sm">
                     @else
                         <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-purple-100 border-2 border-purple-200 flex items-center justify-center">
                             <svg class="w-8 h-8 sm:w-10 sm:h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
