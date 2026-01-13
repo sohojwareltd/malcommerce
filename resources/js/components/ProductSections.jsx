@@ -1029,9 +1029,12 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             />
                                         </div>
                                         {(section.video_title || section.title) && (
-                                            <h3 className="text-center text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 font-bangla" style={{ lineHeight: '1.2' }}>
-                                                {section.video_title || section.title}
-                                            </h3>
+                                            <RenderText 
+                                                content={section.video_title || section.title}
+                                                tag="h3"
+                                                className="text-center text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 font-bangla" 
+                                                style={{ lineHeight: '1.2' }}
+                                            />
                                         )}
                                     </div>
                                 )}
