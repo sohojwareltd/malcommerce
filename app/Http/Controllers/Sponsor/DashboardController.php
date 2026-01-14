@@ -131,6 +131,7 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255|unique:users,email',
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'comment' => 'nullable|string|max:2000',
@@ -164,6 +165,11 @@ class DashboardController extends Controller
             'address' => $request->address,
             'comment' => $request->comment,
         ];
+
+        // Optional email for referred users
+        if ($request->filled('email')) {
+            $data['email'] = $request->email;
+        }
         
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {
@@ -268,7 +274,7 @@ class DashboardController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'required|string|max:20',
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
@@ -276,9 +282,15 @@ class DashboardController extends Controller
         
         $data = [
             'name' => $request->name,
-            'email' => $request->email,
             'address' => $request->address,
         ];
+
+        // Only update email if provided (email is optional for sponsors)
+        if ($request->filled('email')) {
+            $data['email'] = $request->email;
+        } else {
+            $data['email'] = null;
+        }
         
         // Handle phone normalization
         try {
@@ -404,6 +416,7 @@ class DashboardController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255|unique:users,email,' . $referral->id,
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
         ]);
@@ -412,6 +425,13 @@ class DashboardController extends Controller
             'name' => $request->name,
             'address' => $request->address,
         ];
+
+        // Optional email for referral user
+        if ($request->filled('email')) {
+            $data['email'] = $request->email;
+        } else {
+            $data['email'] = null;
+        }
         
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {
