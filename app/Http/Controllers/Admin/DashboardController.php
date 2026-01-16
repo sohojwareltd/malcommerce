@@ -587,6 +587,7 @@ class DashboardController extends Controller
             'phone' => 'required|string|max:20',
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'comment' => 'nullable|string|max:2000',
         ]);
         
         try {
@@ -608,6 +609,7 @@ class DashboardController extends Controller
             'name' => $request->name,
             'phone' => $phone,
             'address' => $request->address,
+            'comment' => $request->comment,
         ];
         
         // Handle photo upload
@@ -981,7 +983,6 @@ class DashboardController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
             'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
@@ -1007,11 +1008,6 @@ class DashboardController extends Controller
             'phone' => $phone,
             'address' => $request->address,
         ];
-        
-        // Only update email if provided
-        if ($request->filled('email')) {
-            $data['email'] = $request->email;
-        }
         
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {

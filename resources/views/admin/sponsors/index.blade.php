@@ -71,6 +71,7 @@ use Illuminate\Support\Str;
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Partner Code</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Phone</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Address</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Join Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Referrals</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Orders</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Revenue</th>
@@ -103,6 +104,9 @@ use Illuminate\Support\Str;
                     <td class="px-6 py-4 text-sm text-neutral-500 max-w-xs truncate" title="{{ $sponsor->address ?? 'N/A' }}">
                         {{ $sponsor->address ? Str::limit($sponsor->address, 30) : 'N/A' }}
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        {{ $sponsor->created_at->format('M d, Y h:i A') }}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->referrals_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->orders_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-accent">৳{{ number_format($sponsor->total_revenue, 2) }}</td>
@@ -120,7 +124,7 @@ use Illuminate\Support\Str;
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="px-6 py-4 text-center text-neutral-500">
+                    <td colspan="10" class="px-6 py-4 text-center text-neutral-500">
                         @if(request('search'))
                             No sponsors found matching "{{ request('search') }}"
                         @else
@@ -160,6 +164,10 @@ use Illuminate\Support\Str;
                             <span class="text-neutral-900 font-medium ml-1">{{ $sponsor->phone ?? 'N/A' }}</span>
                         </div>
                         <div>
+                            <span class="text-neutral-500">Joined:</span>
+                            <span class="text-neutral-900 font-medium ml-1">{{ $sponsor->created_at->format('M d, Y h:i A') }}</span>
+                        </div>
+                        <div>
                             <span class="text-neutral-500">Referrals:</span>
                             <span class="text-neutral-900 font-medium ml-1">{{ $sponsor->referrals_count }}</span>
                         </div>
@@ -167,7 +175,7 @@ use Illuminate\Support\Str;
                             <span class="text-neutral-500">Orders:</span>
                             <span class="text-neutral-900 font-medium ml-1">{{ $sponsor->orders_count }}</span>
                         </div>
-                        <div>
+                        <div class="col-span-2">
                             <span class="text-neutral-500">Revenue:</span>
                             <span class="text-green-600 font-semibold ml-1">৳{{ number_format($sponsor->total_revenue, 2) }}</span>
                         </div>

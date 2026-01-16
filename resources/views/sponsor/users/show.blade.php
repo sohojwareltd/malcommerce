@@ -7,163 +7,180 @@ use Illuminate\Support\Facades\Storage;
 @endphp
 
 @section('content')
-<div class="mb-6 flex items-center justify-between">
-    <div>
-        <h1 class="text-3xl font-bold">Affiliate User Details</h1>
-        <p class="text-neutral-600 mt-1">{{ $referral->name }} ({{ $referral->affiliate_code }})</p>
-    </div>
-    <div class="flex gap-2">
-        <a href="{{ route('sponsor.users.edit', $referral) }}" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition">
-            Edit User
-        </a>
-        <a href="{{ route('sponsor.dashboard') }}" class="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition">
-            ← Back to Dashboard
-        </a>
-    </div>
-</div>
+<style>
+    :root {
+        --color-dark: #0F2854;
+        --color-medium: #1C4D8D;
+        --color-light: #4988C4;
+        --color-accent: #BDE8F5;
+    }
+    
+    .app-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(15, 40, 84, 0.08);
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, var(--color-medium) 0%, var(--color-light) 100%);
+        border-radius: 16px;
+        padding: 16px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+</style>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Main Content -->
-    <div class="lg:col-span-2 space-y-6">
-        <!-- Statistics -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white rounded-lg shadow-md p-4">
-                <p class="text-sm font-medium text-neutral-500">Total Orders</p>
-                <p class="text-2xl font-bold mt-1">{{ $stats['total_orders'] }}</p>
+<div class="min-h-screen pb-6" style="background: linear-gradient(to bottom, var(--color-accent) 0%, #f0f9ff 100%);">
+    <!-- Header -->
+    <div class="app-card mx-4 mt-4 mb-4 p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <h1 class="text-base sm:text-lg md:text-xl font-bold" style="color: var(--color-dark);">User Details</h1>
+                <p class="text-xs sm:text-sm mt-1" style="color: var(--color-medium);">{{ $referral->name }} ({{ $referral->affiliate_code }})</p>
             </div>
-            <div class="bg-white rounded-lg shadow-md p-4">
-                <p class="text-sm font-medium text-neutral-500">Total Revenue</p>
-                <p class="text-2xl font-bold text-green-600 mt-1">৳{{ number_format($stats['total_revenue'], 2) }}</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md p-4">
-                <p class="text-sm font-medium text-neutral-500">Pending Orders</p>
-                <p class="text-2xl font-bold text-orange-600 mt-1">{{ $stats['pending_orders'] }}</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md p-4">
-                <p class="text-sm font-medium text-neutral-500">Delivered Orders</p>
-                <p class="text-2xl font-bold text-blue-600 mt-1">{{ $stats['delivered_orders'] }}</p>
+            <div class="flex gap-2">
+                <a href="{{ route('sponsor.users.edit', $referral) }}" 
+                   class="px-4 py-2 rounded-lg text-white text-xs sm:text-sm font-semibold" style="background: var(--color-medium);">
+                    Edit
+                </a>
+                <a href="{{ route('sponsor.dashboard') }}" 
+                   class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold" style="background: var(--color-accent); color: var(--color-dark);">
+                    ← Back
+                </a>
             </div>
         </div>
-
-        <!-- Recent Orders -->
-        @if($referral->customerOrders->count() > 0)
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold mb-4">Orders ({{ $referral->customerOrders->count() }})</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-neutral-200">
-                    <thead class="bg-neutral-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Order #</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Product</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Amount</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-neutral-200">
-                        @foreach($referral->customerOrders->take(20) as $order)
-                        <tr class="hover:bg-neutral-50">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-neutral-900">
-                                {{ $order->order_number }}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">{{ $order->product->name }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">৳{{ number_format($order->total_price, 2) }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                       ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
-                                       ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                                       'bg-blue-100 text-blue-800')) }}">
-                                    {{ ucfirst($order->status) }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">{{ $order->created_at->format('M d, Y') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        @else
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold mb-4">Orders</h2>
-            <p class="text-neutral-500 text-center py-8">No orders yet</p>
-        </div>
-        @endif
     </div>
 
-    <!-- Sidebar Info -->
-    <div class="lg:col-span-1 space-y-6">
-        <!-- User Information -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold mb-4">User Information</h2>
-            
-            <!-- Photo -->
-            <div class="mb-4 flex justify-center">
-                @if($referral->photo)
-                    <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}" class="w-24 h-24 rounded-full object-cover border-2 border-neutral-200">
-                @else
-                    <div class="w-24 h-24 rounded-full bg-neutral-200 flex items-center justify-center border-2 border-neutral-300">
-                        <svg class="w-12 h-12 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 px-4">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-4">
+            <!-- Statistics -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="stat-card text-center">
+                    <p class="text-[10px] sm:text-xs text-white/80 mb-1">Total Orders</p>
+                    <p class="text-xl sm:text-2xl font-bold text-white">{{ $stats['total_orders'] }}</p>
+                </div>
+                <div class="stat-card text-center" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                    <p class="text-[10px] sm:text-xs text-white/80 mb-1">Total Revenue</p>
+                    <p class="text-xl sm:text-2xl font-bold text-white">৳{{ number_format($stats['total_revenue'], 2) }}</p>
+                </div>
+                <div class="stat-card text-center" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                    <p class="text-[10px] sm:text-xs text-white/80 mb-1">Pending</p>
+                    <p class="text-xl sm:text-2xl font-bold text-white">{{ $stats['pending_orders'] }}</p>
+                </div>
+                <div class="stat-card text-center" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);">
+                    <p class="text-[10px] sm:text-xs text-white/80 mb-1">Delivered</p>
+                    <p class="text-xl sm:text-2xl font-bold text-white">{{ $stats['delivered_orders'] }}</p>
+                </div>
+            </div>
+
+            <!-- Orders -->
+            <div class="app-card p-3 sm:p-4">
+                <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">Orders ({{ $referral->customerOrders->count() }})</h2>
+                @if($referral->customerOrders->count() > 0)
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+                    @foreach($referral->customerOrders->take(20) as $order)
+                    <div class="p-3 rounded-xl border-2" style="border-color: var(--color-accent); background: var(--color-accent);">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-mono font-semibold" style="color: var(--color-dark);">#{{ $order->order_number }}</span>
+                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full
+                                        {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                           ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
+                                           ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
+                                           'bg-blue-100 text-blue-800')) }}">
+                                        {{ ucfirst($order->status) }}
+                                    </span>
+                                </div>
+                                <p class="text-xs sm:text-sm font-medium" style="color: var(--color-dark);">{{ $order->product->name }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs sm:text-sm font-bold text-green-600">৳{{ number_format($order->total_price, 2) }}</p>
+                                <p class="text-[10px] sm:text-xs mt-1" style="color: var(--color-medium);">{{ $order->created_at->format('M d, Y') }}</p>
+                            </div>
+                        </div>
                     </div>
+                    @endforeach
+                </div>
+                @else
+                <div class="text-center py-8">
+                    <svg class="w-16 h-16 mx-auto mb-3" style="color: var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p class="text-sm" style="color: var(--color-medium);">No orders yet</p>
+                </div>
                 @endif
             </div>
-            
-            <dl class="space-y-3">
-                <div>
-                    <dt class="text-sm font-medium text-neutral-500">Name</dt>
-                    <dd class="mt-1 text-sm font-semibold">{{ $referral->name }}</dd>
-                </div>
-                
-                @if($referral->email)
-                <div>
-                    <dt class="text-sm font-medium text-neutral-500">Email</dt>
-                    <dd class="mt-1 text-sm">{{ $referral->email }}</dd>
-                </div>
-                @endif
-                
-                @if($referral->phone)
-                <div>
-                    <dt class="text-sm font-medium text-neutral-500">Phone</dt>
-                    <dd class="mt-1 text-sm">{{ $referral->phone }}</dd>
-                </div>
-                @endif
-            
-                <div>
-                    <dt class="text-sm font-medium text-neutral-500">Affiliate Code</dt>
-                    <dd class="mt-1 text-sm font-mono font-semibold">{{ $referral->affiliate_code }}</dd>
-                </div>
-                
-                @if($referral->address)
-                <div>
-                    <dt class="text-sm font-medium text-neutral-500">Address</dt>
-                    <dd class="mt-1 text-sm whitespace-pre-line">{{ $referral->address }}</dd>
-                </div>
-                @endif
-                
-                <div>
-                    <dt class="text-sm font-medium text-neutral-500">Joined</dt>
-                    <dd class="mt-1 text-sm">{{ $referral->created_at->format('M d, Y') }}</dd>
-                </div>
-            </dl>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
-            <div class="space-y-2">
-                <a href="{{ route('sponsor.users.edit', $referral) }}" class="block w-full text-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition">
-                    Edit User
-                </a>
-                <a href="{{ route('sponsor.dashboard') }}" class="block w-full text-center px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition">
-                    Back to Dashboard
-                </a>
+        <!-- Sidebar -->
+        <div class="space-y-4">
+            <!-- User Info -->
+            <div class="app-card p-3 sm:p-4">
+                <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">User Information</h2>
+                
+                <div class="flex justify-center mb-4">
+                    @if($referral->photo)
+                        <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}" 
+                             class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-[3px] border-white shadow-lg">
+                    @else
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-[3px] border-white shadow-lg" style="background: var(--color-light);">
+                            <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                    @endif
+                </div>
+                
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Name</dt>
+                        <dd class="mt-1 text-xs sm:text-sm font-semibold" style="color: var(--color-dark);">{{ $referral->name }}</dd>
+                    </div>
+                    
+                    @if($referral->phone)
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Phone</dt>
+                        <dd class="mt-1 text-xs sm:text-sm" style="color: var(--color-dark);">{{ $referral->phone }}</dd>
+                    </div>
+                    @endif
+                
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Affiliate Code</dt>
+                        <dd class="mt-1 text-xs sm:text-sm font-mono font-semibold" style="color: var(--color-dark);">{{ $referral->affiliate_code }}</dd>
+                    </div>
+                    
+                    @if($referral->address)
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Address</dt>
+                        <dd class="mt-1 text-xs sm:text-sm whitespace-pre-line" style="color: var(--color-dark);">{{ $referral->address }}</dd>
+                    </div>
+                    @endif
+                    
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Joined</dt>
+                        <dd class="mt-1 text-xs sm:text-sm" style="color: var(--color-dark);">{{ $referral->created_at->format('M d, Y') }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="app-card p-3 sm:p-4">
+                <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">Quick Actions</h2>
+                <div class="space-y-2">
+                    <a href="{{ route('sponsor.users.edit', $referral) }}" 
+                       class="block w-full text-center px-4 py-2 rounded-lg text-white text-xs sm:text-sm font-semibold" style="background: var(--color-medium);">
+                        Edit User
+                    </a>
+                    <a href="{{ route('sponsor.dashboard') }}" 
+                       class="block w-full text-center px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold" style="background: var(--color-accent); color: var(--color-dark);">
+                        Back to Dashboard
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
-
-

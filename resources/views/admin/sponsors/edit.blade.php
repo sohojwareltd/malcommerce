@@ -74,6 +74,17 @@ use Illuminate\Support\Facades\Storage;
                 @enderror
             </div>
 
+            <!-- Comment -->
+            <div>
+                <label for="comment" class="block text-sm font-medium text-neutral-700 mb-2">Comment</label>
+                <textarea name="comment" id="comment" rows="3" 
+                          class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition resize-none"
+                          placeholder="Add any comments or notes about this sponsor">{{ old('comment', $sponsor->comment) }}</textarea>
+                @error('comment')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="flex gap-4">
                 <button type="submit" class="flex-1 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-light transition font-semibold">
                     Update Sponsor

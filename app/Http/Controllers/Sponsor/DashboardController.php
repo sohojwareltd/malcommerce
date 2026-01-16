@@ -274,7 +274,6 @@ class DashboardController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'required|string|max:20',
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
@@ -284,13 +283,6 @@ class DashboardController extends Controller
             'name' => $request->name,
             'address' => $request->address,
         ];
-
-        // Only update email if provided (email is optional for sponsors)
-        if ($request->filled('email')) {
-            $data['email'] = $request->email;
-        } else {
-            $data['email'] = null;
-        }
         
         // Handle phone normalization
         try {
@@ -416,7 +408,6 @@ class DashboardController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255|unique:users,email,' . $referral->id,
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
         ]);
@@ -425,13 +416,6 @@ class DashboardController extends Controller
             'name' => $request->name,
             'address' => $request->address,
         ];
-
-        // Optional email for referral user
-        if ($request->filled('email')) {
-            $data['email'] = $request->email;
-        } else {
-            $data['email'] = null;
-        }
         
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {

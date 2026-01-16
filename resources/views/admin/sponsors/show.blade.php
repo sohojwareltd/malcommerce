@@ -117,7 +117,7 @@ use Illuminate\Support\Facades\Storage;
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">{{ $referral->phone ?? 'N/A' }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500 font-mono">{{ $referral->affiliate_code }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">{{ $referral->orders_count }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">{{ $referral->created_at->format('M d, Y') }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">{{ $referral->created_at->format('M d, Y h:i A') }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -163,7 +163,7 @@ use Illuminate\Support\Facades\Storage;
                                     {{ ucfirst($order->status) }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">{{ $order->created_at->format('M d, Y') }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">{{ $order->created_at->format('M d, Y h:i A') }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -226,7 +226,7 @@ use Illuminate\Support\Facades\Storage;
                 
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Joined</dt>
-                    <dd class="mt-1 text-sm">{{ $sponsor->created_at->format('M d, Y') }}</dd>
+                    <dd class="mt-1 text-sm">{{ $sponsor->created_at->format('M d, Y h:i A') }}</dd>
                 </div>
             </dl>
         </div>

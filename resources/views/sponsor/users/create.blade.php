@@ -33,19 +33,7 @@
                 <div id="name-error" class="mt-1 text-sm text-red-600 hidden"></div>
             </div>
 
-            <!-- Email (optional) -->
-            <div>
-                <label for="user-email" class="block text-sm font-medium text-neutral-700 mb-2">Email (optional)</label>
-                <input
-                    type="email"
-                    id="user-email"
-                    name="email"
-                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                    placeholder="Enter user email (optional)"
-                >
-                <div id="email-error" class="mt-1 text-sm text-red-600 hidden"></div>
-            </div>
-            <div>
+<div>
                 <label for="user-phone" class="block text-sm font-medium text-neutral-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
                 <input 
                     type="tel" 
@@ -211,7 +199,6 @@ const addUserForm = document.getElementById('add-user-form');
 const addUserBtn = document.getElementById('add-user-btn');
 const nameError = document.getElementById('name-error');
 const phoneError = document.getElementById('phone-error');
-const emailError = document.getElementById('email-error');
 const photoError = document.getElementById('photo-error');
 const addressError = document.getElementById('address-error');
 const commentError = document.getElementById('comment-error');
@@ -223,7 +210,6 @@ function resetForm() {
     successMessage.classList.add('hidden');
     nameError.classList.add('hidden');
     phoneError.classList.add('hidden');
-    emailError.classList.add('hidden');
     photoError.classList.add('hidden');
     addressError.classList.add('hidden');
     commentError.classList.add('hidden');
@@ -245,7 +231,6 @@ if (addUserForm) {
         
         const name = document.getElementById('user-name').value.trim();
         const phone = userPhoneInput.value.trim();
-        const email = document.getElementById('user-email').value.trim();
         const address = document.getElementById('user-address').value.trim();
         const comment = document.getElementById('user-comment').value.trim();
         const photoFile = photoInput.files[0];
@@ -253,7 +238,6 @@ if (addUserForm) {
         // Clear previous errors
         nameError.classList.add('hidden');
         phoneError.classList.add('hidden');
-        emailError.classList.add('hidden');
         photoError.classList.add('hidden');
         addressError.classList.add('hidden');
         commentError.classList.add('hidden');
@@ -273,14 +257,6 @@ if (addUserForm) {
             userPhoneInput.focus();
             return;
         }
-
-        // Basic email format check (if provided)
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            emailError.textContent = 'Please enter a valid email address';
-            emailError.classList.remove('hidden');
-            document.getElementById('user-email').focus();
-            return;
-        }
         
         // Disable button
         addUserBtn.disabled = true;
@@ -291,7 +267,6 @@ if (addUserForm) {
             const formData = new FormData();
             formData.append('name', name);
             formData.append('phone', phone);
-            formData.append('email', email);
             formData.append('address', address);
             formData.append('comment', comment);
             if (photoFile) {
@@ -333,10 +308,6 @@ if (addUserForm) {
                     if (data.errors.phone) {
                         phoneError.textContent = data.errors.phone[0] || data.errors.phone;
                         phoneError.classList.remove('hidden');
-                    }
-                    if (data.errors.email) {
-                        emailError.textContent = data.errors.email[0] || data.errors.email;
-                        emailError.classList.remove('hidden');
                     }
                     if (data.errors.photo) {
                         photoError.textContent = data.errors.photo[0] || data.errors.photo;
