@@ -3,72 +3,86 @@
 @section('title', 'My Orders')
 
 @section('content')
-<div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-    <div>
-        <h1 class="text-2xl sm:text-3xl font-bold">My Orders</h1>
-        <p class="text-neutral-600 mt-1 sm:mt-2 text-sm sm:text-base">View and manage all your orders</p>
-    </div>
-</div>
+<style>
+    :root {
+        --color-dark: #0F2854;
+        --color-medium: #1C4D8D;
+        --color-light: #4988C4;
+        --color-accent: #BDE8F5;
+    }
+    
+    .app-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(15, 40, 84, 0.08);
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, var(--color-medium) 0%, var(--color-light) 100%);
+        border-radius: 16px;
+        padding: 12px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+</style>
 
-<!-- Stats Cards -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-6 mb-4 sm:mb-6">
-    <div class="bg-white rounded-xl shadow-lg p-3 sm:p-4 lg:p-6 border border-neutral-200">
-        <div class="flex items-center justify-between mb-2">
-            <div class="bg-blue-500 rounded-lg p-1.5 sm:p-2 flex-shrink-0">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="min-h-screen pb-6">
+    <!-- Header -->
+    <div class="app-card mx-4 mt-4 mb-4 p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <h1 class="text-base sm:text-lg md:text-xl font-bold" style="color: var(--color-dark);">My Orders</h1>
+                <p class="text-xs sm:text-sm mt-1" style="color: var(--color-medium);">View and manage all your orders</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 px-4 mb-4">
+        <div class="stat-card text-center">
+            <div class="mb-1 sm:mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mx-auto text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                 </svg>
             </div>
+            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Total Orders</p>
+            <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['total_orders'] }}</p>
         </div>
-        <h3 class="text-[10px] sm:text-xs text-neutral-500 mb-0.5 sm:mb-1 truncate">Total Orders</h3>
-        <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900">{{ $stats['total_orders'] }}</p>
-        <div class="mt-2 pt-2 border-t border-neutral-200">
-            <div class="flex justify-between text-xs">
-                <span class="text-blue-600 font-medium">My: {{ $stats['my_orders'] ?? 0 }}</span>
-                <span class="text-purple-600 font-medium">Referral: {{ $stats['referral_orders'] ?? 0 }}</span>
-            </div>
-        </div>
-    </div>
-    
-    <div class="bg-white rounded-xl shadow-lg p-3 sm:p-4 lg:p-6 border border-neutral-200">
-        <div class="flex items-center justify-between mb-2">
-            <div class="bg-green-500 rounded-lg p-1.5 sm:p-2 flex-shrink-0">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        
+        <div class="stat-card text-center" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+            <div class="mb-1 sm:mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mx-auto text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
+            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Total Revenue</p>
+            <p class="text-base sm:text-lg md:text-xl font-bold text-white">৳{{ number_format($stats['total_revenue'], 2) }}</p>
         </div>
-        <h3 class="text-[10px] sm:text-xs text-neutral-500 mb-0.5 sm:mb-1 truncate">Total Revenue</h3>
-        <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">৳{{ number_format($stats['total_revenue'], 2) }}</p>
-    </div>
-    
-    <div class="bg-white rounded-xl shadow-lg p-3 sm:p-4 lg:p-6 border border-neutral-200">
-        <div class="flex items-center justify-between mb-2">
-            <div class="bg-yellow-500 rounded-lg p-1.5 sm:p-2 flex-shrink-0">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        
+        <div class="stat-card text-center" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+            <div class="mb-1 sm:mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mx-auto text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
+            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Pending</p>
+            <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['pending_orders'] }}</p>
         </div>
-        <h3 class="text-[10px] sm:text-xs text-neutral-500 mb-0.5 sm:mb-1 truncate">Pending</h3>
-        <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-600">{{ $stats['pending_orders'] }}</p>
-    </div>
-    
-    <div class="bg-white rounded-xl shadow-lg p-3 sm:p-4 lg:p-6 border border-neutral-200">
-        <div class="flex items-center justify-between mb-2">
-            <div class="bg-primary rounded-lg p-1.5 sm:p-2 flex-shrink-0">
-                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        
+        <div class="stat-card text-center" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);">
+            <div class="mb-1 sm:mb-2">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mx-auto text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
+            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Delivered</p>
+            <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['delivered_orders'] }}</p>
         </div>
-        <h3 class="text-[10px] sm:text-xs text-neutral-500 mb-0.5 sm:mb-1 truncate">Delivered</h3>
-        <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-primary">{{ $stats['delivered_orders'] }}</p>
     </div>
-</div>
 
-<!-- Search and Filter Form -->
-<div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+    <!-- Search and Filter Form -->
+    <div class="app-card mx-4 mb-4 p-3 sm:p-4">
     <form method="GET" action="{{ route('sponsor.orders.referral-orders') }}" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Search -->
@@ -80,8 +94,9 @@
                            id="search" 
                            value="{{ request('search') }}" 
                            placeholder="Search by order number, customer name, phone, or product..."
-                           class="w-full px-4 py-2 pl-10 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
-                    <svg class="absolute left-3 top-2.5 h-5 w-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           class="w-full px-4 py-2 pl-10 border-2 rounded-xl focus:outline-none text-xs sm:text-sm"
+                           style="border-color: var(--color-accent);">
+                    <svg class="absolute left-3 top-2.5 h-4 w-4 sm:h-5 sm:w-5" style="color: var(--color-light);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </div>
@@ -92,7 +107,8 @@
                 <label for="status" class="block text-sm font-medium text-neutral-700 mb-2">Status</label>
                 <select name="status" 
                         id="status"
-                        class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
+                        class="w-full px-4 py-2 border-2 rounded-xl focus:outline-none text-xs sm:text-sm"
+                        style="border-color: var(--color-accent);">
                     <option value="">All Status</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
@@ -109,7 +125,8 @@
                        name="date_from" 
                        id="date_from" 
                        value="{{ request('date_from') }}" 
-                       class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base">
+                       class="w-full px-4 py-2 border-2 rounded-xl focus:outline-none text-xs sm:text-sm"
+                       style="border-color: var(--color-accent);">
             </div>
         </div>
         
@@ -121,16 +138,17 @@
                        name="date_to" 
                        id="date_to" 
                        value="{{ request('date_to') }}" 
-                       class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base">
+                       class="w-full px-4 py-2 border-2 rounded-xl focus:outline-none text-xs sm:text-sm"
+                       style="border-color: var(--color-accent);">
             </div>
             
             <!-- Action Buttons -->
             <div class="lg:col-span-3 flex flex-col sm:flex-row gap-2 items-end">
-                <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold shadow-md hover:shadow-lg text-sm sm:text-base w-full sm:w-auto">
+                <button type="submit" class="px-4 py-2 rounded-lg text-white text-xs sm:text-sm font-semibold w-full sm:w-auto" style="background: var(--color-medium);">
                     Apply Filters
                 </button>
                 @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
-                <a href="{{ route('sponsor.orders.referral-orders') }}" class="bg-neutral-200 text-neutral-700 px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base text-center w-full sm:w-auto">
+                <a href="{{ route('sponsor.orders.referral-orders') }}" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-center w-full sm:w-auto" style="background: var(--color-accent); color: var(--color-dark);">
                     Clear Filters
                 </a>
                 @endif
@@ -139,8 +157,8 @@
     </form>
 </div>
 
-<!-- Orders Table -->
-<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Orders Table -->
+    <div class="app-card mx-4 mb-4 overflow-hidden">
     <!-- Desktop Table View -->
     <div class="hidden lg:block overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
@@ -262,9 +280,12 @@
     </div>
 </div>
 
-<!-- Pagination -->
-<div class="mt-4">
-    {{ $orders->links() }}
+    <!-- Pagination -->
+    @if($orders->hasPages())
+    <div class="mx-4 mt-4">
+        {{ $orders->links() }}
+    </div>
+    @endif
 </div>
 @endsection
 

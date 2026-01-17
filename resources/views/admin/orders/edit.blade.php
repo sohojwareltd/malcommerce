@@ -67,13 +67,13 @@
                 @enderror
             </div>
 
-            <!-- Total Price (Read-only display) -->
+            <!-- Total Price (Editable) -->
             <div>
-                <label class="block text-sm font-medium text-neutral-700 mb-2">Total Price (৳)</label>
-                <div id="total-price-display" class="px-4 py-2 bg-neutral-50 border border-neutral-300 rounded-lg text-lg font-semibold text-green-600">
-                    ৳{{ number_format(($order->unit_price * $order->quantity) + ($order->delivery_charge ?? 0), 2) }}
-                </div>
-                <p class="mt-1 text-xs text-neutral-500">Calculated automatically: (Unit Price × Quantity) + Delivery Charge</p>
+                <label for="total_price" class="block text-sm font-medium text-neutral-700 mb-2">Total Price (৳) *</label>
+                <input type="number" name="total_price" id="total_price" value="{{ old('total_price', $order->total_price) }}" required min="0" step="0.01" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-lg font-semibold text-green-600">
+                <p class="mt-1 text-xs text-neutral-500">You can edit this directly. The difference from the calculated total will be applied as discount (if less) or additional fees (if more).</p>
+                <p class="mt-1 text-xs text-neutral-400" id="calculated-total">Calculated: ৳<span id="calculated-total-value">{{ number_format(($order->unit_price * $order->quantity) + ($order->delivery_charge ?? 0), 2) }}</span></p>
+                <input type="hidden" id="original_total_price" value="{{ $order->total_price }}">
             </div>
 
             <!-- Customer Name -->
@@ -120,19 +120,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const quantityInput = document.getElementById('quantity');
     const unitPriceInput = document.getElementById('unit_price');
     const deliveryChargeInput = document.getElementById('delivery_charge');
-    const totalPriceDisplay = document.getElementById('total-price-display');
+    const totalPriceInput = document.getElementById('total_price');
+    const calculatedTotalValue = document.getElementById('calculated-total-value');
 
-    function updateTotalPrice() {
+    function updateCalculatedTotal() {
         const quantity = parseFloat(quantityInput.value) || 0;
         const unitPrice = parseFloat(unitPriceInput.value) || 0;
         const deliveryCharge = parseFloat(deliveryChargeInput.value) || 0;
-        const total = (quantity * unitPrice) + deliveryCharge;
-        totalPriceDisplay.textContent = '৳' + total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        const calculatedTotal = (quantity * unitPrice) + deliveryCharge;
+        calculatedTotalValue.textContent = calculatedTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        // If total price is empty or matches the calculated total, update it
+        if (!totalPriceInput.value || parseFloat(totalPriceInput.value) === calculatedTotal) {
+            totalPriceInput.value = calculatedTotal.toFixed(2);
+        }
     }
 
-    quantityInput.addEventListener('input', updateTotalPrice);
-    unitPriceInput.addEventListener('input', updateTotalPrice);
-    deliveryChargeInput.addEventListener('input', updateTotalPrice);
+    quantityInput.addEventListener('input', updateCalculatedTotal);
+    unitPriceInput.addEventListener('input', updateCalculatedTotal);
+    deliveryChargeInput.addEventListener('input', updateCalculatedTotal);
 });
 </script>
 @endsection

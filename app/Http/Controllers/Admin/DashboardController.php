@@ -324,6 +324,7 @@ class DashboardController extends Controller
             'quantity' => 'required|integer|min:1',
             'unit_price' => 'required|numeric|min:0',
             'delivery_charge' => 'nullable|numeric|min:0',
+            'total_price' => 'required|numeric|min:0',
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'address' => 'required|string',
@@ -338,10 +339,27 @@ class DashboardController extends Controller
                 ->withErrors(['customer_phone' => $e->getMessage()]);
         }
         
-        // Calculate total price
+        // Calculate the base total (unit_price * quantity + delivery_charge)
         $subtotal = $request->unit_price * $request->quantity;
         $deliveryCharge = $request->delivery_charge ?? 0;
-        $totalPrice = $subtotal + $deliveryCharge;
+        $calculatedTotal = $subtotal + $deliveryCharge;
+        
+        // Get the original total price from the order
+        $originalTotal = $order->total_price;
+        $newTotal = $request->total_price;
+        
+        // Calculate discount or additional fees based on difference from original total
+        $discount = 0;
+        $additionalFees = 0;
+        
+        if ($newTotal < $originalTotal) {
+            // If new total is less, the difference is a discount
+            $discount = $originalTotal - $newTotal;
+        } elseif ($newTotal > $originalTotal) {
+            // If new total is more, the difference is additional fees
+            $additionalFees = $newTotal - $originalTotal;
+        }
+        // If equal, both remain 0
         
         // Update order
         $order->update([
@@ -349,7 +367,9 @@ class DashboardController extends Controller
             'quantity' => $request->quantity,
             'unit_price' => $request->unit_price,
             'delivery_charge' => $deliveryCharge,
-            'total_price' => $totalPrice,
+            'total_price' => $newTotal,
+            'discount' => $discount,
+            'additional_fees' => $additionalFees,
             'customer_name' => $request->customer_name,
             'customer_phone' => $normalizedPhone,
             'address' => $request->address,

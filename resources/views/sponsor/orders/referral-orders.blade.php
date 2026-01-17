@@ -27,7 +27,7 @@
     }
 </style>
 
-<div class="min-h-screen pb-6" style="background: linear-gradient(to bottom, var(--color-accent) 0%, #f0f9ff 100%);">
+<div class="min-h-screen pb-6" style="">
     <!-- Header -->
     <div class="app-card mx-4 mt-4 mb-4 p-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

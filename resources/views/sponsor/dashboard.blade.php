@@ -78,7 +78,7 @@ use Illuminate\Support\Str;
     }
 </style>
 
-<div class="min-h-screen pb-6" style="background: linear-gradient(to bottom, var(--color-accent) 0%, #f0f9ff 100%);">
+<div class="min-h-screen pb-6" style="">
     <!-- Header Profile Section -->
     <div class="app-card mx-4 mt-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);">
         <div class="p-4">
