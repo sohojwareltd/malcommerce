@@ -142,7 +142,7 @@
                     <!-- Stock Status -->
                     <div class="mb-6">
                         @if($product->in_stock)
-                        <span  class="badge-new font-bangla p-2">
+                        <span  class=" font-bangla p-2" style="background: green; color: #fff;">
                             ✅ স্টকে আছে
                         </span>
                         @else
