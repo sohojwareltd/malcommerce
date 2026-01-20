@@ -293,15 +293,15 @@
                     @if(!empty($feature['title']) || !empty($feature['icon']))
                     <div class="flex flex-col items-center">
                         @if(!empty($feature['icon']))
-                        <div class="text-4xl mb-2" style="color: var(--color-primary);">
+                        <div class="text-3xl sm:text-4xl mb-1.5 sm:mb-2" style="color: var(--color-primary);">
                             <i class="{{ $feature['icon'] }}"></i>
                         </div>
                         @endif
                         @if(!empty($feature['title']))
-                        <h3 class="font-semibold text-gray-900 font-bangla mb-1">{{ $feature['title'] }}</h3>
+                        <h3 class="font-semibold text-gray-900 font-bangla mb-0.5 text-xs sm:text-sm">{{ $feature['title'] }}</h3>
                         @endif
                         @if(!empty($feature['description']))
-                        <p class="text-sm text-gray-600 font-bangla">{{ $feature['description'] }}</p>
+                        <p class="text-xs sm:text-sm text-gray-600 font-bangla leading-snug">{{ $feature['description'] }}</p>
                         @endif
                     </div>
                     @endif
@@ -366,43 +366,7 @@
         </div>
     @endif
 
-    <!-- Categories Section -->
-    @php
-        $categories = \App\Models\Category::where('is_active', true)->orderBy('sort_order')->take(6)->get();
-    @endphp
-    @if ($categories->count() > 0)
-        <div class="bg-gray-50 py-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-2">ক্যাটাগরি</h2>
-                    <p class="text-gray-600 font-bangla">আপনার পছন্দের বিভাগ থেকে পণ্য বাছাই করুন</p>
-                </div>
 
-                <div class="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
-                    @foreach ($categories as $category)
-                        <a href="{{ route('products.index', ['category' => $category->id]) }}" class="group">
-                            <div
-                                class="bg-white rounded-xl p-4 md:p-6 text-center hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-primary">
-                                @if ($category->image)
-                                    <img src="{{ $category->image }}" alt="{{ $category->name }}"
-                                        class="w-full h-20 md:h-24 object-cover rounded-lg mb-3">
-                                @else
-                                    <div
-                                        class="w-full h-20 md:h-24 bg-gray-100 rounded-lg mb-3 flex items-center justify-center text-3xl"
-                                        style="color: var(--color-primary);">
-                                        <i class="fas fa-box"></i>
-                                    </div>
-                                @endif
-                                <h3
-                                    class="font-semibold text-sm md:text-base text-gray-900 font-bangla group-hover:text-primary transition-colors">
-                                    {{ $category->name }}</h3>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    @endif
 
     <!-- Latest Products Section -->
     <div class="bg-white py-16">

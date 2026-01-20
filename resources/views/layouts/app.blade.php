@@ -298,23 +298,7 @@
                     </div>
                 </div>
                 
-                <!-- Categories Menu -->
-                @if($categories->count() > 0)
-                <div class="border-t border-gray-100 bg-gray-50">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <nav class="flex items-center gap-6 overflow-x-auto py-3 hide-scrollbar">
-                            <a href="{{ route('products.index') }}" class="flex-shrink-0 font-bangla font-medium {{ request()->routeIs('home') || (request()->routeIs('products.index') && !request('category')) ? 'text-primary' : 'text-gray-700 hover:text-primary' }} transition whitespace-nowrap">
-                                সব পণ্য
-                            </a>
-                            @foreach($categories as $category)
-                            <a href="{{ route('products.index', ['category' => $category->id]) }}" class="flex-shrink-0 font-bangla font-medium {{ request('category') == $category->id ? 'text-primary' : 'text-gray-700 hover:text-primary' }} transition whitespace-nowrap">
-                                {{ $category->name }}
-                            </a>
-                            @endforeach
-                        </nav>
-                    </div>
-                </div>
-                @endif
+              
             </nav>
             
             <!-- Mobile Menu -->
