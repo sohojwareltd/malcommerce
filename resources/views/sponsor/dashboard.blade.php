@@ -219,9 +219,15 @@ use Illuminate\Support\Str;
                             <a href="{{ route('sponsor.users.show', $referral) }}" class="text-xs font-semibold" style="color: var(--color-medium);">View →</a>
                             </div>
                     </div>
+                    <div class="flex items-center justify-between">
+                        
                     @if($referral->address)
                     <p class="text-xs mt-2 line-clamp-1" style="color: var(--color-medium);">{{ $referral->address }}</p>
                     @endif
+
+                    <p class="text-xs mt-2" style="color: var(--color-medium);"> Joined: {{ $referral->created_at->format('M d, Y') }}</p>
+
+                    </div>
                 </div>
                 @endforeach
             </div>

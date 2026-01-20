@@ -33,26 +33,77 @@ use Illuminate\Support\Facades\Storage;
 
 <div class="min-h-screen pb-6" style="">
     <!-- Header -->
-    <div class="app-card mx-4 mt-4 mb-4 p-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <h1 class="text-base sm:text-lg md:text-xl font-bold" style="color: var(--color-dark);">User Details</h1>
-                <p class="text-xs sm:text-sm mt-1" style="color: var(--color-medium);">{{ $referral->name }} ({{ $referral->affiliate_code }})</p>
-            </div>
-            <div class="flex gap-2">
-                <a href="{{ route('sponsor.users.edit', $referral) }}" 
-                   class="px-4 py-2 rounded-lg text-white text-xs sm:text-sm font-semibold" style="background: var(--color-medium);">
-                    Edit
-                </a>
-                <a href="{{ route('sponsor.dashboard') }}" 
-                   class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold" style="background: var(--color-accent); color: var(--color-dark);">
-                    ← Back
-                </a>
-            </div>
-        </div>
-    </div>
+    
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 px-4">
+
+      <!-- Sidebar -->
+      <div class="space-y-4">
+            <!-- User Info -->
+            <div class="app-card p-3 sm:p-4">
+                <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">User Information</h2>
+                
+                <div class="flex justify-center mb-4">
+                    @if($referral->photo)
+                        <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}" 
+                             class="w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 rounded-full object-cover border-[3px] border-white shadow-lg">
+                    @else
+                        <div class="w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 rounded-full flex items-center justify-center border-[3px] border-white shadow-lg" style="background: var(--color-light);">
+                            <svg class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                    @endif
+                </div>
+                
+                <dl class="space-y-3">
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Name</dt>
+                        <dd class="mt-1 text-xs sm:text-sm font-semibold" style="color: var(--color-dark);">{{ $referral->name }}</dd>
+                    </div>
+                    
+                    @if($referral->phone)
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Phone</dt>
+                        <dd class="mt-1 text-xs sm:text-sm" style="color: var(--color-dark);">{{ $referral->phone }}</dd>
+                    </div>
+                    @endif
+                
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Affiliate Code</dt>
+                        <dd class="mt-1 text-xs sm:text-sm font-mono font-semibold" style="color: var(--color-dark);">{{ $referral->affiliate_code }}</dd>
+                    </div>
+                    
+                    @if($referral->address)
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Address</dt>
+                        <dd class="mt-1 text-xs sm:text-sm whitespace-pre-line" style="color: var(--color-dark);">{{ $referral->address }}</dd>
+                    </div>
+                    @endif
+                    
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Joined</dt>
+                        <dd class="mt-1 text-xs sm:text-sm" style="color: var(--color-dark);">{{ $referral->created_at->format('M d, Y') }}</dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="app-card p-3 sm:p-4">
+                <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">Quick Actions</h2>
+                <div class="space-y-2">
+                    <a href="{{ route('sponsor.users.edit', $referral) }}" 
+                       class="block w-full text-center px-4 py-2 rounded-lg text-white text-xs sm:text-sm font-semibold" style="background: var(--color-medium);">
+                        Edit User
+                    </a>
+                    <a href="{{ route('sponsor.dashboard') }}" 
+                       class="block w-full text-center px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold" style="background: var(--color-accent); color: var(--color-dark);">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-4">
             <!-- Statistics -->
@@ -115,72 +166,7 @@ use Illuminate\Support\Facades\Storage;
             </div>
         </div>
 
-        <!-- Sidebar -->
-        <div class="space-y-4">
-            <!-- User Info -->
-            <div class="app-card p-3 sm:p-4">
-                <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">User Information</h2>
-                
-                <div class="flex justify-center mb-4">
-                    @if($referral->photo)
-                        <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}" 
-                             class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-[3px] border-white shadow-lg">
-                    @else
-                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-[3px] border-white shadow-lg" style="background: var(--color-light);">
-                            <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                        </div>
-                    @endif
-                </div>
-                
-                <dl class="space-y-3">
-                    <div>
-                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Name</dt>
-                        <dd class="mt-1 text-xs sm:text-sm font-semibold" style="color: var(--color-dark);">{{ $referral->name }}</dd>
-                    </div>
-                    
-                    @if($referral->phone)
-                    <div>
-                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Phone</dt>
-                        <dd class="mt-1 text-xs sm:text-sm" style="color: var(--color-dark);">{{ $referral->phone }}</dd>
-                    </div>
-                    @endif
-                
-                    <div>
-                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Affiliate Code</dt>
-                        <dd class="mt-1 text-xs sm:text-sm font-mono font-semibold" style="color: var(--color-dark);">{{ $referral->affiliate_code }}</dd>
-                    </div>
-                    
-                    @if($referral->address)
-                    <div>
-                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Address</dt>
-                        <dd class="mt-1 text-xs sm:text-sm whitespace-pre-line" style="color: var(--color-dark);">{{ $referral->address }}</dd>
-                    </div>
-                    @endif
-                    
-                    <div>
-                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Joined</dt>
-                        <dd class="mt-1 text-xs sm:text-sm" style="color: var(--color-dark);">{{ $referral->created_at->format('M d, Y') }}</dd>
-                    </div>
-                </dl>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="app-card p-3 sm:p-4">
-                <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">Quick Actions</h2>
-                <div class="space-y-2">
-                    <a href="{{ route('sponsor.users.edit', $referral) }}" 
-                       class="block w-full text-center px-4 py-2 rounded-lg text-white text-xs sm:text-sm font-semibold" style="background: var(--color-medium);">
-                        Edit User
-                    </a>
-                    <a href="{{ route('sponsor.dashboard') }}" 
-                       class="block w-full text-center px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold" style="background: var(--color-accent); color: var(--color-dark);">
-                        Back to Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
+      
     </div>
 </div>
 @endsection
