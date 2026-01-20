@@ -140,7 +140,7 @@
     </script>
     @endif
     <!-- Vite -->
-    @vite(['resources/css/app.css?v='.time(), 'resources/js/app.js?v='.time()])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     
     @stack('styles')
