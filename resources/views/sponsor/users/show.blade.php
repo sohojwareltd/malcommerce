@@ -45,15 +45,32 @@ use Illuminate\Support\Facades\Storage;
                 
                 <div class="flex justify-center mb-4">
                     @if($referral->photo)
-                        <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}" 
-                             class="w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52  object-cover border-[3px] border-white shadow-lg">
+                        <button type="button" class="focus:outline-none" aria-label="Open photo">
+                            <img
+                                src="{{ Storage::disk('public')->url($referral->photo) }}"
+                                alt="{{ $referral->name }}"
+                                data-lightbox-src="{{ Storage::disk('public')->url($referral->photo) }}"
+                                class="w-40 h-40 sm:w-24 sm:h-24 rounded-full object-cover border-[3px] border-white shadow-lg cursor-zoom-in"
+                            >
+                        </button>
                     @else
-                        <div class="w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 flex items-center justify-center border-[3px] border-white shadow-lg" style="background: var(--color-light);">
-                            <svg class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-40 h-40 sm:w-24 sm:h-24 rounded-full flex items-center justify-center border-[3px] border-white shadow-lg" style="background: var(--color-light);">
+                            <svg class="w-16 h-16 sm:w-12 sm:h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
                         </div>
                     @endif
+                </div>
+
+                <!-- Lightbox -->
+                <div id="photo-lightbox" class="fixed inset-0 z-[9999] hidden">
+                    <div id="photo-lightbox-backdrop" class="absolute inset-0 bg-black/80"></div>
+                    <div class="relative h-full w-full flex items-center justify-center p-4">
+                        <button type="button" id="photo-lightbox-close" class="absolute top-4 right-4 rounded-full px-3 py-2 text-white/90 hover:text-white" aria-label="Close">
+                            ✕
+                        </button>
+                        <img id="photo-lightbox-img" src="" alt="Photo" class="max-h-[85vh] max-w-[95vw] rounded-2xl shadow-2xl object-contain">
+                    </div>
                 </div>
                 
                 <dl class="space-y-3">
@@ -170,3 +187,37 @@ use Illuminate\Support\Facades\Storage;
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const triggerImg = document.querySelector('img[data-lightbox-src]');
+    const lightbox = document.getElementById('photo-lightbox');
+    const lightboxImg = document.getElementById('photo-lightbox-img');
+    const backdrop = document.getElementById('photo-lightbox-backdrop');
+    const closeBtn = document.getElementById('photo-lightbox-close');
+
+    if (!triggerImg || !lightbox || !lightboxImg || !backdrop || !closeBtn) return;
+
+    const open = (src) => {
+        lightboxImg.src = src;
+        lightbox.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    };
+
+    const close = () => {
+        lightbox.classList.add('hidden');
+        lightboxImg.src = '';
+        document.body.classList.remove('overflow-hidden');
+    };
+
+    triggerImg.addEventListener('click', () => open(triggerImg.getAttribute('data-lightbox-src')));
+    backdrop.addEventListener('click', close);
+    closeBtn.addEventListener('click', close);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) close();
+    });
+});
+</script>
+@endpush

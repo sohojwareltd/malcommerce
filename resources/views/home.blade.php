@@ -371,15 +371,15 @@
     <!-- Latest Products Section -->
     <div class="bg-white py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center mb-10">
-                <div>
-                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-2">নতুন পণ্য</h2>
-                    <p class="text-gray-600 font-bangla">সর্বশেষ যোগ করা পণ্যগুলো</p>
-                </div>
-                <a href="{{ route('products.index') }}"
+            <div class=" mb-10">
+                <div class="text-center">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-2 ">Top Seller পণ্য</h2>
+                    <a href="{{ route('products.index') }}"
                     class="hidden md:inline-block text-primary hover:underline font-bangla font-medium">
-                    সব পণ্য দেখুন <i class="fas fa-arrow-right ml-1"></i>
+                    সব পণ্য দেখুন 
                 </a>
+                </div>
+                
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
