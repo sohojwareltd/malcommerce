@@ -46,9 +46,9 @@ use Illuminate\Support\Facades\Storage;
                 <div class="flex justify-center mb-4">
                     @if($referral->photo)
                         <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}" 
-                             class="w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 rounded-full object-cover border-[3px] border-white shadow-lg">
+                             class="w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52  object-cover border-[3px] border-white shadow-lg">
                     @else
-                        <div class="w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 rounded-full flex items-center justify-center border-[3px] border-white shadow-lg" style="background: var(--color-light);">
+                        <div class="w-40 h-40 sm:w-44 sm:h-44 md:w-52 md:h-52 flex items-center justify-center border-[3px] border-white shadow-lg" style="background: var(--color-light);">
                             <svg class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
