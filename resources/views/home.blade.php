@@ -56,7 +56,7 @@
                         @if($hasImage)
                             <div class="hero-slide-with-image">
                                 <img src="{{ $slide['image'] }}" alt="{{ $slide['title'] ?? 'Hero Slide' }}" class="hero-slide-image">
-                                <div class="hero-slide-overlay"></div>
+                               
                                 <div class="hero-slide-content-wrapper absolute inset-0 flex {{ $placementFlexClass }}">
                                     <div class="w-full px-4 sm:px-6 lg:px-8 py-8 md:py-16 max-w-full sm:max-w-[540px] md:max-w-[720px] lg:max-w-[960px] xl:max-w-[1140px] 2xl:max-w-[1320px] mx-auto">
                                         <div class="{{ $placementWidthClass }}">
