@@ -424,13 +424,6 @@
         </div>
     </div>
 
-    <!-- About Section -->
-    <div class="bg-gray-50 py-16">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-6">আমাদের সম্পর্কে</h2>
-            <p class="text-lg text-gray-600 font-bangla leading-relaxed">
-                {{ \App\Models\Setting::get('about_us', 'আমরা একটি বিশ্বস্ত অনলাইন শপ। আমরা গুণগত মানসম্পন্ন পণ্য সরবরাহ করে থাকি এবং গ্রাহক সন্তুষ্টি আমাদের অগ্রাধিকার।') }}
-            </p>
-        </div>
+ 
     </div>
 @endsection

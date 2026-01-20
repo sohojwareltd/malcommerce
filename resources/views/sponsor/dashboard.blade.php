@@ -359,7 +359,7 @@ use Illuminate\Support\Str;
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <input type="text" value="{{ route('login') }}?ref={{ Auth::user()->affiliate_code }}&product={{ $product->slug }}" 
+                        <input type="text" value="{{ route('products.show',$product->slug) }}?ref={{ Auth::user()->affiliate_code }}" 
                                readonly class="flex-1 px-2 py-2 rounded-lg border-2 text-xs font-mono focus:outline-none"
                                style="border-color: white;" id="product-link-{{ $product->id }}">
                         <button onclick="copyLink('product-link-{{ $product->id }}')" 
