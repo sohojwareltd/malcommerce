@@ -6,6 +6,48 @@ const containsHTML = (str) => {
     return /<[a-z][\s\S]*>/i.test(str);
 };
 
+// Helper function to check if URL is a YouTube video
+const isYouTubeVideo = (url) => {
+    if (!url) return false;
+    return url.includes('youtube.com') || url.includes('youtu.be');
+};
+
+// Helper function to modify YouTube URL with autoplay and mute parameters
+const modifyYouTubeUrl = (url, autoplay = false, mute = false) => {
+    if (!url || !isYouTubeVideo(url)) return url;
+    
+    // Extract video ID from various YouTube URL formats
+    const getVideoId = (url) => {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
+    
+    const videoId = getVideoId(url);
+    if (!videoId) return url;
+    
+    // Build embed URL with parameters
+    let embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    const params = [];
+    
+    if (autoplay) {
+        params.push('autoplay=1');
+    }
+    if (mute) {
+        params.push('mute=1');
+    }
+    
+    // Add enablejsapi for better control
+    params.push('enablejsapi=1');
+    params.push('rel=0'); // Don't show related videos
+    
+    if (params.length > 0) {
+        embedUrl += '?' + params.join('&');
+    }
+    
+    return embedUrl;
+};
+
 // Helper component to render text that may contain HTML
 const RenderText = ({ content, className = '', style = {}, tag = 'div' }) => {
     if (!content) return null;
@@ -21,6 +63,26 @@ const RenderText = ({ content, className = '', style = {}, tag = 'div' }) => {
 };
 
 const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity, orderSettings = {} }) => {
+    const [videoLightbox, setVideoLightbox] = useState({ open: false, url: '', title: '' });
+
+    // Helper to get YouTube thumbnail
+    const getYouTubeThumbnail = (url) => {
+        if (!url || !isYouTubeVideo(url)) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        const videoId = (match && match[2].length === 11) ? match[2] : null;
+        if (!videoId) return null;
+        return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    };
+
+    // Helper to get YouTube video ID
+    const getYouTubeVideoId = (url) => {
+        if (!url || !isYouTubeVideo(url)) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    };
+
     useEffect(() => {
         // Initialize countdown timers for pricing sections
         layout?.forEach((section, index) => {
@@ -64,7 +126,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                             // Show the slider container
                             sliderElement.style.display = 'block';
                             
-                            window.$(sliderElement).slick({
+                            const sliderConfig = {
                                 slidesToShow: 1,
                                 slidesToScroll: 1,
                                 autoplay: section.autoplay !== false,
@@ -86,7 +148,47 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         }
                                     }
                                 ]
-                            });
+                            };
+
+                            // For video sliders, add beforeChange to pause previous video
+                            if (section.type === 'video_slider') {
+                                sliderConfig.beforeChange = (currentSlide, nextSlide) => {
+                                    // Pause current video
+                                    const slides = sliderElement.querySelectorAll('.slider-slide');
+                                    if (slides[currentSlide]) {
+                                        const iframe = slides[currentSlide].querySelector('iframe');
+                                        if (iframe && isYouTubeVideo(iframe.src)) {
+                                            try {
+                                                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                                            } catch (e) {
+                                                // Ignore errors
+                                            }
+                                        }
+                                    }
+                                };
+
+                                // After slide changes, if autoplay is enabled, try to play the new video
+                                sliderConfig.afterChange = (currentSlide) => {
+                                    if (section.autoplay && section.videoAutoplay) {
+                                        const slides = sliderElement.querySelectorAll('.slider-slide');
+                                        if (slides[currentSlide]) {
+                                            const iframe = slides[currentSlide].querySelector('iframe');
+                                            if (iframe && isYouTubeVideo(iframe.src)) {
+                                                // Reload iframe with autoplay to trigger playback
+                                                setTimeout(() => {
+                                                    try {
+                                                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                                                    } catch (e) {
+                                                        // Ignore errors
+                                                    }
+                                                }, 100);
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+
+                            window.$(sliderElement).slick(sliderConfig);
                         }
                     }
                 });
@@ -578,21 +680,55 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                             {section.videos && section.videos.length > 0 ? (
                                 <>
                                     <div id={`slider-${index}`} className="video-slider">
-                                        {section.videos.map((video, vidIndex) => (
-                                            <div key={vidIndex} className="slider-slide">
-                                                <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
-                                                    <iframe
-                                                        src={video.url}
-                                                        className="w-full h-full"
-                                                        allowFullScreen
-                                                        title={video.title || `Video ${vidIndex + 1}`}
-                                                    />
+                                        {section.videos.map((video, vidIndex) => {
+                                            // Determine if video should autoplay (only if slider autoplay is active and videoAutoplay is enabled)
+                                            const shouldAutoplay = section.autoplay && section.videoAutoplay;
+                                            const shouldMute = section.videoMute !== false; // Default to true
+                                            const videoUrl = modifyYouTubeUrl(video.url, shouldAutoplay, shouldMute);
+                                            
+                                            const thumbnail = getYouTubeThumbnail(video.url);
+                                            const videoId = getYouTubeVideoId(video.url);
+                                            const lightboxUrl = videoId ? modifyYouTubeUrl(`https://www.youtube.com/embed/${videoId}`, true, section.videoMute !== false) : videoUrl;
+                                            
+                                            return (
+                                                <div key={vidIndex} className="slider-slide">
+                                                    <div className="aspect-video rounded-lg overflow-hidden shadow-lg relative">
+                                                        {/* Desktop: Show iframe */}
+                                                        <iframe
+                                                            src={videoUrl}
+                                                            className="w-full h-full hidden md:block"
+                                                            allowFullScreen
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                            title={video.title || `Video ${vidIndex + 1}`}
+                                                        />
+                                                        
+                                                        {/* Mobile: Show clickable thumbnail */}
+                                                        {thumbnail && (
+                                                            <div 
+                                                                className="md:hidden w-full h-full relative cursor-pointer"
+                                                                onClick={() => setVideoLightbox({ open: true, url: lightboxUrl, title: video.title || `Video ${vidIndex + 1}` })}
+                                                            >
+                                                                <img 
+                                                                    src={thumbnail} 
+                                                                    alt={video.title || `Video ${vidIndex + 1}`}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition">
+                                                                    <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                                                                        <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                                                            <path d="M8 5v14l11-7z"/>
+                                                                        </svg>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {video.title && (
+                                                        <h3 className="text-lg font-semibold text-gray-900 font-bangla mt-4 text-center">{video.title}</h3>
+                                                    )}
                                                 </div>
-                                                {video.title && (
-                                                    <h3 className="text-lg font-semibold text-gray-900 font-bangla mt-4 text-center">{video.title}</h3>
-                                                )}
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                     <style>{`
                                         #slider-${index}.video-slider {
@@ -1060,9 +1196,10 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     <div className="mb-8 md:mb-12 max-w-4xl mx-auto space-y-4">
                                         <div className="aspect-video rounded-lg overflow-hidden shadow-xl">
                                             <iframe
-                                                src={section.video_url}
+                                                src={section.video_autoplay ? modifyYouTubeUrl(section.video_url, true, true) : section.video_url}
                                                 className="w-full h-full"
                                                 allowFullScreen
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                 title={section.video_title || section.title || 'Video'}
                                             />
                                         </div>
@@ -1335,10 +1472,68 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         );
     };
 
+    // Handle lightbox close
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape' && videoLightbox.open) {
+                setVideoLightbox({ open: false, url: '', title: '' });
+            }
+        };
+
+        if (videoLightbox.open) {
+            document.body.style.overflow = 'hidden';
+            document.addEventListener('keydown', handleEscape);
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = '';
+        };
+    }, [videoLightbox.open]);
+
     return (
-        <div className="w-full">
-            {layout.map((section, index) => renderSection(section, index))}
-        </div>
+        <>
+            <div className="w-full">
+                {layout.map((section, index) => renderSection(section, index))}
+            </div>
+            
+            {/* Video Lightbox for Mobile */}
+            {videoLightbox.open && (
+                <div 
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90"
+                    onClick={() => setVideoLightbox({ open: false, url: '', title: '' })}
+                >
+                    <button
+                        onClick={() => setVideoLightbox({ open: false, url: '', title: '' })}
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 z-10 bg-black/50 rounded-full p-2"
+                        aria-label="Close"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <div 
+                        className="relative w-full max-w-4xl aspect-video"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <iframe
+                            src={videoLightbox.url}
+                            className="w-full h-full rounded-lg"
+                            allowFullScreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            title={videoLightbox.title}
+                        />
+                        {videoLightbox.title && (
+                            <div className="mt-4 text-center">
+                                <h3 className="text-white text-lg font-semibold font-bangla">{videoLightbox.title}</h3>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 

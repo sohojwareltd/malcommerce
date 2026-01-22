@@ -25,6 +25,7 @@ class Product extends Model
         'images',
         'page_layout',
         'is_active',
+        'only_on_categories',
         'is_featured',
         'sort_order',
         'order_form_title',

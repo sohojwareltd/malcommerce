@@ -73,6 +73,7 @@ class ProductController extends Controller
             'stock_quantity' => 'required|integer|min:0',
             'images' => 'nullable|array',
             'is_active' => 'boolean',
+            'only_on_categories' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer',
             'order_form_title' => 'nullable|string|max:255',
@@ -97,6 +98,7 @@ class ProductController extends Controller
         $validated['cashback_amount'] = $validated['cashback_amount'] ?? 0;
         $validated['commission_type'] = $validated['commission_type'] ?? 'fixed';
         $validated['commission_value'] = $validated['commission_value'] ?? 0;
+        $validated['only_on_categories'] = $validated['only_on_categories'] ?? false;
         
         // Handle images - filter out empty values
         if (isset($validated['images']) && is_array($validated['images'])) {
@@ -170,6 +172,7 @@ class ProductController extends Controller
             'images' => 'nullable|array',
             'page_layout' => 'nullable',
             'is_active' => 'boolean',
+            'only_on_categories' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer',
             'order_form_title' => 'nullable|string|max:255',
@@ -207,6 +210,9 @@ class ProductController extends Controller
         // Defaults for earnings settings (if not provided, keep existing values)
         if (!isset($validated['cashback_amount'])) {
             $validated['cashback_amount'] = $product->cashback_amount ?? 0;
+        }
+        if (!isset($validated['only_on_categories'])) {
+            $validated['only_on_categories'] = $product->only_on_categories ?? false;
         }
         if (!isset($validated['commission_type'])) {
             $validated['commission_type'] = $product->commission_type ?? 'fixed';

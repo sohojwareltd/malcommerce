@@ -403,7 +403,7 @@ const createDefaultSection = (type) => {
         rich_text: { type: 'rich_text', title: '', content: '' },
         image_gallery: { type: 'image_gallery', title: '', images: [] },
         image_slider: { type: 'image_slider', title: '', images: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true },
-        video_slider: { type: 'video_slider', title: '', videos: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true },
+        video_slider: { type: 'video_slider', title: '', videos: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true, videoAutoplay: false, videoMute: true },
         banner: { 
             type: 'banner', 
             title: '', 
@@ -435,6 +435,7 @@ const createDefaultSection = (type) => {
             html_content: '',
             video_url: '',
             video_title: '',
+            video_autoplay: false,
             button_text: '', 
             button_link: '#',
             button2_text: '',
@@ -1263,6 +1264,18 @@ const HeroEditor = ({ section, index, updateSection, uploadImage, uploading }) =
                     placeholder="Title to display underneath the video"
                 />
             </div>
+            <div>
+                <label className="text-sm font-medium block mb-1">Video Autoplay</label>
+                <select
+                    value={section.video_autoplay ? 'true' : 'false'}
+                    onChange={(e) => updateSection(index, 'video_autoplay', e.target.value === 'true')}
+                    className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                >
+                    <option value="false">No</option>
+                    <option value="true">Yes</option>
+                </select>
+                <p className="text-xs text-neutral-500 mt-1">Auto-play the video when the page loads (YouTube videos will be muted)</p>
+            </div>
             
             <div className="border-t pt-3 mt-3">
                 <label className="text-sm font-semibold block mb-2">Button 1 (Primary)</label>
@@ -1938,7 +1951,7 @@ const VideoSliderEditor = ({ section, index, updateSection }) => {
             </div>
             <div className="grid grid-cols-2 gap-3 border-t pt-3 mt-3">
                 <div>
-                    <label className="text-sm font-medium block mb-1">Autoplay</label>
+                    <label className="text-sm font-medium block mb-1">Slider Autoplay</label>
                     <select
                         value={section.autoplay ? 'true' : 'false'}
                         onChange={(e) => updateSection(index, 'autoplay', e.target.value === 'true')}
@@ -1958,6 +1971,30 @@ const VideoSliderEditor = ({ section, index, updateSection }) => {
                         min="1000"
                         step="500"
                     />
+                </div>
+                <div>
+                    <label className="text-sm font-medium block mb-1">Video Autoplay</label>
+                    <select
+                        value={section.videoAutoplay ? 'true' : 'false'}
+                        onChange={(e) => updateSection(index, 'videoAutoplay', e.target.value === 'true')}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                    <p className="text-xs text-neutral-500 mt-1">Auto-play videos when slider autoplay is active</p>
+                </div>
+                <div>
+                    <label className="text-sm font-medium block mb-1">Video Mute</label>
+                    <select
+                        value={section.videoMute ? 'true' : 'false'}
+                        onChange={(e) => updateSection(index, 'videoMute', e.target.value === 'true')}
+                        className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
+                    >
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                    <p className="text-xs text-neutral-500 mt-1">Mute videos when autoplaying</p>
                 </div>
                 <div>
                     <label className="text-sm font-medium block mb-1">Show Dots</label>

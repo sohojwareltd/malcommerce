@@ -291,7 +291,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                 @foreach($homeFeatures as $feature)
                     @if(!empty($feature['title']) || !empty($feature['icon']))
-                    <div class="flex flex-col items-center">
+                    <div class="flex flex-col items-center bg-[#f0f0f0] border border-gray-200 p-4 rounded-lg">
                         @if(!empty($feature['icon']))
                         <div class="text-3xl sm:text-4xl mb-1.5 sm:mb-2" style="color: var(--color-primary);">
                             <i class="{{ $feature['icon'] }}"></i>
@@ -315,13 +315,11 @@
     @if ($featuredProducts->count() > 0)
         <div class="bg-white py-16">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center mb-10">
-                    <div>
-                        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-2">বিশেষ অফার</h2>
-                        <p class="text-gray-600 font-bangla">এখনই কিনুন, বিশেষ মূল্যে</p>
-                    </div>
+                <div class="flex flex-col items-center justify-center text-center mb-10">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-2">বিশেষ অফার</h2>
+                    <p class="text-gray-600 font-bangla mb-3">এখনই কিনুন, বিশেষ মূল্যে</p>
                     <a href="{{ route('products.index') }}"
-                        class="hidden md:inline-block text-primary hover:underline font-bangla font-medium">
+                        class="mt-2 text-primary hover:underline font-bangla font-medium inline-block">
                         সব অফার দেখুন <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>
@@ -358,7 +356,7 @@
                 </div>
 
                 <div class="text-center mt-8 md:hidden">
-                    <a href="{{ route('products.index') }}" class="btn-primary font-bangla">
+                    <a href="{{ route('products.index') }}" class="inline-block btn-primary font-bangla px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-white font-medium">
                         সব অফার দেখুন
                     </a>
                 </div>
@@ -417,7 +415,7 @@
             </div>
 
             <div class="text-center mt-8 md:hidden">
-                <a href="{{ route('products.index') }}" class="btn-primary font-bangla">
+                <a href="{{ route('products.index') }}" class="inline-block btn-primary font-bangla px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-white font-medium">
                     সব পণ্য দেখুন
                 </a>
             </div>

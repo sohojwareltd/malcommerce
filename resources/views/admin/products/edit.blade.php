@@ -155,6 +155,10 @@
             <span class="ml-2 text-sm text-neutral-700">Active</span>
         </label>
         <label class="flex items-center">
+            <input type="checkbox" name="only_on_categories" value="1" {{ old('only_on_categories', $product->only_on_categories) ? 'checked' : '' }} class="rounded border-neutral-300 text-primary focus:ring-primary">
+            <span class="ml-2 text-sm text-neutral-700">Only on Categories</span>
+        </label>    
+        <label class="flex items-center">
             <input type="checkbox" name="is_featured" value="1" {{ old('is_featured', $product->is_featured) ? 'checked' : '' }} class="rounded border-neutral-300 text-primary focus:ring-primary">
             <span class="ml-2 text-sm text-neutral-700">Featured</span>
         </label>

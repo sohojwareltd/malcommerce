@@ -12,6 +12,7 @@ class HomeController extends Controller
         $products = Product::where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('created_at', 'desc')
+            ->where('only_on_categories', false)
             ->take(8)
             ->get();
             
