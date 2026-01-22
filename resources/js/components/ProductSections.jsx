@@ -93,13 +93,42 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             }
         };
 
+        // Show sliders as fallback if Slick doesn't initialize
+        const showSlidersFallback = () => {
+            layout?.forEach((section, index) => {
+                if (section.type === 'image_slider' || section.type === 'video_slider') {
+                    const sliderId = `slider-${index}`;
+                    const sliderElement = document.getElementById(sliderId);
+                    if (sliderElement) {
+                        // Ensure slider is visible
+                        sliderElement.style.display = 'block';
+                    }
+                }
+            });
+        };
+
         // Wait for DOM and jQuery to be ready
         const initSlidersWithDelay = () => {
             // Use setTimeout to ensure DOM is fully rendered
             setTimeout(() => {
                 initSliders();
+                // Fallback: show sliders even if Slick didn't initialize
+                setTimeout(() => {
+                    layout?.forEach((section, index) => {
+                        if (section.type === 'image_slider' || section.type === 'video_slider') {
+                            const sliderId = `slider-${index}`;
+                            const sliderElement = document.getElementById(sliderId);
+                            if (sliderElement && (!window.$ || !window.$(sliderElement).hasClass('slick-initialized'))) {
+                                sliderElement.style.display = 'block';
+                            }
+                        }
+                    });
+                }, 500);
             }, 200);
         };
+
+        // Show sliders immediately
+        showSlidersFallback();
 
         if (typeof window.$ !== 'undefined' && window.$.fn.slick) {
             initSlidersWithDelay();
@@ -116,7 +145,10 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             }, 100);
             
             // Clear interval after 5 seconds if jQuery still not loaded
-            setTimeout(() => clearInterval(checkJQuery), 5000);
+            setTimeout(() => {
+                clearInterval(checkJQuery);
+                showSlidersFallback();
+            }, 5000);
         }
 
         // Cleanup function
@@ -467,7 +499,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                             )}
                             {section.images && section.images.length > 0 ? (
                                 <>
-                                    <div id={`slider-${index}`} className="image-slider" style={{ display: 'none' }}>
+                                    <div id={`slider-${index}`} className="image-slider">
                                         {section.images.map((image, imgIndex) => (
                                             <div key={imgIndex} className="slider-slide">
                                                 <img src={image} alt={`${section.title || 'Slide'} ${imgIndex + 1}`} className="w-full h-auto object-contain rounded-lg" />
@@ -475,6 +507,9 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         ))}
                                     </div>
                                     <style>{`
+                                        #slider-${index}.image-slider {
+                                            display: block;
+                                        }
                                         #slider-${index}.image-slider:not(.slick-initialized) .slider-slide {
                                             display: none;
                                         }
@@ -542,7 +577,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                             )}
                             {section.videos && section.videos.length > 0 ? (
                                 <>
-                                    <div id={`slider-${index}`} className="video-slider" style={{ display: 'none' }}>
+                                    <div id={`slider-${index}`} className="video-slider">
                                         {section.videos.map((video, vidIndex) => (
                                             <div key={vidIndex} className="slider-slide">
                                                 <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
@@ -560,6 +595,9 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         ))}
                                     </div>
                                     <style>{`
+                                        #slider-${index}.video-slider {
+                                            display: block;
+                                        }
                                         #slider-${index}.video-slider:not(.slick-initialized) .slider-slide {
                                             display: none;
                                         }

@@ -14,6 +14,10 @@
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
+    <!-- Slick CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
+    
     @stack('styles')
 </head>
 <body class="h-full bg-[#F6F6F7] font-sans overflow-hidden" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
@@ -46,6 +50,11 @@
     <div class="h-[calc(100vh-57px)] overflow-hidden">
         @yield('content')
     </div>
+    
+    <!-- jQuery (required for Slick) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Slick JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
     
     @stack('scripts')
 </body>

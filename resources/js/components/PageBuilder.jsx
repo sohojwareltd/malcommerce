@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GridSection, FlexSection, SpacerSection, ContainerSection } from './LayoutComponents';
 import ProductSections from './ProductSections';
-import prefabLayouts from './prefab/prefabLayouts';
 
 const PageBuilder = ({ initialSections = [], productId = null, productPrice = null, productComparePrice = null, productInStock = false, productStockQuantity = null }) => {
     const [sections, setSections] = useState(initialSections);
@@ -73,23 +72,6 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
         const newSections = [...sections, newSection];
         setSections(newSections);
         setSelectedSectionIndex(newSections.length - 1);
-    };
-
-    const addPrefabLayout = (layoutKey) => {
-        const layout = prefabLayouts[layoutKey];
-        if (!layout) return;
-        
-        // Deep clone the sections to avoid reference issues
-        const newSections = layout.sections.map(section => JSON.parse(JSON.stringify(section)));
-        
-        // Add to existing sections
-        const updatedSections = [...sections, ...newSections];
-        setSections(updatedSections);
-        
-        // Select the first section of the new layout
-        if (newSections.length > 0) {
-            setSelectedSectionIndex(sections.length);
-        }
     };
 
     const removeSection = (index) => {
@@ -236,11 +218,7 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
                         )}
                     </div>
                     <div className="mt-4 pt-4 border-t border-[#E1E3E5]">
-                        <h3 className="text-xs font-semibold text-[#637381] uppercase mb-2">Prefab Layouts</h3>
-                        <div className="space-y-2 mb-4">
-                            <PrefabLayoutButtons onAdd={addPrefabLayout} />
-                        </div>
-                        <h3 className="text-xs font-semibold text-[#637381] uppercase mb-2 mt-4">Add Section</h3>
+                        <h3 className="text-xs font-semibold text-[#637381] uppercase mb-2">Add Section</h3>
                         <div className="space-y-2">
                             <SectionAddButtons onAdd={addSection} />
                         </div>
@@ -323,36 +301,6 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
                 </div>
             </div>
         </div>
-    );
-};
-
-// Prefab Layout Buttons Component
-const PrefabLayoutButtons = ({ onAdd }) => {
-    const layouts = Object.entries(prefabLayouts).map(([key, layout]) => ({
-        key,
-        ...layout
-    }));
-
-    return (
-        <>
-            {layouts.map((layout) => (
-                <div
-                    key={layout.key}
-                    className="border border-[#E1E3E5] rounded p-2 mb-2 hover:border-[#008060] hover:bg-[#F0FDF4] transition cursor-pointer"
-                    onClick={() => onAdd(layout.key)}
-                >
-                    <div className="font-medium text-sm text-[#202223] mb-1">
-                        {layout.name}
-                    </div>
-                    <div className="text-xs text-[#637381] line-clamp-2">
-                        {layout.description}
-                    </div>
-                    <div className="text-xs text-[#008060] mt-1">
-                        {layout.sections.length} sections
-                    </div>
-                </div>
-            ))}
-        </>
     );
 };
 
