@@ -999,7 +999,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 return (
                     <section
                         key={index}
-                        className="py-12 md:py-16"
+                        className="py-4 md:py-2"
                         style={ctaStyle}
                     >
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
