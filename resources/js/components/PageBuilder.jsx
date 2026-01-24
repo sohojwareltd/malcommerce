@@ -403,7 +403,7 @@ const createDefaultSection = (type) => {
         rich_text: { type: 'rich_text', title: '', content: '' },
         image_gallery: { type: 'image_gallery', title: '', images: [] },
         image_slider: { type: 'image_slider', title: '', images: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true },
-        video_slider: { type: 'video_slider', title: '', videos: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true, videoAutoplay: false, videoMute: true },
+        video_slider: { type: 'video_slider', title: '', videos: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true, videoAutoplay: false, videoMute: false },
         banner: { 
             type: 'banner', 
             title: '', 
@@ -1274,7 +1274,7 @@ const HeroEditor = ({ section, index, updateSection, uploadImage, uploading }) =
                     <option value="false">No</option>
                     <option value="true">Yes</option>
                 </select>
-                <p className="text-xs text-neutral-500 mt-1">Auto-play the video when the page loads (YouTube videos will be muted)</p>
+                <p className="text-xs text-neutral-500 mt-1">Auto-play the video when the page loads (sound will be enabled)</p>
             </div>
             
             <div className="border-t pt-3 mt-3">
@@ -1991,10 +1991,10 @@ const VideoSliderEditor = ({ section, index, updateSection }) => {
                         onChange={(e) => updateSection(index, 'videoMute', e.target.value === 'true')}
                         className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
                     >
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
+                        <option value="false">No (Sound On)</option>
+                        <option value="true">Yes (Sound Off)</option>
                     </select>
-                    <p className="text-xs text-neutral-500 mt-1">Mute videos when autoplaying</p>
+                    <p className="text-xs text-neutral-500 mt-1">Mute videos (default: unmuted)</p>
                 </div>
                 <div>
                     <label className="text-sm font-medium block mb-1">Show Dots</label>

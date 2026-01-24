@@ -683,12 +683,12 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         {section.videos.map((video, vidIndex) => {
                                             // Determine if video should autoplay (only if slider autoplay is active and videoAutoplay is enabled)
                                             const shouldAutoplay = section.autoplay && section.videoAutoplay;
-                                            const shouldMute = section.videoMute !== false; // Default to true
+                                            const shouldMute = section.videoMute === true; // Default to false (unmuted)
                                             const videoUrl = modifyYouTubeUrl(video.url, shouldAutoplay, shouldMute);
                                             
                                             const thumbnail = getYouTubeThumbnail(video.url);
                                             const videoId = getYouTubeVideoId(video.url);
-                                            const lightboxUrl = videoId ? modifyYouTubeUrl(`https://www.youtube.com/embed/${videoId}`, true, section.videoMute !== false) : videoUrl;
+                                            const lightboxUrl = videoId ? modifyYouTubeUrl(`https://www.youtube.com/embed/${videoId}`, true, section.videoMute === true) : videoUrl;
                                             
                                             return (
                                                 <div key={vidIndex} className="slider-slide">
@@ -1196,7 +1196,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     <div className="mb-8 md:mb-12 max-w-4xl mx-auto space-y-4">
                                         <div className="aspect-video rounded-lg overflow-hidden shadow-xl">
                                             <iframe
-                                                src={section.video_autoplay ? modifyYouTubeUrl(section.video_url, true, true) : section.video_url}
+                                                src={section.video_autoplay ? modifyYouTubeUrl(section.video_url, true, false) : section.video_url}
                                                 className="w-full h-full"
                                                 allowFullScreen
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

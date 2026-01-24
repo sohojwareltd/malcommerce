@@ -1,6 +1,6 @@
 {
-  "_ProductSections-pcrOC36l.js": {
-    "file": "assets/ProductSections-pcrOC36l.js",
+  "_ProductSections-Zjmdms4t.js": {
+    "file": "assets/ProductSections-Zjmdms4t.js",
     "name": "ProductSections"
   },
   "resources/css/app.css": {
@@ -19,21 +19,21 @@
     "isEntry": true
   },
   "resources/js/page-builder.js": {
-    "file": "assets/page-builder-CJKjzLTi.js",
+    "file": "assets/page-builder-S7WvSp9O.js",
     "name": "page-builder",
     "src": "resources/js/page-builder.js",
     "isEntry": true,
     "imports": [
-      "_ProductSections-pcrOC36l.js"
+      "_ProductSections-Zjmdms4t.js"
     ]
   },
   "resources/js/product-sections.js": {
-    "file": "assets/product-sections-CQREH6Q9.js",
+    "file": "assets/product-sections-CF7gWqlX.js",
     "name": "product-sections",
     "src": "resources/js/product-sections.js",
     "isEntry": true,
     "imports": [
-      "_ProductSections-pcrOC36l.js"
+      "_ProductSections-Zjmdms4t.js"
     ]
   }
 }
