@@ -19,18 +19,7 @@
 </style>
 
 <div class="min-h-screen pb-6">
-    <!-- Header -->
-    <div class="app-card mx-4 mt-4 mb-4 p-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <h1 class="text-base sm:text-lg md:text-xl font-bold" style="color: var(--color-dark);">Add New User</h1>
-                <p class="text-xs sm:text-sm mt-1" style="color: var(--color-medium);">Add a new user who will be automatically referred by you</p>
-            </div>
-            <a href="{{ route('sponsor.dashboard') }}" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap" style="background: var(--color-accent); color: var(--color-dark);">
-                ← Back
-            </a>
-        </div>
-    </div>
+   
 
     <!-- Add User Form -->
     <div class="app-card mx-4 mb-4 p-3 sm:p-4 md:p-6">

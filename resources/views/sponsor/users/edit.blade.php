@@ -23,18 +23,7 @@ use Illuminate\Support\Facades\Storage;
 </style>
 
 <div class="min-h-screen pb-6">
-    <!-- Header -->
-    <div class="app-card mx-4 mt-4 mb-4 p-4">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <h1 class="text-base sm:text-lg md:text-xl font-bold" style="color: var(--color-dark);">Edit Referral User</h1>
-                <p class="text-xs sm:text-sm mt-1" style="color: var(--color-medium);">Update information for {{ $referral->name }}</p>
-            </div>
-            <a href="{{ route('sponsor.dashboard') }}" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap" style="background: var(--color-accent); color: var(--color-dark);">
-                ← Back
-            </a>
-        </div>
-    </div>
+   
 
     <div class="app-card mx-4 mb-4 p-3 sm:p-4 md:p-6 max-w-2xl">
     <form action="{{ route('sponsor.users.update', $referral) }}" method="POST" enctype="multipart/form-data">
@@ -109,6 +98,18 @@ use Illuminate\Support\Facades\Storage;
                 class="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base border-2 rounded-xl focus:outline-none resize-none @error('address') border-red-500 @enderror"
                 style="border-color: var(--color-accent);">{{ old('address', $referral->address) }}</textarea>
             @error('address')
+                <p class="mt-0.5 sm:mt-1 text-xs sm:text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Comment -->
+        <div class="mb-3 sm:mb-4 md:mb-6">
+            <label for="comment" class="block text-xs sm:text-sm font-medium mb-1 sm:mb-2" style="color: var(--color-dark);">Comment</label>
+            <textarea name="comment" id="comment" rows="2"
+                class="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base border-2 rounded-xl focus:outline-none resize-none @error('comment') border-red-500 @enderror"
+                style="border-color: var(--color-accent);"
+                placeholder="Add any comments or notes about this user">{{ old('comment', $referral->comment ?? '') }}</textarea>
+            @error('comment')
                 <p class="mt-0.5 sm:mt-1 text-xs sm:text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>

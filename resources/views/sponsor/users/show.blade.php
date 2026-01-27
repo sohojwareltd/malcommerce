@@ -97,6 +97,13 @@ use Illuminate\Support\Facades\Storage;
                         <dd class="mt-1 text-xs sm:text-sm whitespace-pre-line" style="color: var(--color-dark);">{{ $referral->address }}</dd>
                     </div>
                     @endif
+
+                    @if($referral->comment)
+                    <div>
+                        <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Comment</dt>
+                        <dd class="mt-1 text-xs sm:text-sm whitespace-pre-line" style="color: var(--color-dark);">{{ $referral->comment }}</dd>
+                    </div>
+                    @endif
                     
                     <div>
                         <dt class="text-[10px] sm:text-xs font-medium" style="color: var(--color-medium);">Joined</dt>
