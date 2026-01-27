@@ -86,7 +86,22 @@ class ProductController extends Controller
             'is_free' => 'boolean',
             'sms_templates' => 'nullable|array',
             'sms_templates.*' => 'nullable|string|max:500',
+            'payment_options' => 'nullable|array',
+            'payment_options.*' => 'in:cod,bkash',
         ]);
+        
+        // Handle payment_options - if empty array, set to null (allows all methods)
+        if (isset($validated['payment_options']) && is_array($validated['payment_options'])) {
+            if (empty($validated['payment_options'])) {
+                $validated['payment_options'] = null;
+            } else {
+                // Ensure unique values and valid options
+                $validated['payment_options'] = array_unique(array_filter($validated['payment_options'], fn($v) => in_array($v, ['cod', 'bkash'])));
+                if (empty($validated['payment_options'])) {
+                    $validated['payment_options'] = null;
+                }
+            }
+        }
         
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
@@ -185,7 +200,22 @@ class ProductController extends Controller
             'is_free' => 'boolean',
             'sms_templates' => 'nullable|array',
             'sms_templates.*' => 'nullable|string|max:500',
+            'payment_options' => 'nullable|array',
+            'payment_options.*' => 'in:cod,bkash',
         ]);
+        
+        // Handle payment_options - if empty array, set to null (allows all methods)
+        if (isset($validated['payment_options']) && is_array($validated['payment_options'])) {
+            if (empty($validated['payment_options'])) {
+                $validated['payment_options'] = null;
+            } else {
+                // Ensure unique values and valid options
+                $validated['payment_options'] = array_unique(array_filter($validated['payment_options'], fn($v) => in_array($v, ['cod', 'bkash'])));
+                if (empty($validated['payment_options'])) {
+                    $validated['payment_options'] = null;
+                }
+            }
+        }
         
         // Handle page_layout - it comes as JSON string from the form
         // Only update page_layout if it's provided in the request

@@ -191,6 +191,58 @@
                 <span class="text-sm font-medium text-neutral-700">Hide Quantity Selector</span>
             </label>
         </div>
+        
+        <div class="mt-6">
+            <h3 class="text-lg font-semibold text-neutral-800 mb-3">Payment Options</h3>
+            <p class="text-sm text-neutral-600 mb-4">Select which payment methods are available for this product. Leave all unchecked to allow all payment methods.</p>
+            <div class="space-y-3">
+                @php
+                    $paymentOptions = old('payment_options', []);
+                    if (!is_array($paymentOptions)) {
+                        $paymentOptions = [];
+                    }
+                @endphp
+                <label class="flex items-center gap-3 p-4 border border-neutral-300 rounded-lg hover:bg-neutral-50 cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        name="payment_options[]" 
+                        value="cod"
+                        {{ in_array('cod', $paymentOptions) ? 'checked' : '' }}
+                        class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary"
+                    >
+                    <div class="flex-1">
+                        <div class="font-semibold text-neutral-900 flex items-center gap-2">
+                            <span>💵</span>
+                            <span>Cash on Delivery (COD)</span>
+                        </div>
+                        <div class="text-sm text-neutral-600 mt-1">
+                            Customer pays when the product is delivered
+                        </div>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 p-4 border border-neutral-300 rounded-lg hover:bg-neutral-50 cursor-pointer">
+                    <input 
+                        type="checkbox" 
+                        name="payment_options[]" 
+                        value="bkash"
+                        {{ in_array('bkash', $paymentOptions) ? 'checked' : '' }}
+                        class="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary"
+                    >
+                    <div class="flex-1">
+                        <div class="font-semibold text-neutral-900 flex items-center gap-2">
+                            <span>📱</span>
+                            <span>bKash</span>
+                        </div>
+                        <div class="text-sm text-neutral-600 mt-1">
+                            Online payment via bKash gateway
+                        </div>
+                    </div>
+                </label>
+            </div>
+            <p class="text-xs text-neutral-500 mt-3">
+                <strong>Note:</strong> If no options are selected, all payment methods will be available. Select specific options to restrict payment methods for this product.
+            </p>
+        </div>
     </div>
     
     <div class="mt-6">

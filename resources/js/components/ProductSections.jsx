@@ -293,6 +293,8 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         const [quantity, setQuantity] = useState(1);
         const deliveryOptions = orderSettings.deliveryOptions || [];
         const [selectedDelivery, setSelectedDelivery] = useState(deliveryOptions.length > 0 ? 0 : null);
+        const paymentOptions = orderSettings.paymentOptions || ['cod', 'bkash'];
+        const [paymentMethod, setPaymentMethod] = useState(paymentOptions.length > 0 ? paymentOptions[0] : 'cod');
         const price = parseFloat(productPrice) || 0;
         const minQuantity = parseInt(orderSettings.minQuantity || 0);
         const maxQuantitySetting = parseInt(orderSettings.maxQuantity || 0);
@@ -478,6 +480,66 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 </div>
                                 )}
 
+                                {/* Payment Method Selection */}
+                                {paymentOptions.length > 0 && (
+                                <div className="mb-6">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">
+                                        পেমেন্ট পদ্ধতি <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="space-y-2">
+                                        {paymentOptions.includes('cod') && (
+                                        <label className={`flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-gray-50 cursor-pointer transition ${
+                                            paymentMethod === 'cod' ? 'border-primary bg-primary/5' : 'border-gray-300'
+                                        }`}>
+                                            <input 
+                                                type="radio" 
+                                                name="payment_method" 
+                                                value="cod"
+                                                checked={paymentMethod === 'cod'}
+                                                onChange={(e) => setPaymentMethod(e.target.value)}
+                                                className="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
+                                            />
+                                            <div className="flex-1">
+                                                <div className="font-semibold text-gray-900 font-bangla flex items-center gap-2">
+                                                    <span>💵</span>
+                                                    <span>ক্যাশ অন ডেলিভারি (COD)</span>
+                                                </div>
+                                                <div className="text-sm text-gray-600 font-bangla mt-1">
+                                                    ডেলিভারির সময় পেমেন্ট করুন
+                                                </div>
+                                            </div>
+                                        </label>
+                                        )}
+                                        {paymentOptions.includes('bkash') && (
+                                        <label className={`flex items-center gap-3 p-4 border-2 rounded-lg hover:bg-gray-50 cursor-pointer transition ${
+                                            paymentMethod === 'bkash' ? 'border-primary bg-primary/5' : 'border-gray-300'
+                                        }`}>
+                                            <input 
+                                                type="radio" 
+                                                name="payment_method" 
+                                                value="bkash"
+                                                checked={paymentMethod === 'bkash'}
+                                                onChange={(e) => setPaymentMethod(e.target.value)}
+                                                className="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
+                                            />
+                                            <div className="flex-1">
+                                                <div className="font-semibold text-gray-900 font-bangla flex items-center gap-2">
+                                                    <span>📱</span>
+                                                    <span>bKash</span>
+                                                </div>
+                                                <div className="text-sm text-gray-600 font-bangla mt-1">
+                                                    bKash অ্যাপ/ওয়েবসাইটের মাধ্যমে পেমেন্ট করুন
+                                                </div>
+                                            </div>
+                                        </label>
+                                        )}
+                                    </div>
+                                </div>
+                                )}
+                                {paymentOptions.length === 0 && (
+                                <input type="hidden" name="payment_method" value="cod" />
+                                )}
+
                                 {/* Order Summary */}
                                 {!hideSummary && (
                                 <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
@@ -504,9 +566,16 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             </div>
                                         </div>
                                     </div>
+                                    {paymentMethod === 'cod' && (
                                     <p className="text-xs text-gray-600 mt-4 font-bangla">
                                         💳 ক্যাশ অন ডেলিভারি - অগ্রীম কোন টাকা ছাড়াই অর্ডার করুন
                                     </p>
+                                    )}
+                                    {paymentMethod === 'bkash' && (
+                                    <p className="text-xs text-gray-600 mt-4 font-bangla">
+                                        📱 bKash পেমেন্ট - অর্ডার নিশ্চিত করার পর bKash পেমেন্ট পেজে রিডাইরেক্ট করা হবে
+                                    </p>
+                                    )}
                                 </div>
                                 )}
 

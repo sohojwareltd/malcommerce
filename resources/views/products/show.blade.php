@@ -68,6 +68,7 @@
                 : json_decode(\App\Models\Setting::get('order_delivery_options', '[]'), true),
             'minQuantity' => (int) ($product->order_min_quantity ?: \App\Models\Setting::get('order_min_quantity', 0)),
             'maxQuantity' => (int) ($product->order_max_quantity ?: \App\Models\Setting::get('order_max_quantity', 0)),
+            'paymentOptions' => $product->getAllowedPaymentMethods(),
         ];
     @endphp
     <div id="custom-sections" 

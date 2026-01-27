@@ -10,6 +10,14 @@
         : json_decode(\App\Models\Setting::get('order_delivery_options', '[]'), true);
     $minQuantity = (int) ($product->order_min_quantity ?: \App\Models\Setting::get('order_min_quantity', 0));
     $maxQuantity = (int) ($product->order_max_quantity ?: \App\Models\Setting::get('order_max_quantity', 0));
+    
+    // Get allowed payment methods for this product
+    $allowedPaymentMethods = $product->getAllowedPaymentMethods();
+    // Ensure we always have at least one payment method
+    if (empty($allowedPaymentMethods) || !is_array($allowedPaymentMethods)) {
+        $allowedPaymentMethods = ['cod', 'bkash'];
+    }
+    $defaultPaymentMethod = !empty($allowedPaymentMethods) ? $allowedPaymentMethods[0] : 'cod';
 @endphp
 
 <div id="order" class="grid grid-cols-1  gap-6">
@@ -25,6 +33,7 @@
         price: {{ $product->price }}, 
         deliveryCharge: {{ !empty($deliveryOptions) && isset($deliveryOptions[0]['charge']) ? $deliveryOptions[0]['charge'] : 0 }},
         selectedDelivery: {{ !empty($deliveryOptions) ? "'0'" : 'null' }},
+        paymentMethod: '{{ $defaultPaymentMethod }}',
         totalPrice: {{ ($product->price * max(1, $minQuantity)) + (!empty($deliveryOptions) && isset($deliveryOptions[0]['charge']) ? $deliveryOptions[0]['charge'] : 0) }},
         minQuantity: {{ max(1, $minQuantity) }},
         maxQuantity: {{ min($product->stock_quantity ?? 999, $maxQuantity > 0 ? $maxQuantity : 999) }},
@@ -192,6 +201,58 @@
         </div>
         @endif
 
+        {{-- Payment Method Selection --}}
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-3 font-bangla">
+                পেমেন্ট পদ্ধতি <span class="text-red-500">*</span>
+            </label>
+            <div class="space-y-2">
+                @if(in_array('cod', $allowedPaymentMethods))
+                <label class="flex items-center gap-3 p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition" :class="paymentMethod === 'cod' ? 'border-primary bg-primary/5' : ''">
+                    <input 
+                        type="radio" 
+                        name="payment_method" 
+                        value="cod"
+                        x-model="paymentMethod"
+                        class="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
+                    >
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-900 font-bangla flex items-center gap-2">
+                            <span>💵</span>
+                            <span>ক্যাশ অন ডেলিভারি (COD)</span>
+                        </div>
+                        <div class="text-sm text-gray-600 font-bangla mt-1">
+                            ডেলিভারির সময় পেমেন্ট করুন
+                        </div>
+                    </div>
+                </label>
+                @endif
+                @if(in_array('bkash', $allowedPaymentMethods))
+                <label class="flex items-center gap-3 p-4 border-2 border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition" :class="paymentMethod === 'bkash' ? 'border-primary bg-primary/5' : ''">
+                    <input 
+                        type="radio" 
+                        name="payment_method" 
+                        value="bkash"
+                        x-model="paymentMethod"
+                        class="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
+                    >
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-900 font-bangla flex items-center gap-2">
+                            <span>📱</span>
+                            <span>bKash</span>
+                        </div>
+                        <div class="text-sm text-gray-600 font-bangla mt-1">
+                            bKash অ্যাপ/ওয়েবসাইটের মাধ্যমে পেমেন্ট করুন
+                        </div>
+                    </div>
+                </label>
+                @endif
+            </div>
+            @if(empty($allowedPaymentMethods) || (count($allowedPaymentMethods) === 0))
+            <input type="hidden" name="payment_method" value="cod">
+            @endif
+        </div>
+
         {{-- Order Summary --}}
         @if(!$hideSummary)
         <div class="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
@@ -218,8 +279,11 @@
                     </div>
                 </div>
             </div>
-            <p class="text-xs text-gray-600 mt-4 font-bangla">
+            <p class="text-xs text-gray-600 mt-4 font-bangla" x-show="paymentMethod === 'cod'">
                 💳 ক্যাশ অন ডেলিভারি - অগ্রীম কোন টাকা ছাড়াই অর্ডার করুন
+            </p>
+            <p class="text-xs text-gray-600 mt-4 font-bangla" x-show="paymentMethod === 'bkash'">
+                📱 bKash পেমেন্ট - অর্ডার নিশ্চিত করার পর bKash পেমেন্ট পেজে রিডাইরেক্ট করা হবে
             </p>
         </div>
         @endif

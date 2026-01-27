@@ -23,6 +23,12 @@ Route::middleware([TrackReferral::class])->group(function () {
     // Order routes
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/success/{orderNumber}', [OrderController::class, 'success'])->name('orders.success');
+    
+    // Payment routes
+    Route::match(['get', 'post'], '/payment/bkash/initiate', [\App\Http\Controllers\PaymentController::class, 'initiateBkash'])->name('payment.bkash.initiate');
+    Route::get('/payment/bkash/callback', [\App\Http\Controllers\PaymentController::class, 'bkashCallback'])->name('payment.bkash.callback');
+    Route::get('/payment/bkash/cancel/{orderId}', [\App\Http\Controllers\PaymentController::class, 'cancelPayment'])->name('payment.bkash.cancel');
+    Route::post('/payment/check-status', [\App\Http\Controllers\PaymentController::class, 'checkStatus'])->name('payment.check-status');
 });
 
 // Authentication routes (with referral tracking, guest only)

@@ -29,6 +29,12 @@ class Order extends Model
         'referral_code',
         'status',
         'notes',
+        'payment_method',
+        'payment_status',
+        'payment_transaction_id',
+        'payment_invoice_id',
+        'payment_response',
+        'payment_completed_at',
     ];
 
     protected function casts(): array

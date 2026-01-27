@@ -38,6 +38,7 @@ class Product extends Model
         'order_hide_summary',
         'order_hide_quantity',
         'sms_templates',
+        'payment_options',
     ];
 
     protected function casts(): array
@@ -60,7 +61,33 @@ class Product extends Model
             'order_hide_summary' => 'boolean',
             'order_hide_quantity' => 'boolean',
             'sms_templates' => 'array',
+            'payment_options' => 'array',
         ];
+    }
+
+    /**
+     * Get allowed payment methods for this product
+     * Returns array of allowed payment methods, or ['cod', 'bkash'] if not set (all methods allowed)
+     */
+    public function getAllowedPaymentMethods(): array
+    {
+        $paymentOptions = $this->payment_options;
+        
+        // If null or empty, allow all payment methods
+        if (empty($paymentOptions) || !is_array($paymentOptions)) {
+            return ['cod', 'bkash'];
+        }
+        
+        // Return the allowed payment methods
+        return $paymentOptions;
+    }
+
+    /**
+     * Check if a payment method is allowed for this product
+     */
+    public function isPaymentMethodAllowed(string $method): bool
+    {
+        return in_array($method, $this->getAllowedPaymentMethods());
     }
 
     public function category(): BelongsTo

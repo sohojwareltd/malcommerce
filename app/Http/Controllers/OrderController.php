@@ -19,6 +19,7 @@ class OrderController extends Controller
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
             'address' => 'required|string',
+            'payment_method' => 'nullable|in:cod,bkash',
         ]);
         
         $product = Product::findOrFail($request->product_id);
@@ -26,6 +27,12 @@ class OrderController extends Controller
         // Check stock
         if ($product->stock_quantity < $request->quantity) {
             return back()->withErrors(['quantity' => 'Insufficient stock available.'])->withInput();
+        }
+        
+        // Validate payment method is allowed for this product
+        $paymentMethod = $request->input('payment_method', 'cod');
+        if (!$product->isPaymentMethodAllowed($paymentMethod)) {
+            return back()->withErrors(['payment_method' => 'Selected payment method is not available for this product.'])->withInput();
         }
         
         // Get order form settings (product-specific with fallback to global)
@@ -110,7 +117,9 @@ class OrderController extends Controller
             'user_id' => $user->id,
             'sponsor_id' => $sponsorId,
             'referral_code' => $referralCode,
-            'status' => 'pending',
+            'status' => $paymentMethod === 'bkash' ? 'pending' : 'pending',
+            'payment_method' => $paymentMethod,
+            'payment_status' => $paymentMethod === 'bkash' ? 'pending' : 'pending',
         ]);
 
         // Update stock
@@ -119,25 +128,32 @@ class OrderController extends Controller
             $product->update(['in_stock' => false]);
         }
         
-        // Send SMS confirmation
-        try {
-            $smsService = app(SmsService::class);
-            $message = "আপনার অর্ডার #{$order->order_number} গ্রহণ করা হয়েছে। মোট: ৳" . number_format($order->total_price, 0) . "। ধন্যবাদ!";
-            $smsResult = $smsService->send($order->customer_phone, $message);
-            
-            if (!$smsResult['success']) {
-                \Log::warning('Failed to send order confirmation SMS', [
+        // Send SMS confirmation only for COD orders (bKash orders will get SMS after payment)
+        if ($paymentMethod !== 'bkash') {
+            try {
+                $smsService = app(SmsService::class);
+                $message = "আপনার অর্ডার #{$order->order_number} গ্রহণ করা হয়েছে। মোট: ৳" . number_format($order->total_price, 0) . "। ধন্যবাদ!";
+                $smsResult = $smsService->send($order->customer_phone, $message);
+                
+                if (!$smsResult['success']) {
+                    \Log::warning('Failed to send order confirmation SMS', [
+                        'order_id' => $order->id,
+                        'phone' => $order->customer_phone,
+                        'error' => $smsResult['error'] ?? 'Unknown error'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::error('SMS sending exception', [
                     'order_id' => $order->id,
-                    'phone' => $order->customer_phone,
-                    'error' => $smsResult['error'] ?? 'Unknown error'
+                    'error' => $e->getMessage()
                 ]);
+                // Don't fail the order if SMS fails
             }
-        } catch (\Exception $e) {
-            \Log::error('SMS sending exception', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage()
-            ]);
-            // Don't fail the order if SMS fails
+        }
+        
+        // If bKash payment, redirect to payment initiation
+        if ($paymentMethod === 'bkash') {
+            return redirect()->route('payment.bkash.initiate', ['order_id' => $order->id]);
         }
         
         return redirect()->route('orders.success', $order->order_number)
