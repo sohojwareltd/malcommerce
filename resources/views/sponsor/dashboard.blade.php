@@ -196,12 +196,13 @@ use Illuminate\Support\Str;
     </form>
     
             @if($referrals->count() > 0)
-            <div class="space-y-3">
+            <!-- Mobile layout: cards -->
+            <div class="space-y-3 md:hidden">
                 @foreach($referrals as $referral)
                 <div class="p-3 rounded-2xl border-2 hover:shadow-md transition bg-white" style="border-color: var(--color-accent);">
-                    <div class="flex gap-3 md:flex-col">
-                        {{-- Image column (fixed width on mobile, full width on desktop) --}}
-                        <div class="w-28 flex-shrink-0 md:w-full">
+                    <div class="flex gap-3">
+                        {{-- Image column (fixed width on all devices, whether image exists or not) --}}
+                        <div class="w-28 md:w-40 flex-shrink-0">
                             @if($referral->photo)
                                 <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}"
                                      class="w-full h-24 md:h-40 rounded-xl object-cover">
@@ -214,8 +215,8 @@ use Illuminate\Support\Str;
                             @endif
                         </div>
 
-                        {{-- Content column (approx. 60% of card on mobile, full width on desktop) --}}
-                        <div class="w-3/5 md:w-full md:flex-1 min-w-0 flex flex-col justify-between md:mt-3">
+                        {{-- Content column (approx. 60% of card on mobile) --}}
+                        <div class="w-3/5 min-w-0 flex flex-col justify-between">
                             <div>
                                 <div class="flex items-start justify-between gap-2 mb-1">
                                     <div class="min-w-0">
@@ -241,13 +242,87 @@ use Illuminate\Support\Str;
                                 <a href="{{ route('sponsor.users.show', $referral) }}"
                                    class="text-xs font-semibold px-3 py-1 rounded-full border border-dashed"
                                    style="color: var(--color-medium); border-color: var(--color-medium);">
-                                    View +
+                                    View 
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
                 @endforeach
+            </div>
+
+            <!-- Desktop layout: table -->
+            <div class="hidden md:block mt-4">
+                <div class="overflow-x-auto rounded-2xl border-2" style="border-color: var(--color-accent);">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Referral</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Affiliate Code</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Address</th>
+                                <th class="px-4 py-2 text-center font-semibold text-gray-700">Orders</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Joined</th>
+                                <th class="px-4 py-2 text-right font-semibold text-gray-700">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($referrals as $referral)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center gap-3">
+                                            @if($referral->photo)
+                                                <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}"
+                                                     class="w-10 h-10 rounded-full object-cover">
+                                            @else
+                                                <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: var(--color-light);">
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <div class="font-semibold text-sm" style="color: var(--color-dark);">
+                                                    {{ $referral->name }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-xs font-mono" style="color: var(--color-medium);">
+                                            {{ $referral->affiliate_code }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        @if($referral->address)
+                                            <span class="text-xs" style="color: var(--color-medium);">
+                                                {{ $referral->address }}
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-gray-400">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="text-xs font-medium" style="color: var(--color-dark);">
+                                            {{ $referral->orders_count }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="text-xs" style="color: var(--color-medium);">
+                                            {{ $referral->created_at->format('M d, Y') }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <a href="{{ route('sponsor.users.show', $referral) }}"
+                                           class="inline-flex items-center px-3 py-1 rounded-full border border-dashed text-xs font-semibold"
+                                           style="color: var(--color-medium); border-color: var(--color-medium);">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="mt-4 text-center">
                 <a href="{{ route('sponsor.users.index') }}" class="text-sm font-semibold" style="color: var(--color-medium);">View All Referrals →</a>
