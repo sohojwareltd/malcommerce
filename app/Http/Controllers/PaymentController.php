@@ -61,6 +61,7 @@ class PaymentController extends Controller
             $order->customer_phone,
             $cancelUrl
         );
+        dd($result);
 
         // Debug: Check the actual error response
         if (!$result['success']) {

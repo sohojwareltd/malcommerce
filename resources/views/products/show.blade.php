@@ -86,7 +86,7 @@
         <div class="flex items-center justify-center min-h-screen">
             <div class="text-center">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style="border-color: var(--color-primary);"></div>
-                <p class="text-gray-600 font-bangla">পেজ লোড হচ্ছে...</p>
+                <p class="text-gray-600 font-sans">পেজ লোড হচ্ছে...</p>
             </div>
         </div>
     </div>
@@ -125,7 +125,7 @@
                 
                 <!-- Product Info -->
                 <div>
-                    <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-900 font-bangla">{{ $product->name }}</h1>
+                    <h1 class="text-3xl md:text-4xl font-bold mb-4 text-gray-900 font-sans">{{ $product->name }}</h1>
                     
                     <!-- Price -->
                     <div class="mb-6">
@@ -155,7 +155,7 @@
                     
                     @if($product->short_description)
                     <div class="mb-6 p-4 bg-gray-50 rounded-xl">
-                        <p class="text-gray-700 font-bangla leading-relaxed">{{ $product->short_description }}</p>
+                        <p class="text-gray-700 font-sans leading-relaxed">{{ $product->short_description }}</p>
                     </div>
                     @endif
                     
@@ -200,7 +200,7 @@
                 </div>
                 
                 <div x-show="activeTab === 'description'" x-transition class="prose max-w-none">
-                    <div class="text-gray-700 font-bangla leading-relaxed whitespace-pre-line">
+                    <div class="text-gray-700 font-sans leading-relaxed whitespace-pre-line">
                         {!! nl2br(e($product->description)) !!}
                     </div>
                 </div>
@@ -240,7 +240,7 @@
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             >
                         </div>
-                        <h3 class="font-semibold text-lg mb-2 text-gray-900 font-bangla line-clamp-2">{{ $relatedProduct->name }}</h3>
+                        <h3 class="font-semibold text-lg mb-2 text-gray-900 font-sans line-clamp-2">{{ $relatedProduct->name }}</h3>
                         <div class="text-xl font-bold" style="color: var(--color-primary);">৳{{ number_format($relatedProduct->price, 0) }}</div>
                     </a>
                 </div>
@@ -255,6 +255,34 @@
 @if($product->page_layout && count($product->page_layout) > 0)
 @vite('resources/js/product-sections.js')
 @endif
+@php
+    $recentlyViewedData = [
+        'id' => $product->id,
+        'name' => $product->name,
+        'slug' => $product->slug,
+        'image' => $product->main_image ? (str_starts_with($product->main_image, '/') || str_starts_with($product->main_image ?? '', 'http') ? $product->main_image : '/storage/' . $product->main_image) : '/placeholder-product.jpg',
+        'price' => (float) $product->price,
+        'compare_at_price' => $product->compare_at_price ? (float) $product->compare_at_price : null,
+        'viewed_at' => time(),
+    ];
+@endphp
+<script>
+(function() {
+    const productData = @json($recentlyViewedData);
+    const ONE_WEEK_SEC = 7 * 24 * 60 * 60;
+    const MAX_ITEMS = 20;
+    const STORAGE_KEY = 'recently_viewed_products';
+    try {
+        let items = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const now = Math.floor(Date.now() / 1000);
+        items = items.filter(function(p) { return (now - p.viewed_at) < ONE_WEEK_SEC; });
+        items = items.filter(function(p) { return p.id !== productData.id; });
+        items.unshift(productData);
+        items = items.slice(0, MAX_ITEMS);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch (e) { console.warn('Recently viewed save failed:', e); }
+})();
+</script>
 @endpush
 
 @push('head')

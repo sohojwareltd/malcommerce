@@ -340,7 +340,7 @@
                                         </span>
                                     @endif
                                 </div>
-                                <h3 class="font-semibold text-lg mb-2 text-gray-900 font-bangla line-clamp-2">
+                                <h3 class="font-semibold text-lg mb-2 text-gray-900 line-clamp-2">
                                     {{ $product->name }}</h3>
                                 <div class="flex items-center gap-3">
                                     <span class="text-xl font-bold"
@@ -395,7 +395,7 @@
                                     </span>
                                 @endif
                             </div>
-                            <h3 class="font-semibold text-lg mb-2 text-gray-900 font-bangla line-clamp-2">
+                            <h3 class="font-semibold text-lg mb-2 text-gray-900 line-clamp-2">
                                 {{ $product->name }}</h3>
                             <div class="flex items-center gap-3">
                                 <span class="text-xl font-bold"

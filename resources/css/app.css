@@ -7,7 +7,7 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: var(--font-family-base, 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif);
+    --font-sans: var(--font-family-base, 'Raleway', ui-sans-serif, system-ui, sans-serif);
     --font-bangla: var(--font-family-bangla, 'Noto Sans Bengali', sans-serif);
     
     /* Colors from design tokens (can be overridden by settings via CSS vars) */
@@ -26,6 +26,10 @@
     
     .font-bangla {
         font-family: var(--font-family-bangla);
+    }
+
+    .font-raleway {
+        font-family: var(--font-family-base);
     }
     
     /* Typography hierarchy */
@@ -219,7 +223,7 @@
         margin-bottom: var(--spacing-8);
         text-align: center;
         color: var(--color-text);
-        font-family: var(--font-family-bangla);
+        font-family: var(--font-family-base);
     }
     
     @media (min-width: 768px) {
@@ -252,11 +256,11 @@
 }
 
 @font-face {
-    font-family: 'Inter';
+    font-family: 'Raleway';
     font-style: normal;
     font-weight: 100 900;
     font-display: swap;
-    src: url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+    src: url('https://fonts.googleapis.com/css2?family=Raleway:wght@100..900&display=swap');
 }
 
 @font-face {

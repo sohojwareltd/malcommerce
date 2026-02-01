@@ -97,7 +97,7 @@
                                 </span>
                                 @endif
                             </div>
-                            <h3 class="font-semibold text-base md:text-lg mb-2 text-gray-900 font-bangla line-clamp-2 min-h-[3rem]">{{ $product->name }}</h3>
+                            <h3 class="font-semibold text-base md:text-lg mb-2 text-gray-900 line-clamp-2 min-h-[3rem]">{{ $product->name }}</h3>
                             <div class="flex items-center gap-3 flex-wrap">
                                 <span class="text-lg md:text-xl font-bold" style="color: var(--color-primary);">৳{{ number_format($product->price, 0) }}</span>
                                 @if($product->compare_at_price && $product->compare_at_price > $product->price)

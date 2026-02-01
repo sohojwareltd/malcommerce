@@ -74,7 +74,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+Bengali:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Noto+Sans+Bengali:wght@100..900&display=swap" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -161,7 +161,7 @@
         }
     </style>
 </head>
-<body class="h-full bg-white font-sans" style="font-family: var(--font-family-base, 'Inter', 'Noto Sans Bengali', system-ui, sans-serif);">
+<body class="h-full bg-white font-sans" style="font-family: var(--font-family-base, 'Raleway', ui-sans-serif, system-ui, sans-serif);">
     <div class="min-h-full flex flex-col">
         <!-- Marquee Banner -->
         @php
@@ -340,7 +340,7 @@
         
         @unless(isset($hideLayoutChrome) && $hideLayoutChrome)
         <!-- Footer -->
-        <footer class="bg-gray-50 border-t border-gray-200 mt-16 pattern-dots">
+        <footer class="bg-gray-50 border-t border-gray-200 mt-8 md:mt-16 pattern-dots">
             @php
                 $footerSettings = json_decode(\App\Models\Setting::get('footer_settings', '{}'), true) ?? [];
                 $siteName = \App\Models\Setting::get('site_name', config('app.name'));
@@ -404,26 +404,26 @@
                     );
                 };
             @endphp
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-12">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                     @foreach($columns as $column)
                         <div>
                             @if(!empty($column['title']))
-                                <h3 class="text-lg font-semibold mb-4 text-gray-900 font-bangla">{{ $renderText($column['title']) }}</h3>
+                                <h3 class="text-sm md:text-lg font-semibold mb-2 md:mb-4 text-gray-900">{{ $renderText($column['title']) }}</h3>
                             @endif
                             
                             @if(($column['type'] ?? 'text') === 'text')
                                 @if(!empty($column['content']))
-                                    <p class="text-gray-600 text-sm font-bangla leading-relaxed">{{ $renderText($column['content']) }}</p>
+                                    <p class="text-gray-600 text-xs md:text-sm leading-relaxed">{{ $renderText($column['content']) }}</p>
                                 @endif
                             @elseif(($column['type'] ?? '') === 'links')
                                 @php $links = $column['links'] ?? []; @endphp
                                 @if(!empty($links))
-                                    <ul class="space-y-2 text-sm">
+                                    <ul class="space-y-1 md:space-y-2 text-xs md:text-sm">
                                         @foreach($links as $link)
                                             @if(!empty($link['text']) || !empty($link['url']))
                                                 <li>
-                                                    <a href="{{ $link['url'] ?? '#' }}" class="text-gray-600 hover:text-primary transition font-bangla">{{ $renderText($link['text'] ?? '') }}</a>
+                                                    <a href="{{ $link['url'] ?? '#' }}" class="text-gray-600 hover:text-primary transition">{{ $renderText($link['text'] ?? '') }}</a>
                                                 </li>
                                             @endif
                                         @endforeach
@@ -432,7 +432,7 @@
                             @elseif(in_array(($column['type'] ?? ''), ['service', 'badges']))
                                 @php $items = $column['items'] ?? []; @endphp
                                 @if(!empty($items))
-                                    <ul class="space-y-2 text-sm text-gray-600 font-bangla">
+                                    <ul class="space-y-1 md:space-y-2 text-xs md:text-sm text-gray-600">
                                         @foreach($items as $item)
                                             @if(!empty($item['text']) || !empty($item['icon']))
                                                 <li>{{ $item['icon'] ?? '' }} {{ $renderText($item['text'] ?? '') }}</li>
@@ -445,8 +445,24 @@
                     @endforeach
                 </div>
                 
-                <div class="mt-8 pt-8 border-t border-gray-200 text-center">
-                    <p class="text-sm text-gray-600 font-bangla">
+                <!-- App Download Button -->
+                <div class="mt-4 md:mt-8 flex gap-5 flex-col items-center justify-center">
+                    <span class="font-bangla text-sm md:text-lg font-semibold">অ্যাপ ডাউনলোড করুন</span>
+                    
+                    <a 
+                        href="https://drive.google.com/file/d/1VlemahBqWaE07Pjy2oHk0kIC1HT1d9Mb/view?usp=sharing" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-2  bg-[#ffffff] hover:bg-[#ffffff]/80 text-white rounded-lg transition shadow-md hover:shadow-lg font-sans font-medium"
+                        aria-label="Download app from Google Drive"
+                    >
+                        <img src="{{ asset('google-play-download.png') }}" alt="Google Play" class="h-12 md:h-[80px] w-auto" />
+                       
+                    </a>
+                </div>
+                
+                <div class="mt-4 md:mt-8 pt-4 md:pt-8 border-t border-gray-200 text-center">
+                    <p class="text-xs md:text-sm text-gray-600">
                         {!! $renderText($copyright) !!}
                     </p>
                 </div>
@@ -462,11 +478,22 @@
     
     @stack('scripts')
     
+    <!-- WhatsApp Floating Button -->
+    <a 
+        href="https://wa.me/8801789079791" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        class="fixed bottom-8 left-4 md:left-8 z-50 flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-[#25D366] text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200"
+        aria-label="Chat on WhatsApp"
+    >
+        <i class="fab fa-whatsapp text-2xl md:text-3xl"></i>
+    </a>
+    
     <!-- Scroll to Top Button -->
     <button 
         id="scrollToTopBtn" 
         onclick="window.scrollTo({ top: 0, behavior: 'smooth' });"
-        class="fixed bottom-8 right-8 bg-primary text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-200 opacity-0 pointer-events-none z-50"
+        class="fixed bottom-8 right-4 md:right-8 bg-primary text-white rounded-full p-3 md:p-4 shadow-lg hover:shadow-xl transition-all duration-200 opacity-0 pointer-events-none z-50"
         style="background-color: var(--color-primary);"
         aria-label="Scroll to top"
     >

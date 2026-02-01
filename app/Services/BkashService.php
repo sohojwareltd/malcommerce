@@ -26,6 +26,7 @@ class BkashService
         $this->appKey = config('services.bkash.app_key');
         $this->appSecret = config('services.bkash.app_secret');
         $this->isSandbox = config('services.bkash.sandbox', true);
+        
     }
 
     /**
@@ -56,7 +57,7 @@ class BkashService
                 'app_key' => $this->appKey,
                 'app_secret' => $this->appSecret,
             ]);
-
+dd($response->body());
             $responseBody = $response->body();
             $responseData = $response->json();
             $statusCode = $response->status();

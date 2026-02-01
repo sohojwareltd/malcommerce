@@ -325,10 +325,10 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 {(section.title || section.content) && (
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 text-center">
                         {section.title && (
-                            <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                            <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
                         )}
                         {section.content && (
-                            <RenderText content={section.content} tag="p" className="text-lg font-bangla" style={{ lineHeight: '1.8' }} />
+                            <RenderText content={section.content} tag="p" className="text-lg font-sans" style={{ lineHeight: '1.8' }} />
                         )}
                     </div>
                 )}
@@ -336,7 +336,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                         {/* Order Form */}
                         <div className="card overflow-hidden" style={section.background_color ? { backgroundColor: section.background_color } : {}}>
-                            <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-900 font-bangla break-words">{orderFormTitle}</h2>
+                            <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-900 font-sans break-words">{orderFormTitle}</h2>
                             <form action="/orders" method="POST" id={`product-order-form-${index}`} className="space-y-4">
                                 <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
                                 <input type="hidden" name="product_id" value={productId} />
@@ -344,7 +344,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 {/* Quantity */}
                                 {!hideQuantity && (
                                 <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">পরিমাণ</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3 font-sans">পরিমাণ</label>
                                     <div className="flex items-center gap-2 md:gap-4 flex-wrap">
                                         {/* Product Image and Title */}
                                         <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
@@ -362,8 +362,8 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0 overflow-hidden">
-                                                <h3 className="font-semibold text-gray-900 font-bangla text-sm md:text-base truncate">{productName}</h3>
-                                                <p className="text-xs md:text-sm text-gray-600 font-bangla whitespace-nowrap">৳{price.toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                                <h3 className="font-semibold text-gray-900 font-sans text-sm md:text-base truncate">{productName}</h3>
+                                                <p className="text-xs md:text-sm text-gray-600 font-sans whitespace-nowrap">৳{price.toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                             </div>
                                         </div>
                                         
@@ -397,10 +397,10 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                                 +
                                             </button>
                                         </div>
-                                        <span className="text-gray-600 font-bangla text-xs md:text-sm hidden md:inline whitespace-nowrap">(স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি)</span>
+                                        <span className="text-gray-600 font-sans text-xs md:text-sm hidden md:inline whitespace-nowrap">(স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি)</span>
                                     </div>
                                     <div className="mt-2 md:hidden">
-                                        <span className="text-gray-600 font-bangla text-sm">স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি</span>
+                                        <span className="text-gray-600 font-sans text-sm">স্টকে: {maxQuantity === 999 ? '∞' : maxQuantity} টি</span>
                                     </div>
                                 </div>
                                 )}
@@ -409,20 +409,20 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 {/* Customer Information */}
                                 <div className="space-y-4 mb-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
                                             আপনার নাম <span className="text-red-500">*</span>
                                         </label>
                                         <input 
                                             type="text"
                                             name="customer_name"
                                             required
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-sans"
                                             placeholder="আপনার সম্পূর্ণ নাম"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
                                             মোবাইল নাম্বার <span className="text-red-500">*</span>
                                         </label>
                                         <input 
@@ -436,14 +436,14 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 font-bangla">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 font-sans">
                                             পূর্ণ ঠিকানা <span className="text-red-500">*</span>
                                         </label>
                                         <textarea 
                                             name="address"
                                             rows="4"
                                             required
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-bangla resize-none"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-sans resize-none"
                                             placeholder=""
                                         ></textarea>
                                     </div>
@@ -452,7 +452,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 {/* Delivery Options */}
                                 {deliveryOptions.length > 0 && (
                                 <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3 font-sans">
                                         ডেলিভারি অপশন <span className="text-red-500">*</span>
                                     </label>
                                     <div className="space-y-2">
@@ -468,8 +468,8 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                                     required
                                                 />
                                                 <div className="flex-1">
-                                                    <div className="font-semibold text-gray-900 font-bangla">{option.name || 'Standard'}</div>
-                                                    <div className="text-sm text-gray-600 font-bangla">
+                                                    <div className="font-semibold text-gray-900 font-sans">{option.name || 'Standard'}</div>
+                                                    <div className="text-sm text-gray-600 font-sans">
                                                         ৳{parseFloat(option.charge || 0).toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                         {option.days && ` - ${option.days} দিন`}
                                                     </div>
@@ -483,7 +483,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 {/* Payment Method Selection */}
                                 {paymentOptions.length > 0 && (
                                 <div className="mb-6">
-                                    <label className="block text-sm font-medium text-gray-700 mb-3 font-bangla">
+                                    <label className="block text-sm font-medium text-gray-700 mb-3 font-sans">
                                         পেমেন্ট পদ্ধতি <span className="text-red-500">*</span>
                                     </label>
                                     <div className="space-y-2">
@@ -500,11 +500,11 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                                 className="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
                                             />
                                             <div className="flex-1">
-                                                <div className="font-semibold text-gray-900 font-bangla flex items-center gap-2">
+                                                <div className="font-semibold text-gray-900 font-sans flex items-center gap-2">
                                                     <span>💵</span>
                                                     <span>ক্যাশ অন ডেলিভারি (COD)</span>
                                                 </div>
-                                                <div className="text-sm text-gray-600 font-bangla mt-1">
+                                                <div className="text-sm text-gray-600 font-sans mt-1">
                                                     ডেলিভারির সময় পেমেন্ট করুন
                                                 </div>
                                             </div>
@@ -523,11 +523,11 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                                 className="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
                                             />
                                             <div className="flex-1">
-                                                <div className="font-semibold text-gray-900 font-bangla flex items-center gap-2">
+                                                <div className="font-semibold text-gray-900 font-sans flex items-center gap-2">
                                                     <span>📱</span>
                                                     <span>bKash</span>
                                                 </div>
-                                                <div className="text-sm text-gray-600 font-bangla mt-1">
+                                                <div className="text-sm text-gray-600 font-sans mt-1">
                                                     bKash অ্যাপ/ওয়েবসাইটের মাধ্যমে পেমেন্ট করুন
                                                 </div>
                                             </div>
@@ -543,36 +543,36 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 {/* Order Summary */}
                                 {!hideSummary && (
                                 <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
-                                    <h3 className="font-semibold text-gray-900 mb-4 font-bangla">অর্ডার সারাংশ</h3>
+                                    <h3 className="font-semibold text-gray-900 mb-4 font-sans">অর্ডার সারাংশ</h3>
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-700 font-bangla">পণ্যের মূল্য</span>
+                                            <span className="text-gray-700 font-sans">পণ্যের মূল্য</span>
                                             <span className="font-semibold text-gray-900">৳{(price * quantity).toLocaleString('bn-BD')}</span>
                                         </div>
                                         {!hideQuantity && (
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-700 font-bangla">পরিমাণ</span>
+                                            <span className="text-gray-700 font-sans">পরিমাণ</span>
                                             <span className="font-semibold text-gray-900">{quantity} টি</span>
                                         </div>
                                         )}
                                         <div className="flex justify-between items-center text-sm text-gray-600">
-                                            <span className="font-bangla">ডেলিভারি চার্জ</span>
-                                            <span className="font-bangla">{deliveryCharge > 0 ? `৳${deliveryCharge.toLocaleString('bn-BD')}` : 'ফ্রি'}</span>
+                                            <span className="font-sans">ডেলিভারি চার্জ</span>
+                                            <span className="font-sans">{deliveryCharge > 0 ? `৳${deliveryCharge.toLocaleString('bn-BD')}` : 'ফ্রি'}</span>
                                         </div>
                                         <div className="border-t border-gray-300 pt-3 mt-3">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-lg font-semibold text-gray-900 font-bangla">মোট</span>
+                                                <span className="text-lg font-semibold text-gray-900 font-sans">মোট</span>
                                                 <span className="text-2xl font-bold" style={{ color: 'var(--color-primary)' }}>৳{totalPrice.toLocaleString('bn-BD')}</span>
                                             </div>
                                         </div>
                                     </div>
                                     {paymentMethod === 'cod' && (
-                                    <p className="text-xs text-gray-600 mt-4 font-bangla">
+                                    <p className="text-xs text-gray-600 mt-4 font-sans">
                                         💳 ক্যাশ অন ডেলিভারি - অগ্রীম কোন টাকা ছাড়াই অর্ডার করুন
                                     </p>
                                     )}
                                     {paymentMethod === 'bkash' && (
-                                    <p className="text-xs text-gray-600 mt-4 font-bangla">
+                                    <p className="text-xs text-gray-600 mt-4 font-sans">
                                         📱 bKash পেমেন্ট - অর্ডার নিশ্চিত করার পর bKash পেমেন্ট পেজে রিডাইরেক্ট করা হবে
                                     </p>
                                     )}
@@ -581,14 +581,14 @@ const ProductSections = ({ layout, productId, productName, productImage, product
 
                                 {effectiveMinQuantity > 0 && quantity < effectiveMinQuantity && (
                                 <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                    <p className="text-sm text-yellow-800 font-bangla">
+                                    <p className="text-sm text-yellow-800 font-sans">
                                         সর্বনিম্ন অর্ডার পরিমাণ: {effectiveMinQuantity} টি
                                     </p>
                                 </div>
                                 )}
                                 {maxQuantity > 0 && quantity > maxQuantity && (
                                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-sm text-red-800 font-bangla">
+                                    <p className="text-sm text-red-800 font-sans">
                                         সর্বোচ্চ অর্ডার পরিমাণ: {maxQuantity} টি
                                     </p>
                                 </div>
@@ -596,7 +596,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
 
                                 <button 
                                     type="submit"
-                                    className={`w-full btn-primary font-bangla text-base md:text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 break-words ${
+                                    className={`w-full btn-primary font-sans text-base md:text-lg py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 break-words ${
                                         (effectiveMinQuantity > 0 && quantity < effectiveMinQuantity) || 
                                         (maxQuantity > 0 && quantity > maxQuantity) ||
                                         (deliveryOptions.length > 0 && (selectedDelivery === null || selectedDelivery === undefined))
@@ -626,12 +626,12 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }}>
+                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }}>
                                     {section.title}
                                 </h2>
                             )}
                             <div 
-                                className="prose prose-lg max-w-none font-bangla" 
+                                className="prose prose-lg max-w-none font-sans" 
                                 style={{ 
                                     lineHeight: '1.8',
                                     fontSize: '1.125rem',
@@ -648,7 +648,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
                             )}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {section.images?.map((image, imgIndex) => (
@@ -666,7 +666,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
                             )}
                             {section.images && section.images.length > 0 ? (
                                 <>
@@ -733,7 +733,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     `}</style>
                                 </>
                             ) : (
-                                <p className="text-center text-gray-500 font-bangla py-8">No images added to slider</p>
+                                <p className="text-center text-gray-500 font-sans py-8">No images added to slider</p>
                             )}
                         </div>
                     </section>
@@ -744,7 +744,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
                             )}
                             {section.videos && section.videos.length > 0 ? (
                                 <>
@@ -793,7 +793,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                                         )}
                                                     </div>
                                                     {video.title && (
-                                                        <h3 className="text-lg font-semibold text-gray-900 font-bangla mt-4 text-center">{video.title}</h3>
+                                                        <h3 className="text-lg font-semibold text-gray-900 font-sans mt-4 text-center">{video.title}</h3>
                                                     )}
                                                 </div>
                                             );
@@ -855,7 +855,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     `}</style>
                                 </>
                             ) : (
-                                <p className="text-center text-gray-500 font-bangla py-8">No videos added to slider</p>
+                                <p className="text-center text-gray-500 font-sans py-8">No videos added to slider</p>
                             )}
                         </div>
                     </section>
@@ -894,7 +894,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 <RenderText 
                                     content={section.title}
                                     tag="h2"
-                                    className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 font-bangla" 
+                                    className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 font-sans" 
                                     style={{ lineHeight: '1.3' }}
                                 />
                             )}
@@ -902,7 +902,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 <RenderText 
                                     content={section.content}
                                     tag="p"
-                                    className="text-lg md:text-xl font-bangla" 
+                                    className="text-lg md:text-xl font-sans" 
                                     style={{ lineHeight: '1.6' }}
                                 />
                             )}
@@ -920,13 +920,13 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <div key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }} />
+                                <RenderText content={section.title} tag="h2" className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }} />
                             )}
                             <div className="space-y-5 md:space-y-6">
                                 {section.items?.map((faq, faqIndex) => (
                                     <div key={faqIndex} className="pb-5 md:pb-6 border-b border-gray-200 last:border-b-0">
-                                        <RenderText content={faq.question} tag="h3" className="font-semibold text-lg md:text-xl mb-3 font-bangla text-gray-900" style={{ lineHeight: '1.5' }} />
-                                        <RenderText content={faq.answer} tag="p" className="text-gray-600 text-base md:text-lg font-bangla" style={{ lineHeight: '1.7' }} />
+                                        <RenderText content={faq.question} tag="h3" className="font-semibold text-lg md:text-xl mb-3 font-sans text-gray-900" style={{ lineHeight: '1.5' }} />
+                                        <RenderText content={faq.answer} tag="p" className="text-gray-600 text-base md:text-lg font-sans" style={{ lineHeight: '1.7' }} />
                                     </div>
                                 ))}
                             </div>
@@ -939,17 +939,17 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }}>
+                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }}>
                                     {section.title}
                                 </h2>
                             )}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                                 {section.items?.map((testimonial, testIndex) => (
                                     <div key={testIndex} className="text-center">
-                                        <p className="text-gray-700 mb-4 text-base md:text-lg font-bangla" style={{ lineHeight: '1.8' }}>
+                                        <p className="text-gray-700 mb-4 text-base md:text-lg font-sans" style={{ lineHeight: '1.8' }}>
                                             "{testimonial.text}"
                                         </p>
-                                        <p className="font-semibold text-gray-900 font-bangla">- {testimonial.author}</p>
+                                        <p className="font-semibold text-gray-900 font-sans">- {testimonial.author}</p>
                                     </div>
                                 ))}
                             </div>
@@ -961,7 +961,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
                                 <iframe
                                     src={section.url}
@@ -978,14 +978,14 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="theme-card overflow-hidden">
                                 <table className="w-full">
                                     <tbody>
                                         {section.items?.map((spec, specIndex) => (
                                             <tr key={specIndex} className="border-b last:border-b-0">
-                                                <td className="px-6 py-4 font-semibold bg-gray-50 w-1/3 font-bangla">{spec.label}</td>
-                                                <td className="px-6 py-4 font-bangla">{spec.value}</td>
+                                                <td className="px-6 py-4 font-semibold bg-gray-50 w-1/3 font-sans">{spec.label}</td>
+                                                <td className="px-6 py-4 font-sans">{spec.value}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -999,23 +999,23 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="theme-card overflow-x-auto">
                                 <table className="w-full">
                                     <thead style={{ backgroundColor: 'var(--color-primary)', color: 'white' }}>
                                         <tr>
-                                            <th className="px-6 py-4 text-left font-bangla">Feature</th>
+                                            <th className="px-6 py-4 text-left font-sans">Feature</th>
                                             {section.items?.map((item, itemIndex) => (
-                                                <th key={itemIndex} className="px-6 py-4 text-center font-bangla">{item.name || `Option ${itemIndex + 1}`}</th>
+                                                <th key={itemIndex} className="px-6 py-4 text-center font-sans">{item.name || `Option ${itemIndex + 1}`}</th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {section.items?.[0]?.features?.map((feature, featIndex) => (
                                             <tr key={featIndex} className="border-b">
-                                                <td className="px-6 py-4 font-semibold font-bangla">{feature.label}</td>
+                                                <td className="px-6 py-4 font-semibold font-sans">{feature.label}</td>
                                                 {section.items.map((item, itemIndex) => (
-                                                    <td key={itemIndex} className="px-6 py-4 text-center font-bangla">
+                                                    <td key={itemIndex} className="px-6 py-4 text-center font-sans">
                                                         {item.features?.[featIndex]?.value || '-'}
                                                     </td>
                                                 ))}
@@ -1073,13 +1073,13 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     >
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 font-bangla" style={{ lineHeight: '1.3' }} />
+                                <RenderText content={section.title} tag="h2" className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 font-sans" style={{ lineHeight: '1.3' }} />
                             )}
                             {section.content && (
                                 <RenderText
                                     content={section.content}
                                     tag="p"
-                                    className="text-lg md:text-xl mb-6 md:mb-8 font-bangla"
+                                    className="text-lg md:text-xl mb-6 md:mb-8 font-sans"
                                     style={{ lineHeight: '1.6' }}
                                 />
                             )}
@@ -1087,7 +1087,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 <a
                                     href={isOrderCTA ? '#page-order-form' : section.button_link || '#'}
                                     onClick={isOrderCTA ? handleOrderScroll : undefined}
-                                    className="inline-block font-bangla text-lg md:text-xl font-semibold px-8 md:px-12 py-4 md:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                    className="inline-block font-sans text-lg md:text-xl font-semibold px-8 md:px-12 py-4 md:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
                                     style={{
                                         backgroundColor: section.button_color || '#FFFFFF',
                                         color: section.background_color || '#008060',
@@ -1105,7 +1105,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="theme-card">
                                 <TabsComponent items={section.items} />
                             </div>
@@ -1118,13 +1118,13 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${section.columns || 2}, 1fr)`, gap: gridGap }}>
                                 {(section.items || []).slice(0, section.columns || 2).map((item, i) => (
                                     <div key={i} className="theme-card">
-                                        {item.type === 'text' && <RenderText content={item.content} className="prose max-w-none font-bangla" />}
+                                        {item.type === 'text' && <RenderText content={item.content} className="prose max-w-none font-sans" />}
                                         {item.type === 'image' && item.image && <img src={item.image} alt="" className="w-full rounded-lg" />}
-                                        {item.type === 'html' && <RenderText content={item.content} className="font-bangla" />}
+                                        {item.type === 'html' && <RenderText content={item.content} className="font-sans" />}
                                         {item.type === 'video' && item.content && (
                                             <div className="aspect-video">
                                                 <iframe src={item.content} className="w-full h-full rounded-lg" allowFullScreen />
@@ -1144,7 +1144,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 return (
                     <div key={index} className="theme-section">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />}
+                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="flex gap-4 flex-wrap" style={{ 
                                 flexDirection,
                                 alignItems: flexAlign === 'start' ? 'flex-start' : flexAlign === 'end' ? 'flex-end' : flexAlign === 'center' ? 'center' : 'stretch',
@@ -1152,11 +1152,11 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                             }}>
                                 {(section.items || []).map((item, i) => (
                                     <div key={i} className="theme-card flex-1 min-w-[200px]">
-                                        {item.type === 'text' && <RenderText content={item.content} className="prose max-w-none font-bangla" />}
+                                        {item.type === 'text' && <RenderText content={item.content} className="prose max-w-none font-sans" />}
                                         {item.type === 'image' && item.image && <img src={item.image} alt="" className="w-full rounded-lg" />}
-                                        {item.type === 'html' && <RenderText content={item.content} className="font-bangla" />}
+                                        {item.type === 'html' && <RenderText content={item.content} className="font-sans" />}
                                         {item.type === 'button' && (
-                                            <a href={item.buttonLink || '#'} className="btn-primary font-bangla inline-block">
+                                            <a href={item.buttonLink || '#'} className="btn-primary font-sans inline-block">
                                                 {item.buttonText || 'Button'}
                                             </a>
                                         )}
@@ -1195,7 +1195,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                         backgroundColor: section.backgroundColor || 'var(--color-background)',
                         borderRadius: 'var(--radius-xl)'
                     }}>
-                        <RenderText content={section.content} className="font-bangla" />
+                        <RenderText content={section.content} className="font-sans" />
                     </div>
                 );
             
@@ -1235,7 +1235,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     <RenderText 
                                         content={section.title}
                                         tag="h1"
-                                        className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 font-bangla" 
+                                        className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 font-sans" 
                                         style={{ lineHeight: '1.2' }}
                                     />
                                 )}
@@ -1243,7 +1243,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     <RenderText 
                                         content={section.subtitle}
                                         tag="p"
-                                        className="text-lg md:text-xl lg:text-2xl mb-4 md:mb-6 font-bangla max-w-4xl mx-auto" 
+                                        className="text-lg md:text-xl lg:text-2xl mb-4 md:mb-6 font-sans max-w-4xl mx-auto" 
                                         style={{ lineHeight: '1.5' }}
                                     />
                                 )}
@@ -1251,12 +1251,12 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     <RenderText 
                                         content={section.discount_text}
                                         tag="p"
-                                        className="text-xl md:text-2xl font-bold mb-4 md:mb-6 font-bangla"
+                                        className="text-xl md:text-2xl font-bold mb-4 md:mb-6 font-sans"
                                     />
                                 )}
                                 {section.html_content && (
                                     <div 
-                                        className="mb-4 md:mb-6 font-bangla text-lg md:text-xl" 
+                                        className="mb-4 md:mb-6 font-sans text-lg md:text-xl" 
                                         style={{ lineHeight: '1.6' }}
                                         dangerouslySetInnerHTML={{ __html: section.html_content }} 
                                     />
@@ -1276,7 +1276,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             <RenderText 
                                                 content={section.video_title || section.title}
                                                 tag="h3"
-                                                className="text-center text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 font-bangla" 
+                                                className="text-center text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 font-sans" 
                                                 style={{ lineHeight: '1.2' }}
                                             />
                                         )}
@@ -1291,7 +1291,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                     <div className="flex flex-col md:flex-row flex-wrap items-stretch md:items-center justify-center gap-4 md:gap-6 w-full md:w-auto">
                                         {section.button_text && (
                                             <a href={section.button_link || '#'} 
-                                               className="w-full md:w-auto block md:inline-block text-center font-bangla text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                               className="w-full md:w-auto block md:inline-block text-center font-sans text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
                                                style={{
                                                    backgroundColor: section.button_bg_color || '#FFFFFF',
                                                    color: section.button_text_color || '#008060'
@@ -1302,7 +1302,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         )}
                                         {section.button2_text && (
                                             <a href={section.button2_link || '#'} 
-                                               className="w-full md:w-auto block md:inline-block text-center font-bangla text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
+                                               className="w-full md:w-auto block md:inline-block text-center font-sans text-base md:text-lg lg:text-xl font-semibold px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 rounded-lg transition transform hover:scale-105 shadow-lg hover:shadow-xl"
                                                style={{
                                                    backgroundColor: section.button2_bg_color || '#008060',
                                                    color: section.button2_text_color || '#FFFFFF'
@@ -1323,7 +1323,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }} />
+                                <RenderText content={section.title} tag="h2" className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }} />
                             )}
                             <div className="space-y-3 md:space-y-4">
                                 {section.items?.map((benefit, i) => (
@@ -1335,10 +1335,10 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                         </div>
                                         <div className="flex-1">
                                             {benefit.title && (
-                                                <RenderText content={benefit.title} tag="h3" className="text-lg md:text-xl font-semibold font-bangla text-gray-900" style={{ lineHeight: '1.6' }} />
+                                                <RenderText content={benefit.title} tag="h3" className="text-lg md:text-xl font-semibold font-sans text-gray-900" style={{ lineHeight: '1.6' }} />
                                             )}
                                             {benefit.description && (
-                                                <RenderText content={benefit.description} tag="p" className="text-gray-600 text-base md:text-lg font-bangla mt-1" style={{ lineHeight: '1.7' }} />
+                                                <RenderText content={benefit.description} tag="p" className="text-gray-600 text-base md:text-lg font-sans mt-1" style={{ lineHeight: '1.7' }} />
                                             )}
                                         </div>
                                     </div>
@@ -1353,40 +1353,40 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-bangla" style={{ lineHeight: '1.3' }}>
+                                <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }}>
                                     {section.title}
                                 </h2>
                             )}
                             <div className="text-center">
                                 {section.original_price && (
                                     <div className="mb-4">
-                                        <span className="text-xl md:text-2xl text-gray-500 line-through font-bangla">{section.original_price}</span>
+                                        <span className="text-xl md:text-2xl text-gray-500 line-through font-sans">{section.original_price}</span>
                                     </div>
                                 )}
                                 {section.offer_price && (
                                     <div className="mb-4">
-                                        <span className="text-4xl md:text-5xl lg:text-6xl font-bold font-bangla" style={{ color: '#DC2626' }}>
+                                        <span className="text-4xl md:text-5xl lg:text-6xl font-bold font-sans" style={{ color: '#DC2626' }}>
                                             {section.offer_price}
                                         </span>
                                     </div>
                                 )}
                                 {section.discount_text && (
-                                    <p className="font-bold text-lg md:text-xl mb-6 md:mb-8 font-bangla" style={{ color: '#059669' }}>
+                                    <p className="font-bold text-lg md:text-xl mb-6 md:mb-8 font-sans" style={{ color: '#059669' }}>
                                         {section.discount_text}
                                     </p>
                                 )}
                                 {section.countdown_date && (
                                     <div className="text-center mb-6 md:mb-8">
-                                        <p className="text-sm md:text-base text-gray-600 mb-3 font-bangla">অফার শেষ হতে বাকি:</p>
+                                        <p className="text-sm md:text-base text-gray-600 mb-3 font-sans">অফার শেষ হতে বাকি:</p>
                                         <div className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-red-50 border-2 border-red-300">
                                             <span
                                                 id={`countdown-${index}`}
-                                                className="font-mono text-xl md:text-2xl tracking-wider font-bold font-bangla text-red-600"
+                                                className="font-mono text-xl md:text-2xl tracking-wider font-bold font-sans text-red-600"
                                             >
                                                 Loading...
                                             </span>
                                         </div>
-                                        <p className="text-xs md:text-sm text-gray-500 mt-3 font-bangla">
+                                        <p className="text-xs md:text-sm text-gray-500 mt-3 font-sans">
                                             সময় শেষ হলে অফার পরিবর্তন হতে পারে।
                                         </p>
                                     </div>
@@ -1401,7 +1401,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
                             )}
                             <div className="space-y-6">
                                 {section.items?.map((step, i) => (
@@ -1412,10 +1412,10 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             </div>
                                             <div className="flex-1">
                                                 {step.title && (
-                                                    <RenderText content={step.title} tag="h3" className="text-xl md:text-2xl font-bold mb-2 font-bangla text-gray-800" />
+                                                    <RenderText content={step.title} tag="h3" className="text-xl md:text-2xl font-bold mb-2 font-sans text-gray-800" />
                                                 )}
                                                 {step.description && (
-                                                    <RenderText content={step.description} tag="p" className="text-gray-700 text-lg font-bangla" style={{ lineHeight: '1.8' }} />
+                                                    <RenderText content={step.description} tag="p" className="text-gray-700 text-lg font-sans" style={{ lineHeight: '1.8' }} />
                                                 )}
                                             </div>
                                         </div>
@@ -1431,7 +1431,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section bg-gray-50">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
                             )}
                             <div className="flex flex-wrap justify-center gap-4">
                                 {section.items?.map((link, i) => {
@@ -1455,7 +1455,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                            href={link.url || '#'} 
                                            target="_blank" 
                                            rel="noopener noreferrer"
-                                           className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-lg transition shadow-md hover:shadow-lg font-bangla font-semibold"
+                                           className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-lg transition shadow-md hover:shadow-lg font-sans font-semibold"
                                            style={{ background: bgColor }}>
                                             <i className={`${iconClass} text-lg`}></i>
                                             <span>{link.platform || 'Link'}</span>
@@ -1472,29 +1472,29 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section key={index} className="theme-section">
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
-                                <RenderText content={section.title} tag="h2" className="theme-section-title font-bangla" />
+                                <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
                             )}
                             <div className="theme-card">
                                 {section.phone && (
                                     <div className="flex items-center justify-center gap-3 mb-4">
                                         <i className="fas fa-phone text-xl" style={{ color: 'var(--color-accent)' }}></i>
-                                        <a href={`tel:${section.phone}`} className="text-xl font-bold font-bangla hover:underline" style={{ color: 'var(--color-accent)' }}>{section.phone}</a>
+                                        <a href={`tel:${section.phone}`} className="text-xl font-bold font-sans hover:underline" style={{ color: 'var(--color-accent)' }}>{section.phone}</a>
                                     </div>
                                 )}
                                 {section.email && (
                                     <div className="flex items-center justify-center gap-3 mb-4">
                                         <i className="fas fa-envelope text-xl" style={{ color: 'var(--color-accent)' }}></i>
-                                        <a href={`mailto:${section.email}`} className="text-lg font-bangla hover:underline" style={{ color: 'var(--color-accent)' }}>{section.email}</a>
+                                        <a href={`mailto:${section.email}`} className="text-lg font-sans hover:underline" style={{ color: 'var(--color-accent)' }}>{section.email}</a>
                                     </div>
                                 )}
                                 {section.address && (
                                     <div className="flex items-start justify-center gap-3">
                                         <i className="fas fa-map-marker-alt text-xl mt-1" style={{ color: 'var(--color-accent)' }}></i>
-                                        <p className="text-gray-700 text-lg font-bangla">{section.address}</p>
+                                        <p className="text-gray-700 text-lg font-sans">{section.address}</p>
                                     </div>
                                 )}
                                 {section.content && (
-                                    <RenderText content={section.content} className="mt-4 font-bangla text-lg" />
+                                    <RenderText content={section.content} className="mt-4 font-sans text-lg" />
                                 )}
                             </div>
                         </div>
@@ -1518,7 +1518,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                             <button
                                 key={tabIndex}
                                 onClick={() => setActiveTab(tabIndex)}
-                                className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap font-bangla ${
+                                className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap font-sans ${
                                     activeTab === tabIndex 
                                         ? 'border-primary text-gray-900' 
                                         : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -1533,7 +1533,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 <div className="p-6">
                     {items?.map((tab, tabIndex) => (
                         <div key={tabIndex} style={{ display: activeTab === tabIndex ? 'block' : 'none' }}>
-                            <RenderText content={tab.content} className="font-bangla" />
+                            <RenderText content={tab.content} className="font-sans" />
                         </div>
                     ))}
                 </div>
@@ -1596,7 +1596,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                         />
                         {videoLightbox.title && (
                             <div className="mt-4 text-center">
-                                <h3 className="text-white text-lg font-semibold font-bangla">{videoLightbox.title}</h3>
+                                <h3 className="text-white text-lg font-semibold font-sans">{videoLightbox.title}</h3>
                             </div>
                         )}
                     </div>
