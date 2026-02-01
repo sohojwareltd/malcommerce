@@ -31,15 +31,15 @@ use Illuminate\Support\Facades\Storage;
         @method('PUT')
         
         <!-- Profile Photo -->
-        <div class="mb-3 sm:mb-4 md:mb-6">
-            <label class="block text-xs sm:text-sm font-medium mb-2 sm:mb-3" style="color: var(--color-dark);">Profile Photo</label>
+        <div class="mb-3 sm:mb-4 md:mb-6 rounded-2xl p-4 text-white" style="background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);">
+            <label class="block text-xs sm:text-sm font-medium mb-2 sm:mb-3" style="color: var(--color-white);">Profile Photo</label>
             <div class="flex flex-col items-center gap-3">
                 <div class="relative group">
                     <input type="file" name="photo" id="photo" accept="image/*" class="hidden">
                     <label for="photo" class="cursor-pointer">
                         <div id="photo-preview-container" class="relative">
                             @if($referral->photo)
-                                <img id="photo-preview" src="{{ Storage::disk('public')->url($referral->photo) }}" alt="Profile Photo" class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover border-[3px] sm:border-4 shadow-lg transition-all duration-300 group-hover:opacity-90" style="border-color: var(--color-medium);">
+                                <img id="photo-preview" src="{{ Storage::disk('public')->url($referral->photo) }}" alt="Profile Photo" class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover border-[3px] sm:border-4 shadow-lg transition-all duration-300 group-hover:opacity-90" style="border-color: var(--color-white);">
                             @else
                                 <div id="photo-preview-placeholder" class="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br flex items-center justify-center border-[3px] sm:border-4 shadow-lg transition-all duration-300 group-hover:opacity-90" style="background: linear-gradient(135deg, var(--color-light)/20 0%, var(--color-accent)/30 100%); border-color: var(--color-light)/30;">
                                     <svg class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" style="color: var(--color-light);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,8 +61,8 @@ use Illuminate\Support\Facades\Storage;
                     </div>
                 </div>
                 <div class="text-center">
-                    <p class="text-xs sm:text-sm" style="color: var(--color-medium);">Click the circle to upload photo</p>
-                    <p class="text-xs mt-0.5" style="color: var(--color-light);">JPG, PNG or GIF</p>
+                    <p class="text-xs sm:text-sm" style="color: var(--color-white);">Click the circle to upload photo</p>
+                    <p class="text-xs mt-0.5" style="color: var(--color-white);">JPG, PNG or GIF</p>
                     <p id="file-info" class="mt-1 text-xs text-green-600 hidden"></p>
                     @error('photo')
                         <p class="mt-1 text-xs sm:text-sm text-red-600">{{ $message }}</p>

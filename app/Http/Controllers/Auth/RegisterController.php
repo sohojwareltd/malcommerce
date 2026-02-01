@@ -157,8 +157,8 @@ class RegisterController extends Controller
         // Clear session data
         session()->forget(['register_name', 'otp_phone', 'otp_type', 'otp_sent_at']);
 
-        // Login user
-        Auth::login($user);
+        // Login user (always remember - stay logged in until explicit logout)
+        Auth::login($user, true);
 
         // Redirect based on user role (all users are sponsors now)
         $redirectUrl = route('sponsor.dashboard');

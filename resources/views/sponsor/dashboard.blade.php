@@ -199,55 +199,7 @@ use Illuminate\Support\Str;
             <!-- Mobile layout: cards -->
             <div class="space-y-3 md:hidden">
                 @foreach($referrals as $referral)
-                <div class="p-3 rounded-2xl border-2 hover:shadow-md transition bg-white" style="border-color: var(--color-accent);">
-                    <div class="flex gap-3">
-                        {{-- Image column (fixed width on all devices, whether image exists or not) --}}
-                        <div class="w-28 md:w-40 flex-shrink-0">
-                            @if($referral->photo)
-                                <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}"
-                                     class="w-full h-24 md:h-40 rounded-xl object-cover">
-                            @else
-                                <div class="w-full h-24 md:h-40 rounded-xl flex items-center justify-center" style="background: var(--color-light);">
-                                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                    </svg>
-                                </div>
-                            @endif
-                        </div>
-
-                        {{-- Content column (approx. 60% of card on mobile) --}}
-                        <div class="w-3/5 min-w-0 flex flex-col justify-between">
-                            <div>
-                                <div class="flex items-start justify-between gap-2 mb-1">
-                                    <div class="min-w-0">
-                                        <h3 class="font-semibold text-sm truncate" style="color: var(--color-dark);">{{ $referral->name }}</h3>
-                                        <p class="text-xs font-mono" style="color: var(--color-medium);">{{ $referral->affiliate_code }}</p>
-                                    </div>
-                                    <p class="text-xs font-medium whitespace-nowrap" style="color: var(--color-dark);">
-                                        {{ $referral->orders_count }} orders
-                                    </p>
-                                </div>
-
-                                @if($referral->address)
-                                    <p class="text-xs mt-1 line-clamp-1" style="color: var(--color-medium);">
-                                        {{ $referral->address }}
-                                    </p>
-                                @endif
-                            </div>
-
-                            <div class="flex items-center justify-between mt-2">
-                                <p class="text-xs" style="color: var(--color-medium);">
-                                    Joined: {{ $referral->created_at->format('M d, Y') }}
-                                </p>
-                                <a href="{{ route('sponsor.users.show', $referral) }}"
-                                   class="text-xs font-semibold px-3 py-1 rounded-full border border-dashed"
-                                   style="color: var(--color-medium); border-color: var(--color-medium);">
-                                    View 
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <x-sponsor.referral-card :referral="$referral" />
                 @endforeach
             </div>
 
@@ -421,7 +373,7 @@ use Illuminate\Support\Str;
             <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">Product Links</h2>
             
             @if($products->count() > 0)
-            <div class="space-y-3 max-h-96 overflow-y-auto">
+            <div class="space-y-3 ">
                 @foreach($products as $product)
                 <div class="p-3 rounded-xl border-2" style="border-color: var(--color-accent); background: var(--color-accent);">
                     <div class="flex items-start gap-3 mb-3">

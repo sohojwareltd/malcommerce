@@ -208,8 +208,8 @@ class LoginController extends Controller
             }
         }
 
-        // Login user
-        Auth::login($user);
+        // Login user (always remember - stay logged in until explicit logout)
+        Auth::login($user, true);
         $request->session()->regenerate();
 
         // If user is admin or sponsor and doesn't have password, redirect to profile to set password
@@ -298,8 +298,8 @@ class LoginController extends Controller
             }
         }
 
-        // Login the user directly
-        Auth::login($user, $request->filled('remember'));
+        // Login the user directly (always remember - stay logged in until explicit logout)
+        Auth::login($user, true);
         $request->session()->regenerate();
         
         // Check if there's a product parameter in request or session to redirect to after login
@@ -413,7 +413,7 @@ class LoginController extends Controller
         
         $credentials['password'] = $request->password;
         
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
+        if (Auth::attempt($credentials, true)) {
             $user = Auth::user();
             
             // Only allow admin users
@@ -544,8 +544,8 @@ class LoginController extends Controller
         // Clear session data
         session()->forget(['otp_phone', 'otp_type', 'otp_sent_at']);
 
-        // Login user
-        Auth::login($user);
+        // Login user (always remember - stay logged in until explicit logout)
+        Auth::login($user, true);
         $request->session()->regenerate();
 
         // If user doesn't have password, redirect to profile to set password

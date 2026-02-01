@@ -26,8 +26,9 @@
         <form id="add-user-form" class="space-y-3 sm:space-y-4 md:space-y-5">
             @csrf
             <!-- Profile Photo -->
-            <div class="mb-3 sm:mb-4 md:mb-6">
-                <label class="block text-xs sm:text-sm font-medium mb-2 sm:mb-3" style="color: var(--color-dark);">Profile Photo</label>
+             
+            <div class="mb-3 sm:mb-4 md:mb-6 rounded-2xl p-4 text-white" style="background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);">
+                <label class="block text-xs sm:text-sm font-medium mb-2 sm:mb-3" style="color: var(--color-);">Profile Photo</label>
                 <div class="flex flex-col items-center gap-3">
                     <div class="relative group">
                         <input type="file" name="photo" id="user-photo" accept="image/*" class="hidden">
@@ -49,12 +50,12 @@
                         </label>
                         <div id="preview-loading" class="hidden mt-2 text-center">
                             <div class="inline-block animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2" style="border-color: var(--color-medium);"></div>
-                            <p class="text-xs mt-1" style="color: var(--color-medium);">Loading...</p>
+                            <p class="text-xs mt-1" style="color: var(--color-white);">Loading...</p>
                         </div>
                     </div>
                     <div class="text-center">
-                        <p class="text-xs sm:text-sm" style="color: var(--color-medium);">Click the circle to upload photo</p>
-                        <p class="text-xs mt-0.5" style="color: var(--color-light);">JPG, PNG or GIF</p>
+                        <p class="text-xs sm:text-sm" style="color: var(--color-white);">Click the circle to upload photo</p>
+                        <p class="text-xs mt-0.5" style="color: var(--color-white);">JPG, PNG or GIF</p>
                         <p id="file-info" class="mt-1 text-xs text-green-600 hidden"></p>
                         <div id="photo-error" class="mt-1 text-xs sm:text-sm text-red-600 hidden"></div>
                     </div>
