@@ -82,7 +82,15 @@ use Illuminate\Support\Facades\Storage;
                     @if($referral->phone)
                     <div>
                         <dt class="text-xs sm:text-sm font-medium" style="color: var(--color-medium);">Phone</dt>
-                        <dd class="mt-1 text-sm sm:text-base" style="color: var(--color-dark);">{{ $referral->phone }}</dd>
+                        <dd class="mt-1 flex items-center gap-2">
+                            <span class="text-sm sm:text-base" style="color: var(--color-dark);">{{ $referral->phone }}</span>
+                            <a href="tel:{{ preg_replace('/[^0-9+]/', '', $referral->phone) }}" 
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+                               style="background: var(--color-medium); color: white;">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1H9c-1.1 0-2-.9-2-2v-3.5c0-.55.45-1 1-1h1.5c0-1.25.2-2.45.57-3.57.11-.35.03-.74-.25-1.02l-2.2-2.2z"/></svg>
+                                Call
+                            </a>
+                        </dd>
                     </div>
                     @endif
                 
@@ -116,6 +124,13 @@ use Illuminate\Support\Facades\Storage;
             <div class="app-card p-3 sm:p-4">
                 <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">Quick Actions</h2>
                 <div class="space-y-2">
+                    @if($referral->phone)
+                    <a href="tel:{{ preg_replace('/[^0-9+]/', '', $referral->phone) }}" 
+                       class="block w-full text-center px-4 py-2 rounded-lg text-sm sm:text-base font-semibold flex items-center justify-center gap-2 text-white" style="background: var(--color-medium);">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1H9c-1.1 0-2-.9-2-2v-3.5c0-.55.45-1 1-1h1.5c0-1.25.2-2.45.57-3.57.11-.35.03-.74-.25-1.02l-2.2-2.2z"/></svg>
+                        Call User
+                    </a>
+                    @endif
                     <a href="{{ route('sponsor.users.edit', $referral) }}" 
                        class="block w-full text-center px-4 py-2 rounded-lg text-white text-sm sm:text-base font-semibold" style="background: var(--color-medium);">
                         Edit User

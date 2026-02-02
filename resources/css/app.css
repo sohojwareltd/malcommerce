@@ -247,6 +247,11 @@
     }
 }
 
+/* Alpine.js x-cloak - hide until Alpine is ready */
+[x-cloak] {
+    display: none !important;
+}
+
 /* Additional utility for line clamping */
 .line-clamp-2 {
     display: -webkit-box;

@@ -223,7 +223,7 @@
                         <!-- Right Menu -->
                         <div class="flex items-center gap-4">
                             <a href="{{ route('products.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
-                                
+                                <a href="{{ route('videos.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ভিডিও</a>
                             @if(auth()->check())
                             @if(auth()->user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
@@ -359,6 +359,7 @@
                         'links' => [
                             ['text' => 'হোম', 'url' => route('home')],
                             ['text' => 'সব পণ্য', 'url' => route('products.index')],
+                            ['text' => 'ভিডিও', 'url' => route('videos.index')],
                         ]
                     ],
                     [

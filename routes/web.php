@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 // Public routes with referral tracking
 Route::middleware([TrackReferral::class])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/videos', [\App\Http\Controllers\VideoController::class, 'index'])->name('videos.index');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
     
@@ -74,6 +75,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/categories/{category}/edit', [AdminDashboardController::class, 'editCategory'])->name('categories.edit');
         Route::put('/categories/{category}', [AdminDashboardController::class, 'updateCategory'])->name('categories.update');
         Route::delete('/categories/{category}', [AdminDashboardController::class, 'destroyCategory'])->name('categories.destroy');
+        
+        Route::resource('videos', \App\Http\Controllers\Admin\VideoController::class);
         
         Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index');
         Route::get('/orders/{order}/edit', [AdminDashboardController::class, 'editOrder'])->name('orders.edit');

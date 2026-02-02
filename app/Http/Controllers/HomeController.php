@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Video;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -20,7 +21,14 @@ class HomeController extends Controller
             ->where('is_featured', true)
             ->orderBy('sort_order')
             ->get();
+
+        $featuredVideos = Video::where('is_active', true)
+            ->where('is_featured', true)
+            ->orderBy('sort_order')
+            ->orderBy('created_at', 'desc')
+            ->take(8)
+            ->get();
             
-        return view('home', compact('products', 'featuredProducts'));
+        return view('home', compact('products', 'featuredProducts', 'featuredVideos'));
     }
 }
