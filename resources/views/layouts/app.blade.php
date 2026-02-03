@@ -222,8 +222,8 @@
                         
                         <!-- Right Menu -->
                         <div class="flex items-center gap-4">
-                            <a href="{{ route('products.index') }}" class=" text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
-                                <a href="{{ route('videos.index') }}" class="  text-gray-700 hover:text-primary transition font-bangla">ভিডিও</a>
+                            <a href="{{ route('products.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
+                                <a href="{{ route('videos.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ভিডিও</a>
                             @if(auth()->check())
                             @if(auth()->user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
@@ -320,8 +320,9 @@
                         </div>
                     </form>
                     
-                    <a href="{{ route('home') }}" class="block text-gray-700 hover:text-primary font-bangla">হোম</a>
-                    <a href="{{ route('products.index') }}" class="block text-gray-700 hover:text-primary font-bangla">পণ্য</a>
+                        <a href="{{ route('home') }}" class="block text-gray-700 hover:text-primary font-bangla">হোম</a>
+                        <a href="{{ route('products.index') }}" class="block text-gray-700 hover:text-primary font-bangla">পণ্য</a>
+                        <a href="{{ route('videos.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ভিডিও</a>
                     @if($categories->count() > 0)
                         @foreach($categories as $category)
                         <a href="{{ route('products.index', ['category' => $category->id]) }}" class="block text-gray-700 hover:text-primary font-bangla pl-4">{{ $category->name }}</a>
