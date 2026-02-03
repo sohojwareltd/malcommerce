@@ -2,7 +2,7 @@
     {{-- Row 1: Grid - 1/3 image, 2/3 data --}}
     <div class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 gap-3">
         {{-- Column 1: Image (~1/3 width) --}}
-        <div class="col-span-2 sm:col-span-2 md:col-span-2">
+        <div class="col-span-2 sm:col-span-2 md:col-span-2 aspect-square">
             @if($referral->photo)
                 <img src="{{ Storage::disk('public')->url($referral->photo) }}" alt="{{ $referral->name }}"
                      class="w-full h-full rounded-xl object-cover">
