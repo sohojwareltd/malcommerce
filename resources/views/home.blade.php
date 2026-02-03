@@ -438,7 +438,7 @@
                     <div class="relative aspect-video overflow-hidden rounded-lg bg-gray-200">
                         <img src="{{ $video->thumbnail_url }}" alt="{{ $video->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition">
-                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-lg border border-white/80 bg-transparent">
                                 <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M8 5v14l11-7z"/>
                                 </svg>
