@@ -5,7 +5,7 @@
 @section('content')
 <!-- Stats Grid -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
-    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0">
+    <a href="{{ route('admin.orders.index') }}" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,9 +15,9 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Total Orders</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['total_orders'] }}</p>
-    </div>
+    </a>
     
-    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0">
+    <a href="{{ route('admin.orders.index', ['status' => 'pending']) }}" class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,9 +27,9 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Pending Orders</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['pending_orders'] }}</p>
-    </div>
+    </a>
     
-    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0">
+    <a href="{{ route('admin.products.index') }}" class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,9 +39,9 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Total Products</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['total_products'] }}</p>
-    </div>
+    </a>
     
-    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0">
+    <a href="{{ route('admin.reports.sales') }}" class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,12 +51,12 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Total Revenue</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">৳{{ number_format($stats['total_revenue'], 2) }}</p>
-    </div>
+    </a>
 </div>
 
 <!-- Additional Stats Row -->
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
-    <div class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0">
+    <a href="{{ route('admin.sponsors.index') }}" class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,9 +66,9 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Sponsors</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['total_sponsors'] }}</p>
-    </div>
+    </a>
     
-    <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0">
+    <a href="{{ route('admin.reports.sales') }}" class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,9 +78,9 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Growth Rate</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">+12%</p>
-    </div>
+    </a>
     
-    <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0">
+    <a href="{{ route('admin.reports.sales') }}" class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +90,7 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Avg Order Value</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">৳{{ number_format($stats['total_revenue'] / max($stats['total_orders'], 1), 2) }}</p>
-    </div>
+    </a>
 </div>
 
 <!-- Recent Orders -->

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderLog;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
@@ -230,7 +231,11 @@ class DashboardController extends Controller
     
     public function showOrder(Order $order)
     {
-        $order->load('product', 'sponsor');
+        $order->load([
+            'product',
+            'sponsor',
+            'logs.admin',
+        ]);
         return view('admin.orders.show', compact('order'));
     }
     
@@ -249,6 +254,19 @@ class DashboardController extends Controller
             $order->notes = $request->notes;
         }
         $order->save();
+
+        // Log status change with admin info
+        if ($oldStatus !== $newStatus) {
+            OrderLog::create([
+                'order_id' => $order->id,
+                'admin_id' => Auth::id(),
+                'type' => 'status_changed',
+                'from_status' => $oldStatus,
+                'to_status' => $newStatus,
+                'notes' => $request->notes,
+                'meta' => null,
+            ]);
+        }
         
         // Create earnings when order is marked as delivered (only if it wasn't already delivered)
         if ($newStatus === 'delivered' && $oldStatus !== 'delivered') {
@@ -373,6 +391,17 @@ class DashboardController extends Controller
             'customer_name' => $request->customer_name,
             'customer_phone' => $normalizedPhone,
             'address' => $request->address,
+        ]);
+
+        // Log order update
+        OrderLog::create([
+            'order_id' => $order->id,
+            'admin_id' => Auth::id(),
+            'type' => 'order_updated',
+            'from_status' => $order->status,
+            'to_status' => $order->status,
+            'notes' => 'Order details updated.',
+            'meta' => null,
         ]);
         
         return redirect()->route('admin.orders.show', $order)
@@ -837,6 +866,33 @@ class DashboardController extends Controller
         ];
         
         return view('admin.reports.sales', compact('orders', 'stats', 'dateFrom', 'dateTo'));
+    }
+
+    /**
+     * Delete a single order.
+     */
+    public function destroyOrder(Order $order)
+    {
+        $order->delete();
+
+        return redirect()->route('admin.orders.index')
+            ->with('success', 'Order deleted successfully!');
+    }
+
+    /**
+     * Bulk delete orders by IDs.
+     */
+    public function bulkDeleteOrders(Request $request)
+    {
+        $validated = $request->validate([
+            'order_ids' => 'required|array',
+            'order_ids.*' => 'integer|exists:orders,id',
+        ]);
+
+        Order::whereIn('id', $validated['order_ids'])->delete();
+
+        return redirect()->route('admin.orders.index')
+            ->with('success', 'Selected orders deleted successfully!');
     }
     
     public function settings()

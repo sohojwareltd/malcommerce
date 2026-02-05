@@ -91,12 +91,28 @@
 </div>
 
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <!-- Desktop Table View -->
-    <div class="hidden lg:block overflow-x-auto">
-        <table class="min-w-full divide-y divide-neutral-200">
-            <thead class="bg-neutral-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Order #</th>
+    <!-- Bulk actions -->
+    <form method="POST" action="{{ route('admin.orders.bulk-delete') }}" id="bulk-delete-form">
+        @csrf
+        <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="select-all-orders" class="w-4 h-4 text-primary border-neutral-300 rounded">
+                <label for="select-all-orders" class="text-sm text-neutral-700">Select all</label>
+            </div>
+            <button type="submit" onclick="return confirm('Are you sure you want to delete the selected orders? This cannot be undone.');" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 disabled:opacity-50" id="bulk-delete-button" disabled>
+                Delete Selected
+            </button>
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
+            <table class="min-w-full divide-y divide-neutral-200">
+                <thead class="bg-neutral-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
+                            <span class="sr-only">Select</span>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Order #</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Product</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Customer</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Amount</th>
@@ -119,6 +135,9 @@
                     };
                 @endphp
                 <tr class="{{ $rowBgClass }} transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <input type="checkbox" name="order_ids[]" value="{{ $order->id }}" class="order-checkbox w-4 h-4 text-primary border-neutral-300 rounded">
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:underline font-semibold">{{ $order->order_number }}</a>
                     </td>
@@ -143,18 +162,27 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-800">{{ $order->created_at->format('M d, Y') }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:text-primary-light font-semibold">View Details</a>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:text-primary-light font-semibold">View</a>
+                        <button
+                            type="button"
+                            class="text-red-600 hover:text-red-800 text-sm font-semibold"
+                            data-delete-url="{{ route('admin.orders.destroy', $order) }}"
+                            onclick="deleteSingleOrder(this)"
+                        >
+                            Delete
+                        </button>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-6 py-4 text-center text-neutral-500">No orders found</td>
+                    <td colspan="9" class="px-6 py-4 text-center text-neutral-500">No orders found</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
-    </div>
+        </div>
+    </form>
     
     <!-- Mobile Card View -->
     <div class="lg:hidden divide-y divide-neutral-200">
@@ -205,8 +233,16 @@
                 </div>
                 @endif
             </div>
-            <div class="mt-3 pt-3 border-t border-neutral-200">
+            <div class="mt-3 pt-3 border-t border-neutral-200 flex items-center justify-between">
                 <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:text-primary-light font-semibold text-sm">View Details →</a>
+                <button
+                    type="button"
+                    class="text-red-600 hover:text-red-800 text-xs font-semibold"
+                    data-delete-url="{{ route('admin.orders.destroy', $order) }}"
+                    onclick="deleteSingleOrder(this)"
+                >
+                    Delete
+                </button>
             </div>
         </div>
         @empty
@@ -220,6 +256,57 @@
 <div class="mt-4">
     {{ $orders->links() }}
 </div>
+{{-- Single delete helper form (outside bulk form to avoid nesting) --}}
+<form id="single-delete-form" method="POST" style="display:none;">
+    @csrf
+    @method('DELETE')
+</form>
 @endsection
+
+@push('scripts')
+<script>
+    (function () {
+        const selectAll = document.getElementById('select-all-orders');
+        const checkboxes = document.querySelectorAll('.order-checkbox');
+        const bulkDeleteButton = document.getElementById('bulk-delete-button');
+
+        function updateBulkState() {
+            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+            bulkDeleteButton.disabled = !anyChecked;
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(cb => {
+                    cb.checked = selectAll.checked;
+                });
+                updateBulkState();
+            });
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                if (!cb.checked && selectAll.checked) {
+                    selectAll.checked = false;
+                }
+                updateBulkState();
+            });
+        });
+    })();
+
+    function deleteSingleOrder(button) {
+        if (!confirm('Are you sure you want to delete this order?')) {
+            return;
+        }
+        const url = button.getAttribute('data-delete-url');
+        const form = document.getElementById('single-delete-form');
+        if (!url || !form) {
+            return;
+        }
+        form.action = url;
+        form.submit();
+    }
+</script>
+@endpush
 
 

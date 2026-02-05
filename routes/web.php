@@ -79,9 +79,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('videos', \App\Http\Controllers\Admin\VideoController::class);
         
         Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index');
+        Route::post('/orders/bulk-delete', [AdminDashboardController::class, 'bulkDeleteOrders'])->name('orders.bulk-delete');
         Route::get('/orders/{order}/edit', [AdminDashboardController::class, 'editOrder'])->name('orders.edit');
         Route::put('/orders/{order}', [AdminDashboardController::class, 'updateOrder'])->name('orders.update');
         Route::put('/orders/{order}/status', [AdminDashboardController::class, 'updateOrderStatus'])->name('orders.updateStatus');
+        Route::delete('/orders/{order}', [AdminDashboardController::class, 'destroyOrder'])->name('orders.destroy');
         Route::get('/orders/{order}', [AdminDashboardController::class, 'showOrder'])->name('orders.show');
         
         Route::get('/sponsors', [AdminDashboardController::class, 'sponsors'])->name('sponsors.index');

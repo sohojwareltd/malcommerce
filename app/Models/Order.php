@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
@@ -47,6 +48,11 @@ class Order extends Model
             'discount' => 'decimal:2',
             'additional_fees' => 'decimal:2',
         ];
+    }
+
+    public function logs(): HasMany
+    {
+        return $this->hasMany(OrderLog::class)->latest();
     }
 
     public function product(): BelongsTo

@@ -102,6 +102,41 @@
             <p class="text-sm text-neutral-700 whitespace-pre-wrap">{{ $order->notes }}</p>
         </div>
         @endif
+
+        <!-- Order Timeline / Logs -->
+        @if($order->logs && $order->logs->count() > 0)
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">Order Timeline</h2>
+            <ol class="space-y-4">
+                @foreach($order->logs as $log)
+                <li class="relative pl-6">
+                    <span class="absolute left-0 top-1 w-3 h-3 rounded-full 
+                        {{ $log->type === 'status_changed' ? 'bg-blue-500' : 'bg-neutral-400' }}"></span>
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm font-semibold text-neutral-900">
+                            @if($log->type === 'status_changed')
+                                Status changed from {{ $log->from_status ? ucfirst($log->from_status) : 'N/A' }} to {{ $log->to_status ? ucfirst($log->to_status) : 'N/A' }}
+                            @else
+                                {{ ucfirst(str_replace('_', ' ', $log->type)) }}
+                            @endif
+                        </div>
+                        <div class="text-xs text-neutral-500">
+                            {{ $log->created_at->format('M d, Y h:i A') }}
+                        </div>
+                    </div>
+                    <div class="mt-1 text-xs text-neutral-600">
+                        By {{ $log->admin?->name ?? 'System' }}
+                    </div>
+                    @if($log->notes)
+                    <div class="mt-1 text-sm text-neutral-700 whitespace-pre-wrap">
+                        {{ $log->notes }}
+                    </div>
+                    @endif
+                </li>
+                @endforeach
+            </ol>
+        </div>
+        @endif
     </div>
 
     <!-- Status Update Sidebar -->
