@@ -194,10 +194,10 @@
         
         <div class="mt-6">
             <h3 class="text-lg font-semibold text-neutral-800 mb-3">Payment Options</h3>
-            <p class="text-sm text-neutral-600 mb-4">Select which payment methods are available for this product. Leave all unchecked to allow all payment methods.</p>
+            <p class="text-sm text-neutral-600 mb-4">Select which payment methods are available for this product. At least one must be selected.</p>
             <div class="space-y-3">
                 @php
-                    $paymentOptions = old('payment_options', []);
+                    $paymentOptions = old('payment_options', ['cod']);
                     if (!is_array($paymentOptions)) {
                         $paymentOptions = [];
                     }
@@ -240,7 +240,7 @@
                 </label>
             </div>
             <p class="text-xs text-neutral-500 mt-3">
-                <strong>Note:</strong> If no options are selected, all payment methods will be available. Select specific options to restrict payment methods for this product.
+                <strong>Note:</strong> At least one payment method must be selected. Cash on Delivery (COD) is the default.
             </p>
         </div>
     </div>

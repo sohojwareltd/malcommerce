@@ -31,6 +31,15 @@
                 <input type="hidden" name="images[]" value="{{ $image }}">
             @endforeach
         @endif
+        @php
+            $builderPaymentOptions = $product->payment_options ?? ['cod'];
+            if (!is_array($builderPaymentOptions) || empty($builderPaymentOptions)) {
+                $builderPaymentOptions = ['cod'];
+            }
+        @endphp
+        @foreach($builderPaymentOptions as $opt)
+            <input type="hidden" name="payment_options[]" value="{{ $opt }}">
+        @endforeach
     </form>
     <button 
         type="button" 
@@ -57,9 +66,10 @@
 </div>
 @endif
 
+{{-- Initial layout in script tag to avoid HTML attribute truncation/escaping with complex JSON --}}
+<script type="application/json" id="page-builder-initial-sections">@json($product->page_layout ?? [])</script>
 <div id="page-builder-editor" 
      class="h-full"
-     data-sections='@json($product->page_layout ?? [])'
      data-product-id="{{ $product->id }}"
      data-product-price="{{ $product->price }}"
      data-product-compare-price="{{ $product->compare_at_price ?? '' }}"

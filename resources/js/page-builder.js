@@ -7,7 +7,10 @@ function initPageBuilder() {
     const container = document.getElementById('page-builder-editor');
     if (container) {
         try {
-            const initialSections = JSON.parse(container.dataset.sections || '[]');
+            const scriptEl = document.getElementById('page-builder-initial-sections');
+            const initialSections = scriptEl && scriptEl.textContent
+                ? JSON.parse(scriptEl.textContent)
+                : [];
             const productId = container.dataset.productId || null;
             const productPrice = container.dataset.productPrice || null;
             const productComparePrice = container.dataset.productComparePrice || null;

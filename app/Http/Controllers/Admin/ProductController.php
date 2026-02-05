@@ -58,13 +58,18 @@ class ProductController extends Controller
     
     public function store(Request $request)
     {
+        // Normalize empty price so nullable validation accepts it
+        $request->merge(['price' => $request->input('price') === '' ? null : $request->input('price')]);
+        // Ensure payment_options is always an array (empty when no checkboxes checked)
+        $request->merge(['payment_options' => $request->input('payment_options', [])]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:products,slug',
             'category_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'compare_at_price' => 'nullable|numeric|min:0',
             'cashback_amount' => 'nullable|numeric|min:0',
             'commission_type' => 'nullable|string|in:fixed,percent',
@@ -86,22 +91,15 @@ class ProductController extends Controller
             'is_free' => 'boolean',
             'sms_templates' => 'nullable|array',
             'sms_templates.*' => 'nullable|string|max:500',
-            'payment_options' => 'nullable|array',
+            'payment_options' => 'required|array|min:1',
             'payment_options.*' => 'in:cod,bkash',
+        ], [
+            'payment_options.required' => 'At least one payment method must be selected.',
+            'payment_options.min' => 'At least one payment method must be selected.',
         ]);
         
-        // Handle payment_options - if empty array, set to null (allows all methods)
-        if (isset($validated['payment_options']) && is_array($validated['payment_options'])) {
-            if (empty($validated['payment_options'])) {
-                $validated['payment_options'] = null;
-            } else {
-                // Ensure unique values and valid options
-                $validated['payment_options'] = array_unique(array_filter($validated['payment_options'], fn($v) => in_array($v, ['cod', 'bkash'])));
-                if (empty($validated['payment_options'])) {
-                    $validated['payment_options'] = null;
-                }
-            }
-        }
+        // Sanitize payment_options (unique valid values only)
+        $validated['payment_options'] = array_values(array_unique(array_filter($validated['payment_options'], fn($v) => in_array($v, ['cod', 'bkash']))));
         
         if (empty($validated['slug'])) {
             $validated['slug'] = Str::slug($validated['name']);
@@ -114,7 +112,8 @@ class ProductController extends Controller
         $validated['commission_type'] = $validated['commission_type'] ?? 'fixed';
         $validated['commission_value'] = $validated['commission_value'] ?? 0;
         $validated['only_on_categories'] = $validated['only_on_categories'] ?? false;
-        
+        $validated['price'] = $validated['price'] ?? 0;
+
         // Handle images - filter out empty values
         if (isset($validated['images']) && is_array($validated['images'])) {
             $validated['images'] = array_filter($validated['images'], fn($img) => !empty($img));
@@ -171,13 +170,18 @@ class ProductController extends Controller
     
     public function update(Request $request, Product $product)
     {
+        // Normalize empty price so nullable validation accepts it
+        $request->merge(['price' => $request->input('price') === '' ? null : $request->input('price')]);
+        // Ensure payment_options is always an array (empty when no checkboxes checked)
+        $request->merge(['payment_options' => $request->input('payment_options', [])]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:products,slug,' . $product->id,
             'category_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'compare_at_price' => 'nullable|numeric|min:0',
             'cashback_amount' => 'nullable|numeric|min:0',
             'commission_type' => 'nullable|string|in:fixed,percent',
@@ -200,29 +204,27 @@ class ProductController extends Controller
             'is_free' => 'boolean',
             'sms_templates' => 'nullable|array',
             'sms_templates.*' => 'nullable|string|max:500',
-            'payment_options' => 'nullable|array',
+            'payment_options' => 'required|array|min:1',
             'payment_options.*' => 'in:cod,bkash',
+        ], [
+            'payment_options.required' => 'At least one payment method must be selected.',
+            'payment_options.min' => 'At least one payment method must be selected.',
         ]);
         
-        // Handle payment_options - if empty array, set to null (allows all methods)
-        if (isset($validated['payment_options']) && is_array($validated['payment_options'])) {
-            if (empty($validated['payment_options'])) {
-                $validated['payment_options'] = null;
-            } else {
-                // Ensure unique values and valid options
-                $validated['payment_options'] = array_unique(array_filter($validated['payment_options'], fn($v) => in_array($v, ['cod', 'bkash'])));
-                if (empty($validated['payment_options'])) {
-                    $validated['payment_options'] = null;
-                }
-            }
-        }
+        // Sanitize payment_options (unique valid values only)
+        $validated['payment_options'] = array_values(array_unique(array_filter($validated['payment_options'], fn($v) => in_array($v, ['cod', 'bkash']))));
         
         // Handle page_layout - it comes as JSON string from the form
         // Only update page_layout if it's provided in the request
         if (array_key_exists('page_layout', $validated)) {
-            if (isset($validated['page_layout']) && is_string($validated['page_layout'])) {
+            if (isset($validated['page_layout']) && is_string($validated['page_layout']) && $validated['page_layout'] !== '') {
                 $decoded = json_decode($validated['page_layout'], true);
-                $validated['page_layout'] = $decoded ?: null;
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $validated['page_layout'] = $decoded;
+                } else {
+                    // Invalid JSON: preserve existing layout
+                    unset($validated['page_layout']);
+                }
             } elseif (!isset($validated['page_layout']) || $validated['page_layout'] === '') {
                 $validated['page_layout'] = null;
             }
@@ -250,7 +252,8 @@ class ProductController extends Controller
         if (!isset($validated['commission_value'])) {
             $validated['commission_value'] = $product->commission_value ?? 0;
         }
-        
+        $validated['price'] = $validated['price'] ?? 0;
+
         // Handle images - only update if provided in request
         if (array_key_exists('images', $validated)) {
             if (isset($validated['images']) && is_array($validated['images'])) {

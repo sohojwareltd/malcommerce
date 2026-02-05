@@ -305,7 +305,7 @@
             <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" x-transition class="md:hidden bg-white border-t border-gray-200 shadow-lg">
                 <div class="px-4 py-4 space-y-3">
                     <!-- Mobile Search -->
-                    <form action="{{ route('products.index') }}" method="GET" class="mb-4">
+                    <form action="{p{ route('products.index') }}" method="GET" class="mb-4">
                         <div class="relative">
                             <input 
                                 type="text" 
