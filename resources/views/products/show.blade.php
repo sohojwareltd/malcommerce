@@ -283,6 +283,19 @@
     } catch (e) { console.warn('Recently viewed save failed:', e); }
 })();
 </script>
+@if(\App\Models\Setting::get('fb_pixel_id'))
+<script>
+  if (typeof fbq === 'function') {
+    fbq('track', 'ViewContent', {
+      content_name: @json($product->name),
+      content_ids: [@json($product->id)],
+      content_type: 'product',
+      value: {{ (float) $product->price }},
+      currency: 'BDT'
+    });
+  }
+</script>
+@endif
 @endpush
 
 @push('head')

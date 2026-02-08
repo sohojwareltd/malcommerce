@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\SeoController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
@@ -13,6 +14,11 @@ use App\Http\Controllers\Sponsor\DashboardController as SponsorDashboardControll
 use App\Http\Middleware\TrackReferral;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+
+// SEO / Feed routes (no auth, no referral - for crawlers and feeds)
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
+Route::get('/feed/products.xml', [SeoController::class, 'productsXml'])->name('feed.products');
 
 // Public routes with referral tracking
 Route::middleware([TrackReferral::class])->group(function () {

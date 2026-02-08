@@ -201,7 +201,8 @@
         </div>
         @endif
 
-        {{-- Payment Method Selection --}}
+        {{-- Payment Method Selection (only show when more than one option) --}}
+        @if(count($allowedPaymentMethods) > 1)
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-3 font-bangla">
                 পেমেন্ট পদ্ধতি <span class="text-red-500">*</span>
@@ -248,10 +249,10 @@
                 </label>
                 @endif
             </div>
-            @if(empty($allowedPaymentMethods) || (count($allowedPaymentMethods) === 0))
-            <input type="hidden" name="payment_method" value="cod">
-            @endif
         </div>
+        @else
+        <input type="hidden" name="payment_method" value="{{ $defaultPaymentMethod }}">
+        @endif
 
         {{-- Order Summary --}}
         @if(!$hideSummary)

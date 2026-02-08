@@ -2,6 +2,23 @@
 
 @section('title', 'Order Success')
 
+@push('scripts')
+@if(\App\Models\Setting::get('fb_pixel_id'))
+<script>
+  if (typeof fbq === 'function') {
+    fbq('track', 'Purchase', {
+      value: {{ (float) $order->total_price }},
+      currency: 'BDT',
+      order_id: @json($order->order_number),
+      content_ids: [@json($order->product_id)],
+      content_type: 'product',
+      num_items: {{ (int) $order->quantity }}
+    });
+  }
+</script>
+@endif
+@endpush
+
 @section('content')
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="bg-white rounded-lg shadow-lg p-8 text-center">
