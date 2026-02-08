@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Cache;
 class SeoController extends Controller
 {
     /**
-     * Product feed as XML tree (for feeds, Facebook catalog, etc.)
+     * Product feed as RSS 2.0 XML (Facebook Commerce / Google Merchant format).
+     * Facebook requires RSS or ATOM with item nodes; uses g: namespace for product fields.
      */
     public function productsXml(Request $request)
     {
@@ -21,39 +22,53 @@ class SeoController extends Controller
             ->get();
 
         $siteName = \App\Models\Setting::get('site_name', config('app.name'));
-        $baseUrl = url('/');
+        $baseUrl = rtrim(url('/'), '/');
+        $feedUrl = url('/feed/products.xml');
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<products xmlns="https://schema.org/Product" baseUrl="' . e($baseUrl) . '" siteName="' . e($siteName) . '" generated="' . now()->toIso8601String() . '">' . "\n";
+        $xml .= '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0" xmlns:atom="http://www.w3.org/2005/Atom">' . "\n";
+        $xml .= "  <channel>\n";
+        $xml .= '    <title>' . e($siteName) . " Product Catalog</title>\n";
+        $xml .= '    <description>Product feed for ' . e($siteName) . "</description>\n";
+        $xml .= '    <link>' . e($baseUrl) . "</link>\n";
+        $xml .= '    <atom:link href="' . e($feedUrl) . '" rel="self" type="application/rss+xml" />' . "\n";
 
         foreach ($products as $product) {
             $productUrl = route('products.show', $product->slug);
             $imageUrl = $this->productImageUrl($product->main_image);
             $description = $product->short_description ?? $product->description ?? '';
             $description = strip_tags($description);
-            $description = preg_replace('/\s+/', ' ', $description);
+            $description = preg_replace('/\s+/', ' ', trim($description));
+            $description = mb_substr($description, 0, 9999);
 
-            $xml .= "  <product>\n";
-            $xml .= '    <id>' . (int) $product->id . "</id>\n";
-            $xml .= '    <name><![CDATA[' . $product->name . "]]></name>\n";
-            $xml .= '    <slug>' . e($product->slug) . "</slug>\n";
-            $xml .= '    <url>' . e($productUrl) . "</url>\n";
-            $xml .= '    <price>' . e((string) $product->price) . "</price>\n";
-            $xml .= '    <currency>BDT</currency>' . "\n";
-            if ($product->compare_at_price && $product->compare_at_price > $product->price) {
-                $xml .= '    <compare_at_price>' . e((string) $product->compare_at_price) . "</compare_at_price>\n";
-            }
+            $id = (string) $product->id;
+            $price = number_format((float) $product->price, 2, '.', '') . ' BDT';
+            $availability = $product->in_stock ? 'in stock' : 'out of stock';
+
+            $xml .= "    <item>\n";
+            $xml .= '      <g:id>' . e($id) . "</g:id>\n";
+            $xml .= '      <g:title><![CDATA[' . $product->name . "]]></g:title>\n";
+            $xml .= '      <g:description><![CDATA[' . $description . "]]></g:description>\n";
+            $xml .= '      <g:link>' . e($productUrl) . "</g:link>\n";
             if ($imageUrl) {
-                $xml .= '    <image>' . e($imageUrl) . "</image>\n";
+                $xml .= '      <g:image_link>' . e($imageUrl) . "</g:image_link>\n";
             }
-            $xml .= '    <description><![CDATA[' . $description . "]]></description>\n";
-            $xml .= '    <sku>' . e($product->sku ?? '') . "</sku>\n";
-            $xml .= '    <in_stock>' . ($product->in_stock ? '1' : '0') . "</in_stock>\n";
-            $xml .= '    <updated_at>' . $product->updated_at->toIso8601String() . "</updated_at>\n";
-            $xml .= "  </product>\n";
+            $xml .= '      <g:brand>' . e($siteName) . "</g:brand>\n";
+            $xml .= '      <g:condition>new</g:condition>' . "\n";
+            $xml .= '      <g:availability>' . $availability . "</g:availability>\n";
+            $xml .= '      <g:price>' . e($price) . "</g:price>\n";
+            if ($product->compare_at_price && $product->compare_at_price > $product->price) {
+                $salePrice = number_format((float) $product->price, 2, '.', '') . ' BDT';
+                $xml .= '      <g:sale_price>' . e($salePrice) . "</g:sale_price>\n";
+            }
+            if (!empty($product->sku)) {
+                $xml .= '      <g:gtin>' . e($product->sku) . "</g:gtin>\n";
+            }
+            $xml .= "    </item>\n";
         }
 
-        $xml .= '</products>';
+        $xml .= "  </channel>\n";
+        $xml .= '</rss>';
 
         return response($xml, 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
