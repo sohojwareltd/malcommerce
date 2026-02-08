@@ -412,7 +412,7 @@ class DashboardController extends Controller
     {
         $query = User::where('role', 'sponsor')
             ->withCount(['orders', 'referrals'])
-            ->with(['orders' => function($query) {
+            ->with(['sponsor', 'orders' => function($query) {
                 $query->where('status', '!=', 'cancelled');
             }]);
         

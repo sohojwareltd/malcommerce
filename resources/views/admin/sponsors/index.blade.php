@@ -72,6 +72,7 @@ use Illuminate\Support\Str;
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Phone</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Address</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Join Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Referred by</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Referrals</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Orders</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Revenue</th>
@@ -107,6 +108,17 @@ use Illuminate\Support\Str;
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
                         {{ $sponsor->created_at->format('M d, Y h:i A') }}
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        @if($sponsor->sponsor)
+                            @if($sponsor->sponsor->role === 'sponsor')
+                                <a href="{{ route('admin.sponsors.show', $sponsor->sponsor) }}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline font-medium">{{ $sponsor->sponsor->name }}</a>
+                            @else
+                                <span class="text-neutral-700">{{ $sponsor->sponsor->name }}</span>
+                            @endif
+                        @else
+                            <span class="text-neutral-400">—</span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->referrals_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->orders_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-accent">৳{{ number_format($sponsor->total_revenue, 2) }}</td>
@@ -124,7 +136,7 @@ use Illuminate\Support\Str;
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10" class="px-6 py-4 text-center text-neutral-500">
+                    <td colspan="11" class="px-6 py-4 text-center text-neutral-500">
                         @if(request('search'))
                             No sponsors found matching "{{ request('search') }}"
                         @else
@@ -158,6 +170,16 @@ use Illuminate\Support\Str;
                         <h3 class="text-sm font-semibold text-neutral-900 truncate mb-1">{{ $sponsor->name }}</h3>
                     </a>
                     <p class="text-xs text-neutral-500 font-mono mb-2">{{ $sponsor->affiliate_code }}</p>
+                    @if($sponsor->sponsor)
+                    <p class="text-xs mb-2">
+                        <span class="text-neutral-500">Referred by:</span>
+                        @if($sponsor->sponsor->role === 'sponsor')
+                            <a href="{{ route('admin.sponsors.show', $sponsor->sponsor) }}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline font-medium">{{ $sponsor->sponsor->name }}</a>
+                        @else
+                            <span class="text-neutral-700 font-medium">{{ $sponsor->sponsor->name }}</span>
+                        @endif
+                    </p>
+                    @endif
                     <div class="grid grid-cols-2 gap-2 text-xs mb-3">
                         <div>
                             <span class="text-neutral-500">Phone:</span>
