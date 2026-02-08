@@ -46,7 +46,7 @@ use Illuminate\Support\Facades\Storage;
         </div>
 
         <!-- Product-Specific Partner Links -->
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <!-- <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-bold mb-4">Product Partner Links</h2>
             <p class="text-sm text-neutral-600 mb-4">Share these product-specific partner links to track commissions for each product.</p>
             
@@ -79,7 +79,7 @@ use Illuminate\Support\Facades\Storage;
                 <p class="text-neutral-500 text-center py-8">No active products found</p>
                 @endforelse
             </div>
-        </div>
+        </div> -->
 
         <!-- Referrals -->
         @if($sponsor->referrals->count() > 0)
