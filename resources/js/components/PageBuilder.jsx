@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { GridSection, FlexSection, SpacerSection, ContainerSection } from './LayoutComponents';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ProductSections from './ProductSections';
+
+const HISTORY_LIMIT = 50;
 
 const PageBuilder = ({ initialSections = [], productId = null, productPrice = null, productComparePrice = null, productInStock = false, productStockQuantity = null }) => {
     const [sections, setSections] = useState(initialSections);
@@ -8,11 +9,87 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
     const [uploading, setUploading] = useState({});
     const [draggedIndex, setDraggedIndex] = useState(null);
     const [viewMode, setViewMode] = useState('edit'); // 'edit' or 'preview'
+    const [devicePreview, setDevicePreview] = useState('desktop'); // 'desktop' | 'tablet' | 'mobile'
+    const [sectionPickerOpen, setSectionPickerOpen] = useState(false);
+    const [insertAfterIndex, setInsertAfterIndex] = useState(null); // null = append at end
+    const [history, setHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+    const sectionListRef = useRef(null);
+    const selectedItemRef = useRef(null);
+
+    // Push current state to history (skip initial and when undoing/redoing)
+    const pushHistory = useCallback((nextSections) => {
+        setHistory((prev) => {
+            const trimmed = prev.slice(0, historyIndex + 1);
+            const snapshot = JSON.stringify(nextSections);
+            if (trimmed.length > 0 && trimmed[trimmed.length - 1] === snapshot) return prev;
+            const next = [...trimmed, snapshot].slice(-HISTORY_LIMIT);
+            setHistoryIndex(next.length - 1);
+            return next;
+        });
+    }, [historyIndex]);
+
+    const setSectionsWithHistory = useCallback((updater) => {
+        setSections((prev) => {
+            const next = typeof updater === 'function' ? updater(prev) : updater;
+            pushHistory(next);
+            return next;
+        });
+    }, [pushHistory]);
+
+    const undo = useCallback(() => {
+        if (historyIndex <= 0) return;
+        const prev = historyIndex - 1;
+        setHistoryIndex(prev);
+        const restored = JSON.parse(history[prev]);
+        setSections(restored);
+        if (selectedSectionIndex !== null && selectedSectionIndex >= restored.length) {
+            setSelectedSectionIndex(restored.length > 0 ? restored.length - 1 : null);
+        }
+    }, [history, historyIndex, selectedSectionIndex]);
+
+    const redo = useCallback(() => {
+        if (historyIndex >= history.length - 1 || historyIndex < 0) return;
+        const next = historyIndex + 1;
+        setHistoryIndex(next);
+        const restored = JSON.parse(history[next]);
+        setSections(restored);
+        setSelectedSectionIndex(null);
+    }, [history, historyIndex]);
 
     // Update global sections for save function
     useEffect(() => {
         window.currentSections = sections;
     }, [sections]);
+
+    // Initial history snapshot
+    useEffect(() => {
+        if (history.length === 0 && sections.length >= 0) {
+            setHistory([JSON.stringify(sections)]);
+            setHistoryIndex(0);
+        }
+    }, []);
+
+    // Keyboard: undo / redo
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (!e.target || e.target.closest('input, textarea, select')) return;
+            if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+                e.preventDefault();
+                if (e.shiftKey) redo();
+                else undo();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [undo, redo]);
+
+    // Scroll selected section into view in left sidebar
+    useEffect(() => {
+        if (selectedSectionIndex !== null && selectedItemRef.current && sectionListRef.current) {
+            selectedItemRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    }, [selectedSectionIndex]);
 
     // Image upload handler
     const uploadImage = async (sectionIndex, identifier) => {
@@ -70,13 +147,23 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
     const addSection = (type) => {
         const newSection = createDefaultSection(type);
         const newSections = [...sections, newSection];
-        setSections(newSections);
+        setSectionsWithHistory(newSections);
         setSelectedSectionIndex(newSections.length - 1);
+    };
+
+    const addSectionAfter = (afterIndex, type) => {
+        const newSection = createDefaultSection(type);
+        const insertAt = afterIndex === null || afterIndex === undefined ? sections.length : afterIndex + 1;
+        const newSections = [...sections.slice(0, insertAt), newSection, ...sections.slice(insertAt)];
+        setSectionsWithHistory(newSections);
+        setSelectedSectionIndex(insertAt);
+        setSectionPickerOpen(false);
+        setInsertAfterIndex(null);
     };
 
     const removeSection = (index) => {
         const newSections = sections.filter((_, i) => i !== index);
-        setSections(newSections);
+        setSectionsWithHistory(newSections);
         if (selectedSectionIndex === index) {
             setSelectedSectionIndex(null);
         } else if (selectedSectionIndex > index) {
@@ -94,8 +181,17 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
         const newSections = [...sections];
         const duplicated = JSON.parse(JSON.stringify(sections[index]));
         newSections.splice(index + 1, 0, duplicated);
-        setSections(newSections);
+        setSectionsWithHistory(newSections);
         setSelectedSectionIndex(index + 1);
+    };
+
+    const moveSection = (index, direction) => {
+        const target = direction === 'up' ? index - 1 : index + 1;
+        if (target < 0 || target >= sections.length) return;
+        const newSections = [...sections];
+        [newSections[index], newSections[target]] = [newSections[target], newSections[index]];
+        setSectionsWithHistory(newSections);
+        setSelectedSectionIndex(target);
     };
 
     // Drag and drop
@@ -114,14 +210,19 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
         const newSections = [...sections];
         const [dragged] = newSections.splice(draggedIndex, 1);
         newSections.splice(dropIndex, 0, dragged);
-        setSections(newSections);
+        setSectionsWithHistory(newSections);
         setDraggedIndex(null);
-        
+
         if (selectedSectionIndex === draggedIndex) {
             setSelectedSectionIndex(dropIndex);
         } else if (selectedSectionIndex === dropIndex) {
             setSelectedSectionIndex(draggedIndex);
         }
+    };
+
+    const openSectionPicker = (afterIndex = null) => {
+        setInsertAfterIndex(afterIndex);
+        setSectionPickerOpen(true);
     };
 
     // Get section type label
@@ -140,10 +241,6 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
             order_form: 'Order Form',
             call_to_action: 'Call to Action',
             tabs: 'Tabs',
-            grid: 'Grid',
-            flex: 'Flex',
-            spacer: 'Spacer',
-            container: 'Container',
             hero: 'Hero',
             benefits: 'Benefits',
             pricing: 'Pricing',
@@ -157,26 +254,14 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
     // Render section editor
     const renderSectionEditor = (section, index) => {
         if (selectedSectionIndex !== index) return null;
-
-        switch (section.type) {
-            case 'grid':
-                return <GridSection section={section} index={index} updateSection={updateSection} uploadImage={uploadImage} uploading={uploading} />;
-            case 'flex':
-                return <FlexSection section={section} index={index} updateSection={updateSection} uploadImage={uploadImage} uploading={uploading} />;
-            case 'spacer':
-                return <SpacerSection section={section} index={index} updateSection={updateSection} />;
-            case 'container':
-                return <ContainerSection section={section} index={index} updateSection={updateSection} />;
-            default:
-                return <SectionEditor section={section} index={index} updateSection={updateSection} uploadImage={uploadImage} uploading={uploading} />;
-        }
+        return <SectionEditor section={section} index={index} updateSection={updateSection} uploadImage={uploadImage} uploading={uploading} />;
     };
 
     return (
         <div className="h-full flex overflow-hidden">
             {/* Left Sidebar - Section List */}
             <div className="w-80 bg-white border-r border-[#E1E3E5] flex flex-col overflow-hidden">
-                <div className="flex-1 overflow-y-auto p-4 min-h-0">
+                <div ref={sectionListRef} className="flex-1 overflow-y-auto p-4 min-h-0">
                     <h2 className="text-sm font-semibold text-[#202223] mb-3">Sections</h2>
                     <div className="space-y-2">
                         {sections.length === 0 ? (
@@ -185,6 +270,7 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
                             sections.map((section, index) => (
                                 <div
                                     key={index}
+                                    ref={selectedSectionIndex === index ? selectedItemRef : null}
                                     draggable
                                     onDragStart={() => handleDragStart(index)}
                                     onDragOver={(e) => handleDragOver(e, index)}
@@ -218,50 +304,81 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
                         )}
                     </div>
                     <div className="mt-4 pt-4 border-t border-[#E1E3E5]">
-                        <h3 className="text-xs font-semibold text-[#637381] uppercase mb-2">Add Section</h3>
-                        <div className="space-y-2">
-                            <SectionAddButtons onAdd={addSection} />
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => openSectionPicker(null)}
+                            className="w-full bg-[#008060] text-white px-3 py-2 rounded text-sm font-medium hover:bg-[#006E52] transition"
+                        >
+                            + Add section
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Main Content - Editor/Preview */}
-            <div className="flex-1 flex flex-col overflow-hidden bg-[#F6F6F7]">
-                {/* View Mode Toggle */}
-                <div className="bg-white border-b border-[#E1E3E5] px-6 py-3 flex items-center justify-between flex-shrink-0">
+            {/* Center - Canvas */}
+            <div className="flex-1 flex flex-col overflow-hidden bg-[#F6F6F7] min-w-0">
+                {/* Toolbar */}
+                <div className="bg-white border-b border-[#E1E3E5] px-4 py-2 flex items-center justify-between flex-shrink-0 gap-4">
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setViewMode('edit')}
-                            className={`px-4 py-1.5 rounded text-sm font-medium transition ${
-                                viewMode === 'edit'
-                                    ? 'bg-[#008060] text-white'
-                                    : 'bg-transparent text-[#637381] hover:bg-[#F6F6F7]'
+                            className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                                viewMode === 'edit' ? 'bg-[#008060] text-white' : 'bg-transparent text-[#637381] hover:bg-[#F6F6F7]'
                             }`}
                         >
                             Edit
                         </button>
                         <button
                             onClick={() => setViewMode('preview')}
-                            className={`px-4 py-1.5 rounded text-sm font-medium transition ${
-                                viewMode === 'preview'
-                                    ? 'bg-[#008060] text-white'
-                                    : 'bg-transparent text-[#637381] hover:bg-[#F6F6F7]'
+                            className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                                viewMode === 'preview' ? 'bg-[#008060] text-white' : 'bg-transparent text-[#637381] hover:bg-[#F6F6F7]'
                             }`}
                         >
                             Preview
                         </button>
+                        <span className="text-[#C9CCCF] mx-1">|</span>
+                        <span className="text-xs text-[#637381]">Device:</span>
+                        {['desktop', 'tablet', 'mobile'].map((d) => (
+                            <button
+                                key={d}
+                                onClick={() => setDevicePreview(d)}
+                                className={`px-2 py-1 rounded text-xs font-medium capitalize transition ${
+                                    devicePreview === d ? 'bg-[#008060] text-white' : 'text-[#637381] hover:bg-[#F6F6F7]'
+                                }`}
+                            >
+                                {d}
+                            </button>
+                        ))}
+                        <span className="text-[#C9CCCF] mx-1">|</span>
+                        <button
+                            onClick={undo}
+                            disabled={historyIndex <= 0}
+                            className="p-1.5 rounded text-[#637381] hover:bg-[#F6F6F7] disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Undo (Ctrl+Z)"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                        </button>
+                        <button
+                            onClick={redo}
+                            disabled={historyIndex >= history.length - 1 || historyIndex < 0}
+                            className="p-1.5 rounded text-[#637381] hover:bg-[#F6F6F7] disabled:opacity-40 disabled:cursor-not-allowed"
+                            title="Redo (Ctrl+Shift+Z)"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
+                        </button>
                     </div>
                 </div>
 
-                <div className={`flex-1 overflow-y-auto min-h-0 ${viewMode === 'preview' ? '' : 'p-6'}`}>
-                    {viewMode === 'preview' ? (
-                        // Preview Mode
-                        <div className="bg-white min-h-full">
-                            {sections.length === 0 ? (
-                                <div className="text-center py-12 text-[#637381]">
-                                    <p>No sections to preview. Add sections to see the preview.</p>
-                                </div>
+                {/* Canvas area */}
+                <div className={`flex-1 overflow-y-auto min-h-0 flex justify-center ${viewMode === 'preview' ? '' : 'p-4'}`}>
+                    <div
+                        className={`bg-white min-h-full transition-all duration-200 ${
+                            devicePreview === 'tablet' ? 'max-w-[768px] w-full shadow-lg' : devicePreview === 'mobile' ? 'max-w-[375px] w-full shadow-lg' : 'w-full max-w-full'
+                        }`}
+                    >
+                        {viewMode === 'preview' ? (
+                            sections.length === 0 ? (
+                                <div className="text-center py-12 text-[#637381]">No sections to preview. Add sections to see the preview.</div>
                             ) : (
                                 <ProductSections
                                     layout={sections}
@@ -271,79 +388,183 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
                                     productInStock={productInStock}
                                     productStockQuantity={productStockQuantity}
                                 />
-                            )}
-                        </div>
-                    ) : (
-                        // Edit Mode
-                        <>
-                            {selectedSectionIndex !== null && sections[selectedSectionIndex] ? (
-                                <div className="bg-white rounded-lg border border-[#E1E3E5] p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-lg font-semibold text-[#202223]">
-                                            Edit: {getSectionLabel(sections[selectedSectionIndex])}
-                                        </h3>
-                                        <button
-                                            onClick={() => duplicateSection(selectedSectionIndex)}
-                                            className="text-sm text-[#637381] hover:text-[#202223] px-3 py-1.5 rounded hover:bg-[#F6F6F7] transition"
-                                        >
-                                            Duplicate
-                                        </button>
-                                    </div>
-                                    {renderSectionEditor(sections[selectedSectionIndex], selectedSectionIndex)}
+                            )
+                        ) : (
+                            sections.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                                    <p className="text-[#637381] mb-4">No sections yet. Add a section to get started.</p>
+                                    <button
+                                        onClick={() => openSectionPicker(null)}
+                                        className="bg-[#008060] text-white px-4 py-2 rounded text-sm font-medium hover:bg-[#006E52] transition"
+                                    >
+                                        Add section
+                                    </button>
                                 </div>
                             ) : (
-                                <div className="text-center py-12 text-[#637381]">
-                                    <p>Select a section from the sidebar to edit, or add a new section to get started.</p>
-                                </div>
-                            )}
-                        </>
-                    )}
+                                <ProductSections
+                                    layout={sections}
+                                    productId={productId}
+                                    productPrice={productPrice}
+                                    productComparePrice={productComparePrice}
+                                    productInStock={productInStock}
+                                    productStockQuantity={productStockQuantity}
+                                    builderMode={true}
+                                    selectedSectionIndex={selectedSectionIndex}
+                                    onSectionClick={setSelectedSectionIndex}
+                                    renderAddBetween={(afterIndex) => (
+                                        <div key={`add-${afterIndex}`} className="flex justify-center py-3">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); openSectionPicker(afterIndex - 1); }}
+                                                className="text-sm text-[#008060] hover:text-[#006E52] border border-dashed border-[#008060] rounded px-4 py-2 hover:bg-[#F0FDF4] transition"
+                                            >
+                                                + Add section
+                                            </button>
+                                        </div>
+                                    )}
+                                />
+                            )
+                        )}
+                    </div>
                 </div>
             </div>
+
+            {/* Right Sidebar - Section Settings (edit mode only) */}
+            {viewMode === 'edit' && (
+                <div className="w-96 bg-white border-l border-[#E1E3E5] flex flex-col overflow-hidden flex-shrink-0">
+                    {selectedSectionIndex !== null && sections[selectedSectionIndex] ? (
+                        <>
+                            <div className="p-4 border-b border-[#E1E3E5] flex items-center justify-between flex-shrink-0">
+                                <h3 className="text-sm font-semibold text-[#202223]">Settings</h3>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => moveSection(selectedSectionIndex, 'up')}
+                                        disabled={selectedSectionIndex === 0}
+                                        className="p-1.5 rounded text-[#637381] hover:bg-[#F6F6F7] disabled:opacity-40"
+                                        title="Move up"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7" /></svg>
+                                    </button>
+                                    <button
+                                        onClick={() => moveSection(selectedSectionIndex, 'down')}
+                                        disabled={selectedSectionIndex === sections.length - 1}
+                                        className="p-1.5 rounded text-[#637381] hover:bg-[#F6F6F7] disabled:opacity-40"
+                                        title="Move down"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
+                                    <button onClick={() => duplicateSection(selectedSectionIndex)} className="text-xs text-[#637381] hover:text-[#202223] px-2 py-1 rounded hover:bg-[#F6F6F7]" title="Duplicate">Duplicate</button>
+                                    <button onClick={() => removeSection(selectedSectionIndex)} className="p-1.5 rounded text-red-600 hover:bg-red-50" title="Remove">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-4 min-h-0">
+                                <p className="text-xs text-[#637381] mb-3">{getSectionLabel(sections[selectedSectionIndex])}</p>
+                                {renderSectionEditor(sections[selectedSectionIndex], selectedSectionIndex)}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center p-6 text-center text-[#637381] text-sm">
+                            <p>Click a section on the page or in the left list to edit its settings.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Section Picker Modal */}
+            {sectionPickerOpen && (
+                <SectionPickerModal
+                    onSelect={(type) => addSectionAfter(insertAfterIndex, type)}
+                    onClose={() => { setSectionPickerOpen(false); setInsertAfterIndex(null); }}
+                />
+            )}
         </div>
     );
 };
 
-// Section Add Buttons Component
-const SectionAddButtons = ({ onAdd }) => {
-    const sectionTypes = [
-        { type: 'rich_text', label: 'Rich Text' },
-        { type: 'image_gallery', label: 'Image Gallery' },
-        { type: 'image_slider', label: 'Image Slider' },
-        { type: 'video_slider', label: 'Video Slider' },
-        { type: 'banner', label: 'Banner' },
-        { type: 'faq', label: 'FAQs' },
-        { type: 'testimonials', label: 'Testimonials' },
-        { type: 'video', label: 'Video' },
-        { type: 'specifications', label: 'Specifications' },
-        { type: 'comparison', label: 'Comparison' },
-        { type: 'order_form', label: 'Order Form' },
-        { type: 'call_to_action', label: 'Call to Action' },
-        { type: 'tabs', label: 'Tabs' },
-        { type: 'grid', label: 'Grid' },
-        { type: 'flex', label: 'Flex' },
-        { type: 'spacer', label: 'Spacer' },
-        { type: 'container', label: 'Container' },
-        { type: 'hero', label: 'Hero' },
-        { type: 'benefits', label: 'Benefits' },
-        { type: 'pricing', label: 'Pricing' },
-        { type: 'steps', label: 'Steps' },
-        { type: 'social_links', label: 'Social Links' },
-        { type: 'contact_info', label: 'Contact Info' },
-    ];
+// Section categories for picker (grouped like Shopify)
+const SECTION_CATEGORIES = [
+    { id: 'content', label: 'Content', types: ['rich_text', 'hero', 'banner', 'tabs', 'faq', 'testimonials', 'benefits', 'steps'] },
+    { id: 'media', label: 'Media', types: ['image_gallery', 'image_slider', 'video_slider', 'video'] },
+    { id: 'commerce', label: 'Commerce', types: ['order_form', 'call_to_action', 'pricing', 'specifications', 'comparison'] },
+    { id: 'social', label: 'Social & Contact', types: ['social_links', 'contact_info'] },
+];
+
+const SECTION_TYPE_LABELS = {
+    rich_text: 'Rich Text',
+    image_gallery: 'Image Gallery',
+    image_slider: 'Image Slider',
+    video_slider: 'Video Slider',
+    banner: 'Banner',
+    faq: 'FAQs',
+    testimonials: 'Testimonials',
+    video: 'Video',
+    specifications: 'Specifications',
+    comparison: 'Comparison',
+    order_form: 'Order Form',
+    call_to_action: 'Call to Action',
+    tabs: 'Tabs',
+    hero: 'Hero',
+    benefits: 'Benefits',
+    pricing: 'Pricing',
+    steps: 'Steps',
+    social_links: 'Social Links',
+    contact_info: 'Contact Info',
+};
+
+// Section Picker Modal with categories and search
+const SectionPickerModal = ({ onSelect, onClose }) => {
+    const [search, setSearch] = useState('');
+    const searchLower = search.trim().toLowerCase();
+    const filtered = SECTION_CATEGORIES.map((cat) => ({
+        ...cat,
+        types: cat.types.filter((t) => SECTION_TYPE_LABELS[t]?.toLowerCase().includes(searchLower)),
+    })).filter((cat) => cat.types.length > 0);
 
     return (
-        <>
-            {sectionTypes.map(({ type, label }) => (
-                <button
-                    key={type}
-                    onClick={() => onAdd(type)}
-                    className="w-full text-left px-3 py-2 text-sm text-[#202223] hover:bg-[#F6F6F7] rounded transition"
-                >
-                    {label}
-                </button>
-            ))}
-        </>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="p-4 border-b border-[#E1E3E5] flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-[#202223]">Add section</h2>
+                    <button type="button" onClick={onClose} className="p-1 rounded text-[#637381] hover:bg-[#F6F6F7]">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div className="p-4 border-b border-[#E1E3E5]">
+                    <input
+                        type="text"
+                        placeholder="Search sections..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full px-3 py-2 border border-[#E1E3E5] rounded text-sm placeholder-[#637381] focus:ring-2 focus:ring-[#008060] focus:border-[#008060]"
+                    />
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {filtered.length === 0 ? (
+                        <p className="text-sm text-[#637381] text-center py-6">No sections match your search.</p>
+                    ) : (
+                        filtered.map((cat) => (
+                            <div key={cat.id}>
+                                <h3 className="text-xs font-semibold text-[#637381] uppercase mb-2">{cat.label}</h3>
+                                <div className="space-y-1">
+                                    {cat.types.map((type) => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => onSelect(type)}
+                                            className="w-full text-left px-3 py-2 text-sm text-[#202223] hover:bg-[#F0FDF4] rounded border border-transparent hover:border-[#008060] transition"
+                                        >
+                                            {SECTION_TYPE_LABELS[type] || type}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -394,16 +615,95 @@ const SectionEditor = ({ section, index, updateSection, uploadImage, uploading }
         }
     };
 
-    return <div className="space-y-4">{renderEditor()}</div>;
+    return (
+        <div className="space-y-4">
+            {renderEditor()}
+            <SpacingEditor section={section} index={index} updateSection={updateSection} />
+        </div>
+    );
+};
+
+// Reusable padding & margin editor for sections (values in px)
+const SpacingEditor = ({ section, index, updateSection }) => {
+    const sides = [
+        { key: 'top', label: 'Top' },
+        { key: 'right', label: 'Right' },
+        { key: 'bottom', label: 'Bottom' },
+        { key: 'left', label: 'Left' },
+    ];
+
+    const updateSpacing = (kind, side, value) => {
+        const field = `${kind}_${side}`;
+        const v = value === '' ? '' : (parseInt(value, 10) || 0);
+        updateSection(index, field, v === 0 && value !== '0' ? '' : v);
+    };
+
+    return (
+        <div className="border-t border-[#E1E3E5] pt-4 mt-4 space-y-4">
+            <h4 className="text-sm font-semibold text-[#202223]">Spacing (px)</h4>
+            <div className="space-y-3">
+                <div>
+                    <p className="text-xs font-medium text-[#637381] mb-1.5">Padding</p>
+                    <div className="grid grid-cols-4 gap-2">
+                        {sides.map(({ key, label }) => (
+                            <div key={`p-${key}`} className="min-w-0">
+                                <label className="text-xs text-[#637381] block mb-0.5">{label}</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={section[`padding_${key}`] ?? ''}
+                                    onChange={(e) => updateSpacing('padding', key, e.target.value)}
+                                    className="w-full min-w-[3.5rem] px-2 py-1.5 border border-[#E1E3E5] rounded text-sm tabular-nums"
+                                    style={{ fontSize: '14px' }}
+                                    placeholder="0"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <p className="text-xs font-medium text-[#637381] mb-1.5">Margin</p>
+                    <div className="grid grid-cols-4 gap-2">
+                        {sides.map(({ key, label }) => (
+                            <div key={`m-${key}`} className="min-w-0">
+                                <label className="text-xs text-[#637381] block mb-0.5">{label}</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={section[`margin_${key}`] ?? ''}
+                                    onChange={(e) => updateSpacing('margin', key, e.target.value)}
+                                    className="w-full min-w-[3.5rem] px-2 py-1.5 border border-[#E1E3E5] rounded text-sm tabular-nums"
+                                    style={{ fontSize: '14px' }}
+                                    placeholder="0"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Shared spacing defaults for all sections (padding & margin in px, empty = not set)
+const SECTION_SPACING_DEFAULTS = {
+    padding_top: '',
+    padding_right: '',
+    padding_bottom: '',
+    padding_left: '',
+    margin_top: '',
+    margin_right: '',
+    margin_bottom: '',
+    margin_left: '',
 };
 
 // Helper function to create default sections
 const createDefaultSection = (type) => {
     const defaults = {
-        rich_text: { type: 'rich_text', title: '', content: '' },
-        image_gallery: { type: 'image_gallery', title: '', images: [] },
-        image_slider: { type: 'image_slider', title: '', images: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true },
-        video_slider: { type: 'video_slider', title: '', videos: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true, videoAutoplay: false, videoMute: false },
+        rich_text: { type: 'rich_text', title: '', content: '', ...SECTION_SPACING_DEFAULTS },
+        image_gallery: { type: 'image_gallery', title: '', images: [], ...SECTION_SPACING_DEFAULTS },
+        image_slider: { type: 'image_slider', title: '', images: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true, ...SECTION_SPACING_DEFAULTS },
+        video_slider: { type: 'video_slider', title: '', videos: [], autoplay: true, autoplaySpeed: 5000, dots: true, arrows: true, videoAutoplay: false, videoMute: false, ...SECTION_SPACING_DEFAULTS },
         banner: { 
             type: 'banner', 
             title: '', 
@@ -413,20 +713,17 @@ const createDefaultSection = (type) => {
             gradient_start: '#FFD700',
             gradient_end: '#FFA500',
             background_image: '', 
-            text_color: '#000000' 
+            text_color: '#000000',
+            ...SECTION_SPACING_DEFAULTS 
         },
-        faq: { type: 'faq', title: '', items: [] },
-        testimonials: { type: 'testimonials', title: '', items: [] },
-        video: { type: 'video', title: '', url: '' },
-        specifications: { type: 'specifications', title: '', items: [] },
-        comparison: { type: 'comparison', title: '', items: [] },
-        order_form: { type: 'order_form', title: '', content: '', background_color: '' },
-        call_to_action: { type: 'call_to_action', title: '', content: '', button_text: '', button_link: '#', background_color: '#008060', text_color: '#FFFFFF', button_color: '#FFFFFF', background_image: '' },
-        tabs: { type: 'tabs', title: '', items: [] },
-        grid: { type: 'grid', title: '', columns: 2, gap: 'medium', items: [] },
-        flex: { type: 'flex', title: '', direction: 'row', align: 'start', justify: 'start', items: [] },
-        spacer: { type: 'spacer', height: 50 },
-        container: { type: 'container', maxWidth: 'full', padding: 'medium', backgroundColor: '#FFFFFF', content: '' },
+        faq: { type: 'faq', title: '', items: [], ...SECTION_SPACING_DEFAULTS },
+        testimonials: { type: 'testimonials', title: '', items: [], ...SECTION_SPACING_DEFAULTS },
+        video: { type: 'video', title: '', url: '', ...SECTION_SPACING_DEFAULTS },
+        specifications: { type: 'specifications', title: '', items: [], ...SECTION_SPACING_DEFAULTS },
+        comparison: { type: 'comparison', title: '', items: [], ...SECTION_SPACING_DEFAULTS },
+        order_form: { type: 'order_form', title: '', content: '', background_color: '', ...SECTION_SPACING_DEFAULTS },
+        call_to_action: { type: 'call_to_action', title: '', content: '', button_text: '', button_link: '#', background_color: '#008060', text_color: '#FFFFFF', button_color: '#FFFFFF', background_image: '', ...SECTION_SPACING_DEFAULTS },
+        tabs: { type: 'tabs', title: '', items: [], ...SECTION_SPACING_DEFAULTS },
         hero: { 
             type: 'hero', 
             title: '', 
@@ -440,7 +737,7 @@ const createDefaultSection = (type) => {
             button_link: '#',
             button2_text: '',
             button2_link: '#',
-            background_type: 'color', // 'color', 'gradient', 'image'
+            background_type: 'color',
             background_color: '#008060',
             gradient_start: '#008060',
             gradient_end: '#006E52',
@@ -450,42 +747,131 @@ const createDefaultSection = (type) => {
             button_text_color: '#008060',
             button2_bg_color: '#008060',
             button2_text_color: '#FFFFFF',
-            images: [] 
+            images: [],
+            ...SECTION_SPACING_DEFAULTS 
         },
-        benefits: { type: 'benefits', title: '', items: [] },
-        pricing: { type: 'pricing', title: '', original_price: '', offer_price: '', discount_text: '', countdown_date: '' },
-        steps: { type: 'steps', title: '', items: [] },
-        social_links: { type: 'social_links', title: '', items: [] },
-        contact_info: { type: 'contact_info', title: '', phone: '', email: '', address: '', content: '' },
+        benefits: { type: 'benefits', title: '', items: [], ...SECTION_SPACING_DEFAULTS },
+        pricing: { type: 'pricing', title: '', original_price: '', offer_price: '', discount_text: '', countdown_date: '', ...SECTION_SPACING_DEFAULTS },
+        steps: { type: 'steps', title: '', items: [], ...SECTION_SPACING_DEFAULTS },
+        social_links: { type: 'social_links', title: '', items: [], ...SECTION_SPACING_DEFAULTS },
+        contact_info: { type: 'contact_info', title: '', phone: '', email: '', address: '', content: '', ...SECTION_SPACING_DEFAULTS },
     };
-    return defaults[type] || { type };
+    return defaults[type] || { type, ...SECTION_SPACING_DEFAULTS };
+};
+
+// Rich text toolbar button helper
+const RichTextToolbar = ({ editorRef }) => {
+    const exec = (cmd, value = null) => {
+        if (editorRef.current) {
+            editorRef.current.focus();
+            document.execCommand(cmd, false, value);
+        }
+    };
+
+    const addLink = () => {
+        const url = window.prompt('Enter URL:', 'https://');
+        if (url) exec('createLink', url);
+    };
+
+    return (
+        <div className="flex flex-wrap items-center gap-0.5 p-1.5 border border-[#E1E3E5] border-b-0 rounded-t bg-[#F6F6F7]">
+            <button type="button" onClick={() => exec('bold')} className="p-2 rounded hover:bg-[#E1E3E5] font-bold text-sm" title="Bold">B</button>
+            <button type="button" onClick={() => exec('italic')} className="p-2 rounded hover:bg-[#E1E3E5] italic text-sm" title="Italic">I</button>
+            <button type="button" onClick={() => exec('underline')} className="p-2 rounded hover:bg-[#E1E3E5] underline text-sm" title="Underline">U</button>
+            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
+            <button type="button" onClick={addLink} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Insert link">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            </button>
+            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
+            <button type="button" onClick={() => exec('insertUnorderedList')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Bullet list">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h2v2H4V6zm0 5h2v2H4v-2zm0 5h2v2H4v-2zm4-10h12v2H8V6zm0 5h12v2H8v-2zm0 5h12v2H8v-2z" /></svg>
+            </button>
+            <button type="button" onClick={() => exec('insertOrderedList')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Numbered list">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M2 5v2h2V5H2zm0 6v2h2v-2H2zm0 6v2h2v-2H2zm4-12h14v2H6V5zm0 5h14v2H6v-2zm0 5h14v2H6v-2z" /></svg>
+            </button>
+            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
+            <select
+                className="text-xs border border-[#E1E3E5] rounded px-2 py-1.5 bg-white"
+                defaultValue="p"
+                onChange={(e) => { const v = e.target.value; exec('formatBlock', v); }}
+                title="Block format"
+            >
+                <option value="p">Paragraph</option>
+                <option value="h2">Heading 2</option>
+                <option value="h3">Heading 3</option>
+            </select>
+        </div>
+    );
 };
 
 // Individual Section Editors
-const RichTextEditor = ({ section, index, updateSection }) => (
-    <div className="space-y-3">
-        <div>
-            <label className="text-sm font-medium block mb-1">Title (optional)</label>
-            <input
-                type="text"
-                value={section.title || ''}
-                onChange={(e) => updateSection(index, 'title', e.target.value)}
-                className="w-full px-3 py-2 border border-neutral-300 rounded text-sm"
-                placeholder="Section Title"
-            />
+const RichTextEditor = ({ section, index, updateSection }) => {
+    const editorRef = React.useRef(null);
+    const isInternalChange = React.useRef(false);
+
+    React.useEffect(() => {
+        if (!editorRef.current) return;
+        const current = (editorRef.current.innerHTML || '').trim();
+        const fromSection = (section.content || '').trim();
+        if (isInternalChange.current) {
+            isInternalChange.current = false;
+            return;
+        }
+        if (current !== fromSection) {
+            editorRef.current.innerHTML = fromSection || '';
+        }
+    }, [section.content, index]);
+
+    const handleInput = () => {
+        if (!editorRef.current) return;
+        isInternalChange.current = true;
+        const html = editorRef.current.innerHTML;
+        updateSection(index, 'content', html);
+    };
+
+    const handlePaste = (e) => {
+        e.preventDefault();
+        const text = e.clipboardData.getData('text/plain') || '';
+        const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        document.execCommand('insertHTML', false, safe);
+    };
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className="text-sm font-medium block mb-1">Title (optional)</label>
+                <input
+                    type="text"
+                    value={section.title || ''}
+                    onChange={(e) => updateSection(index, 'title', e.target.value)}
+                    className="w-full px-3 py-2 border border-[#E1E3E5] rounded text-sm"
+                    placeholder="Section Title"
+                />
+            </div>
+            <div>
+                <label className="text-sm font-medium block mb-1">Content</label>
+                <RichTextToolbar editorRef={editorRef} />
+                <div
+                    ref={editorRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    onInput={handleInput}
+                    onBlur={handleInput}
+                    onPaste={handlePaste}
+                    className="min-h-[200px] w-full px-3 py-2 border border-[#E1E3E5] rounded-b text-sm text-[#202223] focus:outline-none focus:ring-2 focus:ring-[#008060] focus:border-[#008060] prose prose-sm max-w-none"
+                    style={{ outline: 'none' }}
+                    data-placeholder="Start typing..."
+                />
+                <style>{`
+                    [data-placeholder]:empty:before { content: attr(data-placeholder); color: #637381; }
+                    [contenteditable] h2 { font-size: 1.25rem; font-weight: 700; margin: 0.75em 0 0.25em; }
+                    [contenteditable] h3 { font-size: 1.125rem; font-weight: 600; margin: 0.5em 0 0.25em; }
+                    [contenteditable] ul, [contenteditable] ol { margin: 0.5em 0; padding-left: 1.5rem; }
+                `}</style>
+            </div>
         </div>
-        <div>
-            <label className="text-sm font-medium block mb-1">Content (HTML)</label>
-            <textarea
-                value={section.content || ''}
-                onChange={(e) => updateSection(index, 'content', e.target.value)}
-                rows={10}
-                className="w-full px-3 py-2 border border-neutral-300 rounded text-sm font-mono"
-                placeholder="Enter HTML content"
-            />
-        </div>
-    </div>
-);
+    );
+};
 
 const ImageGalleryEditor = ({ section, index, updateSection, uploadImage, uploading }) => {
     const addImage = async () => {

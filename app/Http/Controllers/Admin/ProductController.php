@@ -270,10 +270,25 @@ class ProductController extends Controller
             unset($validated['images']);
         }
         
-        // Handle order form settings
-        $validated['order_hide_summary'] = $request->has('order_hide_summary');
-        $validated['order_hide_quantity'] = $request->has('order_hide_quantity');
-        $validated['is_free'] = $request->has('is_free');
+        // When saving from page builder, do not overwrite order form settings (keep existing product values)
+        $isLayoutOnlySave = $request->filled('page_layout');
+
+        if (!$isLayoutOnlySave) {
+            // Handle order form settings only when editing product (not from builder)
+            $validated['order_hide_summary'] = $request->has('order_hide_summary');
+            $validated['order_hide_quantity'] = $request->has('order_hide_quantity');
+            $validated['is_free'] = $request->has('is_free');
+        } else {
+            // Remove all order-form and payment fields so update() does not touch them
+            $preserveKeys = [
+                'order_form_title', 'order_button_text', 'order_min_quantity', 'order_max_quantity',
+                'order_delivery_options', 'order_hide_summary', 'order_hide_quantity', 'is_free',
+                'payment_options', 'sms_templates', 'order_custom_charge',
+            ];
+            foreach ($preserveKeys as $key) {
+                unset($validated[$key]);
+            }
+        }
 
         // Clean SMS templates (remove empty ones)
         if (array_key_exists('sms_templates', $validated)) {

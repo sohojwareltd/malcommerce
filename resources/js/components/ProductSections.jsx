@@ -62,7 +62,7 @@ const RenderText = ({ content, className = '', style = {}, tag = 'div' }) => {
     }
 };
 
-const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity, orderSettings = {} }) => {
+const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity, orderSettings = {}, builderMode = false, selectedSectionIndex = null, onSectionClick, renderAddBetween }) => {
     const [videoLightbox, setVideoLightbox] = useState({ open: false, url: '', title: '' });
 
     // Helper to get YouTube thumbnail
@@ -287,7 +287,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
     const firstOrderIndex = firstOrderFormIndex !== -1 ? firstOrderFormIndex : firstOrderCTIndex;
 
     // Order Form Component with React State (single primary form per page)
-    const OrderForm = ({ index, section, isPrimary }) => {
+    const OrderForm = ({ index, section, isPrimary, spacingStyle = {} }) => {
         if (!isPrimary) return null;
 
         const [quantity, setQuantity] = useState(1);
@@ -321,7 +321,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         };
 
         return (
-            <div className="w-full py-8 theme-section" id="page-order-form">
+            <div className="w-full py-8 theme-section" id="page-order-form" style={spacingStyle}>
                 {(section.title || section.content) && (
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 text-center">
                         {section.title && (
@@ -619,11 +619,34 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         );
     };
 
+    // Build padding/margin style from section spacing fields (values in px)
+    const getSectionSpacingStyle = (section) => {
+        if (!section) return {};
+        const style = {};
+        const sides = ['top', 'right', 'bottom', 'left'];
+        sides.forEach((side) => {
+            const p = section['padding_' + side];
+            const m = section['margin_' + side];
+            const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+            if (p !== undefined && p !== null && p !== '') {
+                const num = typeof p === 'number' ? p : parseFloat(p);
+                if (!Number.isNaN(num)) style['padding' + cap(side)] = num + 'px';
+            }
+            if (m !== undefined && m !== null && m !== '') {
+                const num = typeof m === 'number' ? m : parseFloat(m);
+                if (!Number.isNaN(num)) style['margin' + cap(side)] = num + 'px';
+            }
+        });
+        return style;
+    };
+
     const renderSection = (section, index) => {
+        const spacingStyle = getSectionSpacingStyle(section);
+
         switch (section.type) {
             case 'rich_text':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }}>
@@ -645,7 +668,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'image_gallery':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
@@ -663,7 +686,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'image_slider':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
@@ -741,7 +764,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'video_slider':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
@@ -888,7 +911,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 };
                 
                 return (
-                    <div key={index} className="w-full py-8 md:py-12 my-6 md:my-8" style={getBannerBackgroundStyle()}>
+                    <div key={index} className="w-full py-8 md:py-12 my-6 md:my-8" style={{ ...getBannerBackgroundStyle(), ...spacingStyle }}>
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                             {section.title && (
                                 <RenderText 
@@ -917,7 +940,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'faq':
                 return (
-                    <div key={index} className="theme-section">
+                    <div key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <RenderText content={section.title} tag="h2" className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }} />
@@ -936,7 +959,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'testimonials':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }}>
@@ -959,7 +982,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'video':
                 return (
-                    <div key={index} className="theme-section">
+                    <div key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
@@ -976,7 +999,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'specifications':
                 return (
-                    <div key={index} className="theme-section">
+                    <div key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="theme-card overflow-hidden">
@@ -997,7 +1020,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'comparison':
                 return (
-                    <div key={index} className="theme-section">
+                    <div key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="theme-card overflow-x-auto">
@@ -1031,7 +1054,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             case 'order_form': {
                 // Only render the first order form as primary
                 if (index === firstOrderIndex && productInStock && productId) {
-                    return <OrderForm key={index} index={index} section={section} isPrimary={true} />;
+                    return <OrderForm key={index} index={index} section={section} isPrimary={true} spacingStyle={spacingStyle} />;
                 }
                 
                 // Other order forms are ignored (only one allowed)
@@ -1046,7 +1069,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
 
                 // Primary order CTA renders the single shared order form
                 if (isOrderCTA && index === firstOrderIndex && productInStock && productId) {
-                    return <OrderForm key={index} index={index} section={section} isPrimary={true} />;
+                    return <OrderForm key={index} index={index} section={section} isPrimary={true} spacingStyle={spacingStyle} />;
                 }
 
                 // Secondary CTAs just scroll to the primary order form
@@ -1069,7 +1092,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                     <section
                         key={index}
                         className="py-4 md:py-2"
-                        style={ctaStyle}
+                        style={{ ...ctaStyle, ...spacingStyle }}
                     >
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                             {section.title && (
@@ -1103,99 +1126,13 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'tabs':
                 return (
-                    <div key={index} className="theme-section">
+                    <div key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
                             <div className="theme-card">
                                 <TabsComponent items={section.items} />
                             </div>
                         </div>
-                    </div>
-                );
-            
-            case 'grid':
-                const gridGap = section.gap === 'none' ? '0' : section.gap === 'small' ? '0.5rem' : section.gap === 'large' ? '2rem' : '1rem';
-                return (
-                    <div key={index} className="theme-section">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
-                            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${section.columns || 2}, 1fr)`, gap: gridGap }}>
-                                {(section.items || []).slice(0, section.columns || 2).map((item, i) => (
-                                    <div key={i} className="theme-card">
-                                        {item.type === 'text' && <RenderText content={item.content} className="prose max-w-none font-sans" />}
-                                        {item.type === 'image' && item.image && <img src={item.image} alt="" className="w-full rounded-lg" />}
-                                        {item.type === 'html' && <RenderText content={item.content} className="font-sans" />}
-                                        {item.type === 'video' && item.content && (
-                                            <div className="aspect-video">
-                                                <iframe src={item.content} className="w-full h-full rounded-lg" allowFullScreen />
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                );
-            
-            case 'flex':
-                const flexDirection = section.direction || 'row';
-                const flexAlign = section.align || 'start';
-                const flexJustify = section.justify || 'start';
-                return (
-                    <div key={index} className="theme-section">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {section.title && <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />}
-                            <div className="flex gap-4 flex-wrap" style={{ 
-                                flexDirection,
-                                alignItems: flexAlign === 'start' ? 'flex-start' : flexAlign === 'end' ? 'flex-end' : flexAlign === 'center' ? 'center' : 'stretch',
-                                justifyContent: flexJustify === 'start' ? 'flex-start' : flexJustify === 'end' ? 'flex-end' : flexJustify === 'center' ? 'center' : flexJustify === 'between' ? 'space-between' : 'space-around'
-                            }}>
-                                {(section.items || []).map((item, i) => (
-                                    <div key={i} className="theme-card flex-1 min-w-[200px]">
-                                        {item.type === 'text' && <RenderText content={item.content} className="prose max-w-none font-sans" />}
-                                        {item.type === 'image' && item.image && <img src={item.image} alt="" className="w-full rounded-lg" />}
-                                        {item.type === 'html' && <RenderText content={item.content} className="font-sans" />}
-                                        {item.type === 'button' && (
-                                            <a href={item.buttonLink || '#'} className="btn-primary font-sans inline-block">
-                                                {item.buttonText || 'Button'}
-                                            </a>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                );
-            
-            case 'spacer':
-                return (
-                    <div key={index} style={{ height: `${section.height || 50}px` }} className="my-4"></div>
-                );
-            
-            case 'container':
-                const maxWidthMap = {
-                    'full': '100%',
-                    '7xl': '1280px',
-                    '6xl': '1152px',
-                    '5xl': '1024px',
-                    '4xl': '896px',
-                    '3xl': '768px'
-                };
-                const paddingMap = {
-                    'none': '0',
-                    'small': '1rem',
-                    'medium': '2rem',
-                    'large': '4rem'
-                };
-                return (
-                    <div key={index} className="my-8" style={{
-                        maxWidth: maxWidthMap[section.maxWidth || 'full'],
-                        margin: '0 auto',
-                        padding: paddingMap[section.padding || 'medium'],
-                        backgroundColor: section.backgroundColor || 'var(--color-background)',
-                        borderRadius: 'var(--radius-xl)'
-                    }}>
-                        <RenderText content={section.content} className="font-sans" />
                     </div>
                 );
             
@@ -1228,7 +1165,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
 
                 return (
                     <section key={index} className="py-8 md:py-12"
-                             style={getHeroBackgroundStyle()}>
+                             style={{ ...getHeroBackgroundStyle(), ...spacingStyle }}>
                         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="text-center">
                                 {section.title && (
@@ -1320,7 +1257,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'benefits':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <RenderText content={section.title} tag="h2" className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }} />
@@ -1350,7 +1287,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'pricing':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <h2 className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-center font-sans" style={{ lineHeight: '1.3' }}>
@@ -1398,7 +1335,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'steps':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
@@ -1428,7 +1365,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'social_links':
                 return (
-                    <section key={index} className="theme-section bg-gray-50">
+                    <section key={index} className="theme-section bg-gray-50" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                             {section.title && (
                                 <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
@@ -1469,7 +1406,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
             
             case 'contact_info':
                 return (
-                    <section key={index} className="theme-section">
+                    <section key={index} className="theme-section" style={spacingStyle}>
                         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                             {section.title && (
                                 <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
@@ -1562,10 +1499,30 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         };
     }, [videoLightbox.open]);
 
+    const sectionContent = layout.map((section, index) => {
+        const inner = renderSection(section, index);
+        if (builderMode && (onSectionClick || renderAddBetween)) {
+            return (
+                <React.Fragment key={index}>
+                    {index > 0 && renderAddBetween && renderAddBetween(index)}
+                    <div
+                        data-section-index={index}
+                        onClick={() => onSectionClick?.(index)}
+                        className={`relative ${selectedSectionIndex === index ? 'ring-2 ring-[#008060] ring-inset' : ''} ${onSectionClick ? 'cursor-pointer' : ''}`}
+                    >
+                        {inner}
+                    </div>
+                </React.Fragment>
+            );
+        }
+        return <React.Fragment key={index}>{inner}</React.Fragment>;
+    });
+
     return (
         <>
             <div className="w-full">
-                {layout.map((section, index) => renderSection(section, index))}
+                {sectionContent}
+                {builderMode && layout.length > 0 && renderAddBetween && renderAddBetween(layout.length)}
             </div>
             
             {/* Video Lightbox for Mobile */}
