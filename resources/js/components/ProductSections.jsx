@@ -480,8 +480,11 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 </div>
                                 )}
 
-                                {/* Payment Method Selection */}
-                                {paymentOptions.length > 0 && (
+                                {/* Payment Method: hidden when only one option, selected by default */}
+                                {paymentOptions.length === 1 && (
+                                    <input type="hidden" name="payment_method" value={paymentOptions[0]} />
+                                )}
+                                {paymentOptions.length > 1 && (
                                 <div className="mb-6">
                                     <label className="block text-sm font-medium text-gray-700 mb-3 font-sans">
                                         পেমেন্ট পদ্ধতি <span className="text-red-500">*</span>

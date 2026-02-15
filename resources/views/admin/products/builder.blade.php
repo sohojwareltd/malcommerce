@@ -68,13 +68,30 @@
 
 {{-- Initial layout in script tag to avoid HTML attribute truncation/escaping with complex JSON --}}
 <script type="application/json" id="page-builder-initial-sections">@json($product->page_layout ?? [])</script>
+@php
+    $builderOrderSettings = [
+        'title' => $product->order_form_title ?: \App\Models\Setting::get('order_form_title', 'অর্ডার করুন'),
+        'buttonText' => $product->order_button_text ?: \App\Models\Setting::get('order_button_text', 'অর্ডার নিশ্চিত করুন'),
+        'hideSummary' => $product->order_hide_summary ?? \App\Models\Setting::get('order_hide_summary', false),
+        'hideQuantity' => $product->order_hide_quantity ?? \App\Models\Setting::get('order_hide_quantity', false),
+        'deliveryOptions' => $product->order_delivery_options
+            ? json_decode($product->order_delivery_options, true)
+            : json_decode(\App\Models\Setting::get('order_delivery_options', '[]'), true),
+        'minQuantity' => (int) ($product->order_min_quantity ?: \App\Models\Setting::get('order_min_quantity', 0)),
+        'maxQuantity' => (int) ($product->order_max_quantity ?: \App\Models\Setting::get('order_max_quantity', 0)),
+        'paymentOptions' => $product->getAllowedPaymentMethods(),
+    ];
+@endphp
 <div id="page-builder-editor" 
      class="h-full"
      data-product-id="{{ $product->id }}"
+     data-product-name="{{ $product->name }}"
+     data-product-image="{{ $product->main_image ?? '' }}"
      data-product-price="{{ $product->price }}"
      data-product-compare-price="{{ $product->compare_at_price ?? '' }}"
      data-product-in-stock="{{ $product->in_stock ? '1' : '0' }}"
-     data-product-stock-quantity="{{ $product->stock_quantity }}"></div>
+     data-product-stock-quantity="{{ $product->stock_quantity }}"
+     data-order-settings="{{ json_encode($builderOrderSettings) }}"></div>
 
 @push('scripts')
 @vite('resources/js/page-builder.js')

@@ -3,7 +3,7 @@ import ProductSections from './ProductSections';
 
 const HISTORY_LIMIT = 50;
 
-const PageBuilder = ({ initialSections = [], productId = null, productPrice = null, productComparePrice = null, productInStock = false, productStockQuantity = null }) => {
+const PageBuilder = ({ initialSections = [], productId = null, productName = '', productImage = '', productPrice = null, productComparePrice = null, productInStock = false, productStockQuantity = null, orderSettings = {} }) => {
     const [sections, setSections] = useState(initialSections);
     const [selectedSectionIndex, setSelectedSectionIndex] = useState(null);
     const [uploading, setUploading] = useState({});
@@ -383,10 +383,13 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
                                 <ProductSections
                                     layout={sections}
                                     productId={productId}
+                                    productName={productName}
+                                    productImage={productImage}
                                     productPrice={productPrice}
                                     productComparePrice={productComparePrice}
                                     productInStock={productInStock}
                                     productStockQuantity={productStockQuantity}
+                                    orderSettings={orderSettings}
                                 />
                             )
                         ) : (
@@ -404,10 +407,13 @@ const PageBuilder = ({ initialSections = [], productId = null, productPrice = nu
                                 <ProductSections
                                     layout={sections}
                                     productId={productId}
+                                    productName={productName}
+                                    productImage={productImage}
                                     productPrice={productPrice}
                                     productComparePrice={productComparePrice}
                                     productInStock={productInStock}
                                     productStockQuantity={productStockQuantity}
+                                    orderSettings={orderSettings}
                                     builderMode={true}
                                     selectedSectionIndex={selectedSectionIndex}
                                     onSectionClick={setSelectedSectionIndex}
