@@ -290,6 +290,8 @@
       content_name: @json($product->name),
       content_ids: [@json($product->id)],
       content_type: 'product',
+      content_category: @json(optional($product->category)->name),
+      content_slug: @json($product->slug),
       value: {{ (float) $product->price }},
       currency: 'BDT'
     });

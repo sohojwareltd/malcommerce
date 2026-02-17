@@ -316,3 +316,41 @@
     </form>
     </div>
 </div>
+
+@push('scripts')
+@if(\App\Models\Setting::get('fb_pixel_id'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Track when user submits the order form as an "InitiateCheckout" event
+    var form = document.querySelector('#order form[action="{{ route('orders.store') }}"]');
+    if (!form || typeof fbq !== 'function') return;
+
+    var initiated = false;
+    form.addEventListener('submit', function () {
+        if (initiated) return; // avoid duplicate events
+        initiated = true;
+
+        var quantityInput = form.querySelector('input[name="quantity"]');
+        var quantity = 1;
+        if (quantityInput && quantityInput.value) {
+            var parsed = parseInt(quantityInput.value, 10);
+            if (!isNaN(parsed) && parsed > 0) {
+                quantity = parsed;
+            }
+        }
+
+        fbq('track', 'InitiateCheckout', {
+            content_name: @json($product->name),
+            content_ids: [@json($product->id)],
+            content_type: 'product',
+            content_category: @json(optional($product->category)->name),
+            content_slug: @json($product->slug),
+            value: {{ (float) $product->price }},
+            currency: 'BDT',
+            num_items: quantity
+        });
+    });
+});
+</script>
+@endif
+@endpush

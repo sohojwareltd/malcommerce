@@ -12,6 +12,8 @@
       order_id: @json($order->order_number),
       content_ids: [@json($order->product_id)],
       content_type: 'product',
+      content_name: @json($order->product->name),
+      content_category: @json(optional($order->product->category)->name),
       num_items: {{ (int) $order->quantity }}
     });
   }
