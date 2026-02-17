@@ -779,11 +779,52 @@ const RichTextToolbar = ({ editorRef }) => {
         if (url) exec('createLink', url);
     };
 
+    const applyTextColor = (e) => {
+        const color = e.target.value;
+        if (color) exec('foreColor', color);
+        e.target.value = '#000000';
+    };
+
+    const applyBackColor = (e) => {
+        const color = e.target.value;
+        if (color) exec('backColor', color);
+        e.target.value = '#ffffff';
+    };
+
     return (
         <div className="flex flex-wrap items-center gap-0.5 p-1.5 border border-[#E1E3E5] border-b-0 rounded-t bg-[#F6F6F7]">
             <button type="button" onClick={() => exec('bold')} className="p-2 rounded hover:bg-[#E1E3E5] font-bold text-sm" title="Bold">B</button>
             <button type="button" onClick={() => exec('italic')} className="p-2 rounded hover:bg-[#E1E3E5] italic text-sm" title="Italic">I</button>
             <button type="button" onClick={() => exec('underline')} className="p-2 rounded hover:bg-[#E1E3E5] underline text-sm" title="Underline">U</button>
+            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
+            {/* Alignment */}
+            <button type="button" onClick={() => exec('justifyLeft')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Align left">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z" /></svg>
+            </button>
+            <button type="button" onClick={() => exec('justifyCenter')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Align center">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h14v2H7v-2zm0 6h12v2H5v-2z" /></svg>
+            </button>
+            <button type="button" onClick={() => exec('justifyRight')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Align right">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm6 6h12v2H9v-2zm-6 6h18v2H3v-2z" /></svg>
+            </button>
+            <button type="button" onClick={() => exec('justifyFull')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Justify">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z" /></svg>
+            </button>
+            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
+            {/* Text color */}
+            <div className="flex items-center gap-1" title="Text color">
+                <label className="cursor-pointer p-1 rounded hover:bg-[#E1E3E5] flex items-center">
+                    <span className="text-xs text-[#637381] mr-1 hidden sm:inline">A</span>
+                    <input type="color" className="w-6 h-6 rounded border border-[#E1E3E5] cursor-pointer bg-white p-0" defaultValue="#000000" onInput={applyTextColor} />
+                </label>
+            </div>
+            {/* Background color */}
+            <div className="flex items-center gap-1" title="Highlight / background color">
+                <label className="cursor-pointer p-1 rounded hover:bg-[#E1E3E5] flex items-center">
+                    <span className="text-xs text-[#637381] mr-1 hidden sm:inline">BG</span>
+                    <input type="color" className="w-6 h-6 rounded border border-[#E1E3E5] cursor-pointer bg-white p-0" defaultValue="#ffff00" onInput={applyBackColor} />
+                </label>
+            </div>
             <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
             <button type="button" onClick={addLink} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Insert link">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
