@@ -109,7 +109,16 @@
     {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
         
-    <!-- Settings: FB Pixel & GA -->
+    <!-- Settings: GTM, FB Pixel & GA -->
+    @if(\App\Models\Setting::get('gtm_container_id'))
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','{{ \App\Models\Setting::get("gtm_container_id") }}');</script>
+    <!-- End Google Tag Manager -->
+    @endif
     @if(\App\Models\Setting::get('fb_pixel_id'))
     <!-- Facebook Pixel Code -->
     <script>
@@ -162,6 +171,12 @@
     </style>
 </head>
 <body class="h-full bg-white font-sans" style="font-family: var(--font-family-base, 'Raleway', ui-sans-serif, system-ui, sans-serif);">
+    @if(\App\Models\Setting::get('gtm_container_id'))
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ \App\Models\Setting::get('gtm_container_id') }}"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    @endif
     <div class="min-h-full flex flex-col">
         <!-- Marquee Banner -->
         @php
