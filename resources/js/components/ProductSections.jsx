@@ -657,13 +657,13 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                 </h2>
                             )}
                             <div 
-                                className="prose prose-lg max-w-none font-sans" 
+                                className="rich-text-content prose prose-lg max-w-none font-sans" 
                                 style={{ 
                                     lineHeight: '1.8',
                                     fontSize: '1.125rem',
                                     color: '#374151'
                                 }} 
-                                dangerouslySetInnerHTML={{ __html: section.content }} 
+                                dangerouslySetInnerHTML={{ __html: section.content || '' }} 
                             />
                         </div>
                     </section>

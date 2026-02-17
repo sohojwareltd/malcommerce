@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import ProductSections from './ProductSections';
 
 const HISTORY_LIMIT = 50;
@@ -765,123 +767,23 @@ const createDefaultSection = (type) => {
     return defaults[type] || { type, ...SECTION_SPACING_DEFAULTS };
 };
 
-// Rich text toolbar button helper
-const RichTextToolbar = ({ editorRef }) => {
-    const exec = (cmd, value = null) => {
-        if (editorRef.current) {
-            editorRef.current.focus();
-            document.execCommand(cmd, false, value);
-        }
-    };
-
-    const addLink = () => {
-        const url = window.prompt('Enter URL:', 'https://');
-        if (url) exec('createLink', url);
-    };
-
-    const applyTextColor = (e) => {
-        const color = e.target.value;
-        if (color) exec('foreColor', color);
-        e.target.value = '#000000';
-    };
-
-    const applyBackColor = (e) => {
-        const color = e.target.value;
-        if (color) exec('backColor', color);
-        e.target.value = '#ffffff';
-    };
-
-    return (
-        <div className="flex flex-wrap items-center gap-0.5 p-1.5 border border-[#E1E3E5] border-b-0 rounded-t bg-[#F6F6F7]">
-            <button type="button" onClick={() => exec('bold')} className="p-2 rounded hover:bg-[#E1E3E5] font-bold text-sm" title="Bold">B</button>
-            <button type="button" onClick={() => exec('italic')} className="p-2 rounded hover:bg-[#E1E3E5] italic text-sm" title="Italic">I</button>
-            <button type="button" onClick={() => exec('underline')} className="p-2 rounded hover:bg-[#E1E3E5] underline text-sm" title="Underline">U</button>
-            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
-            {/* Alignment */}
-            <button type="button" onClick={() => exec('justifyLeft')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Align left">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h12v2H3v-2z" /></svg>
-            </button>
-            <button type="button" onClick={() => exec('justifyCenter')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Align center">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h14v2H7v-2zm0 6h12v2H5v-2z" /></svg>
-            </button>
-            <button type="button" onClick={() => exec('justifyRight')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Align right">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm6 6h12v2H9v-2zm-6 6h18v2H3v-2z" /></svg>
-            </button>
-            <button type="button" onClick={() => exec('justifyFull')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Justify">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z" /></svg>
-            </button>
-            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
-            {/* Text color */}
-            <div className="flex items-center gap-1" title="Text color">
-                <label className="cursor-pointer p-1 rounded hover:bg-[#E1E3E5] flex items-center">
-                    <span className="text-xs text-[#637381] mr-1 hidden sm:inline">A</span>
-                    <input type="color" className="w-6 h-6 rounded border border-[#E1E3E5] cursor-pointer bg-white p-0" defaultValue="#000000" onInput={applyTextColor} />
-                </label>
-            </div>
-            {/* Background color */}
-            <div className="flex items-center gap-1" title="Highlight / background color">
-                <label className="cursor-pointer p-1 rounded hover:bg-[#E1E3E5] flex items-center">
-                    <span className="text-xs text-[#637381] mr-1 hidden sm:inline">BG</span>
-                    <input type="color" className="w-6 h-6 rounded border border-[#E1E3E5] cursor-pointer bg-white p-0" defaultValue="#ffff00" onInput={applyBackColor} />
-                </label>
-            </div>
-            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
-            <button type="button" onClick={addLink} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Insert link">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            </button>
-            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
-            <button type="button" onClick={() => exec('insertUnorderedList')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Bullet list">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h2v2H4V6zm0 5h2v2H4v-2zm0 5h2v2H4v-2zm4-10h12v2H8V6zm0 5h12v2H8v-2zm0 5h12v2H8v-2z" /></svg>
-            </button>
-            <button type="button" onClick={() => exec('insertOrderedList')} className="p-2 rounded hover:bg-[#E1E3E5] text-sm" title="Numbered list">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M2 5v2h2V5H2zm0 6v2h2v-2H2zm0 6v2h2v-2H2zm4-12h14v2H6V5zm0 5h14v2H6v-2zm0 5h14v2H6v-2z" /></svg>
-            </button>
-            <span className="w-px h-5 bg-[#E1E3E5] mx-0.5" />
-            <select
-                className="text-xs border border-[#E1E3E5] rounded px-2 py-1.5 bg-white"
-                defaultValue="p"
-                onChange={(e) => { const v = e.target.value; exec('formatBlock', v); }}
-                title="Block format"
-            >
-                <option value="p">Paragraph</option>
-                <option value="h2">Heading 2</option>
-                <option value="h3">Heading 3</option>
-            </select>
-        </div>
-    );
+// Quill toolbar: headers, font size, formatting, colors, alignment, lists, link
+const RICH_TEXT_MODULES = {
+    toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        [{ size: ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ color: [] }, { background: [] }],
+        [{ align: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link', 'blockquote'],
+        ['clean'],
+    ],
 };
 
-// Individual Section Editors
+// Individual Section Editors – Rich Text (React Quill)
 const RichTextEditor = ({ section, index, updateSection }) => {
-    const editorRef = React.useRef(null);
-    const isInternalChange = React.useRef(false);
-
-    React.useEffect(() => {
-        if (!editorRef.current) return;
-        const current = (editorRef.current.innerHTML || '').trim();
-        const fromSection = (section.content || '').trim();
-        if (isInternalChange.current) {
-            isInternalChange.current = false;
-            return;
-        }
-        if (current !== fromSection) {
-            editorRef.current.innerHTML = fromSection || '';
-        }
-    }, [section.content, index]);
-
-    const handleInput = () => {
-        if (!editorRef.current) return;
-        isInternalChange.current = true;
-        const html = editorRef.current.innerHTML;
-        updateSection(index, 'content', html);
-    };
-
-    const handlePaste = (e) => {
-        e.preventDefault();
-        const text = e.clipboardData.getData('text/plain') || '';
-        const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        document.execCommand('insertHTML', false, safe);
-    };
+    const content = section.content ?? '';
 
     return (
         <div className="space-y-3">
@@ -897,24 +799,16 @@ const RichTextEditor = ({ section, index, updateSection }) => {
             </div>
             <div>
                 <label className="text-sm font-medium block mb-1">Content</label>
-                <RichTextToolbar editorRef={editorRef} />
-                <div
-                    ref={editorRef}
-                    contentEditable
-                    suppressContentEditableWarning
-                    onInput={handleInput}
-                    onBlur={handleInput}
-                    onPaste={handlePaste}
-                    className="min-h-[200px] w-full px-3 py-2 border border-[#E1E3E5] rounded-b text-sm text-[#202223] focus:outline-none focus:ring-2 focus:ring-[#008060] focus:border-[#008060] prose prose-sm max-w-none"
-                    style={{ outline: 'none' }}
-                    data-placeholder="Start typing..."
-                />
-                <style>{`
-                    [data-placeholder]:empty:before { content: attr(data-placeholder); color: #637381; }
-                    [contenteditable] h2 { font-size: 1.25rem; font-weight: 700; margin: 0.75em 0 0.25em; }
-                    [contenteditable] h3 { font-size: 1.125rem; font-weight: 600; margin: 0.5em 0 0.25em; }
-                    [contenteditable] ul, [contenteditable] ol { margin: 0.5em 0; padding-left: 1.5rem; }
-                `}</style>
+                <div className="rich-text-editor-wrapper [&_.ql-container]:min-h-[200px] [&_.ql-editor]:min-h-[200px]">
+                    <ReactQuill
+                        theme="snow"
+                        value={content}
+                        onChange={(html) => updateSection(index, 'content', html)}
+                        modules={RICH_TEXT_MODULES}
+                        placeholder="Start typing..."
+                        className="text-sm text-[#202223] [&_.ql-toolbar]:rounded-t [&_.ql-toolbar]:border-[#E1E3E5] [&_.ql-container]:rounded-b [&_.ql-container]:border-[#E1E3E5]"
+                    />
+                </div>
             </div>
         </div>
     );
