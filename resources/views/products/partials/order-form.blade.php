@@ -18,6 +18,7 @@
         $allowedPaymentMethods = ['cod', 'bkash'];
     }
     $defaultPaymentMethod = !empty($allowedPaymentMethods) ? $allowedPaymentMethods[0] : 'cod';
+    $showPrice = (float) $product->price > 0;
 @endphp
 
 <div id="order" class="grid grid-cols-1  gap-6">
@@ -79,7 +80,9 @@
                     @endif
                     <div class="flex-1 min-w-0 overflow-hidden">
                         <h3 class="font-semibold text-gray-900 font-bangla text-sm md:text-base truncate">{{ $product->name }}</h3>
+                        @if($showPrice)
                         <p class="text-xs md:text-sm text-gray-600 font-bangla whitespace-nowrap">৳{{ number_format($product->price, 2) }}</p>
+                        @endif
                     </div>
                 </div>
                 
@@ -259,10 +262,12 @@
         <div class="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
             <h3 class="font-semibold text-gray-900 mb-4 font-bangla">অর্ডার সারাংশ</h3>
             <div class="space-y-3">
+                @if($showPrice)
                 <div class="flex justify-between items-center">
                     <span class="text-gray-700 font-bangla">পণ্যের মূল্য</span>
                     <span class="font-semibold text-gray-900">৳<span x-text="(price * quantity).toLocaleString('bn-BD')"></span></span>
                 </div>
+                @endif
                 @if(!$hideQuantity)
                 <div class="flex justify-between items-center">
                     <span class="text-gray-700 font-bangla">পরিমাণ</span>
@@ -311,7 +316,7 @@
             :disabled="!canSubmit()"
             :class="!canSubmit() ? 'opacity-50 cursor-not-allowed' : ''"
         >
-            <span class="whitespace-normal">{{ $orderButtonText }} - ৳<span x-text="totalPrice.toLocaleString('bn-BD')"></span></span>
+            <span class="whitespace-normal">@if($showPrice){{ $orderButtonText }} - ৳<span x-text="totalPrice.toLocaleString('bn-BD')"></span>@else{{ $orderButtonText }}@endif</span>
         </button>
     </form>
     </div>
