@@ -326,24 +326,18 @@
 @if(\App\Models\Setting::get('fb_pixel_id'))
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Track when user submits the order form as an "InitiateCheckout" event
     var form = document.querySelector('#order form[action="{{ route('orders.store') }}"]');
     if (!form || typeof fbq !== 'function') return;
-
     var initiated = false;
     form.addEventListener('submit', function () {
-        if (initiated) return; // avoid duplicate events
+        if (initiated) return;
         initiated = true;
-
         var quantityInput = form.querySelector('input[name="quantity"]');
         var quantity = 1;
         if (quantityInput && quantityInput.value) {
             var parsed = parseInt(quantityInput.value, 10);
-            if (!isNaN(parsed) && parsed > 0) {
-                quantity = parsed;
-            }
+            if (!isNaN(parsed) && parsed > 0) quantity = parsed;
         }
-
         fbq('track', 'InitiateCheckout', {
             content_name: @json($product->name),
             content_ids: [@json($product->id)],
@@ -353,6 +347,43 @@ document.addEventListener('DOMContentLoaded', function () {
             value: {{ (float) $product->price }},
             currency: 'BDT',
             num_items: quantity
+        });
+    });
+});
+</script>
+@endif
+@if(\App\Models\Setting::get('gtm_container_id'))
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('#order form[action="{{ route('orders.store') }}"]');
+    if (!form) return;
+    var gtmFired = false;
+    form.addEventListener('submit', function () {
+        if (gtmFired) return;
+        gtmFired = true;
+        var quantityInput = form.querySelector('input[name="quantity"]');
+        var quantity = 1;
+        if (quantityInput && quantityInput.value) {
+            var parsed = parseInt(quantityInput.value, 10);
+            if (!isNaN(parsed) && parsed > 0) quantity = parsed;
+        }
+        var productPrice = {{ (float) $product->price }};
+        var value = productPrice * quantity;
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            event: 'begin_checkout',
+            ecommerce: {
+                currency: 'BDT',
+                value: value,
+                items: [{
+                    item_id: @json((string) $product->id),
+                    item_name: @json($product->name),
+                    item_category: @json(optional($product->category)->name ?? ''),
+                    price: productPrice,
+                    quantity: quantity,
+                    index: 0
+                }]
+            }
         });
     });
 });

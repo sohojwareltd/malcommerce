@@ -298,6 +298,28 @@
   }
 </script>
 @endif
+@if(\App\Models\Setting::get('gtm_container_id'))
+<script>
+(function() {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'view_item',
+    ecommerce: {
+      currency: 'BDT',
+      value: {{ (float) $product->price }},
+      items: [{
+        item_id: @json((string) $product->id),
+        item_name: @json($product->name),
+        item_category: @json(optional($product->category)->name ?? ''),
+        price: {{ (float) $product->price }},
+        quantity: 1,
+        index: 0
+      }]
+    }
+  });
+})();
+</script>
+@endif
 @endpush
 
 @push('head')

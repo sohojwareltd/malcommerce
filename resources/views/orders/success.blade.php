@@ -19,6 +19,31 @@
   }
 </script>
 @endif
+@if(\App\Models\Setting::get('gtm_container_id'))
+<script>
+(function() {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'purchase',
+    ecommerce: {
+      transaction_id: @json($order->order_number),
+      value: {{ (float) $order->total_price }},
+      currency: 'BDT',
+      tax: 0,
+      shipping: 0,
+      items: [{
+        item_id: @json((string) $order->product_id),
+        item_name: @json($order->product->name),
+        item_category: @json(optional($order->product->category)->name ?? ''),
+        price: {{ (float) $order->product->price }},
+        quantity: {{ (int) $order->quantity }},
+        index: 0
+      }]
+    }
+  });
+})();
+</script>
+@endif
 @endpush
 
 @section('content')
