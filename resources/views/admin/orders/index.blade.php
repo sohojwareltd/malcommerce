@@ -127,7 +127,7 @@
                 @php
                     $rowBgClass = match($order->status) {
                         'pending' => 'bg-yellow-100 hover:bg-yellow-200',
-                        'processing' => 'bg-blue-100 hover:bg-blue-200',
+                        'processing' => 'bg-violet-100 hover:bg-violet-200',
                         'shipped' => 'bg-indigo-100 hover:bg-indigo-200',
                         'delivered' => 'bg-green-100 hover:bg-green-200',
                         'cancelled' => 'bg-red-100 hover:bg-red-200',
@@ -155,7 +155,7 @@
                             {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
                                ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
                                ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                               ($order->status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                               ($order->status === 'processing' ? 'bg-violet-100 text-violet-800' :
                                ($order->status === 'shipped' ? 'bg-indigo-100 text-indigo-800' :
                                'bg-gray-100 text-gray-800')))) }}">
                             {{ ucfirst($order->status) }}
@@ -190,7 +190,7 @@
         @php
             $cardBgClass = match($order->status) {
                 'pending' => 'bg-yellow-50',
-                'processing' => 'bg-blue-50',
+                'processing' => 'bg-violet-50',
                 'shipped' => 'bg-indigo-50',
                 'delivered' => 'bg-green-50',
                 'cancelled' => 'bg-red-50',
@@ -209,7 +209,7 @@
                         {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
                            ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
                            ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                           ($order->status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                           ($order->status === 'processing' ? 'bg-violet-100 text-violet-800' :
                            ($order->status === 'shipped' ? 'bg-indigo-100 text-indigo-800' :
                            'bg-gray-100 text-gray-800')))) }}">
                         {{ ucfirst($order->status) }}
