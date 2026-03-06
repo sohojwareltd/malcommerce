@@ -239,7 +239,9 @@
     <div class="px-6 py-4 border-b border-neutral-200">
         <h2 class="text-xl font-bold">Recent Orders</h2>
     </div>
-    <div class="overflow-x-auto">
+
+    <!-- Desktop Table View -->
+    <div class="hidden lg:block overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
             <thead class="bg-neutral-50">
                 <tr>
@@ -250,6 +252,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Amount</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Actions</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-neutral-200">
@@ -281,22 +284,91 @@
                             {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
                                ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
                                ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                               'bg-blue-100 text-blue-800')) }}">
+                               ($order->status === 'shipped' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'))) }}">
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $order->created_at->format('M d, Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:underline font-semibold">View</a>
+                        <a href="{{ route('admin.orders.edit', $order) }}" class="text-neutral-600 hover:text-neutral-800 font-semibold">Edit</a>
+                        <button type="button" class="text-red-600 hover:text-red-800 font-semibold" data-delete-url="{{ route('admin.orders.destroy', $order) }}" onclick="deleteSingleOrder(this)">Delete</button>
+                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-neutral-500">No orders found for the selected period</td>
+                    <td colspan="8" class="px-6 py-4 text-center text-neutral-500">No orders found for the selected period</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
+    <!-- Mobile Card View -->
+    <div class="lg:hidden divide-y divide-neutral-200">
+        @forelse($orders->take(20) as $order)
+        @php
+            $cardBg = match($order->status) {
+                'pending' => 'bg-yellow-50',
+                'processing' => 'bg-blue-50',
+                'shipped' => 'bg-purple-50',
+                'delivered' => 'bg-green-50',
+                'cancelled' => 'bg-red-50',
+                default => 'bg-white',
+            };
+            $statusBadge = match($order->status) {
+                'pending' => 'bg-yellow-100 text-yellow-800',
+                'processing' => 'bg-blue-100 text-blue-800',
+                'shipped' => 'bg-purple-100 text-purple-800',
+                'delivered' => 'bg-green-100 text-green-800',
+                'cancelled' => 'bg-red-100 text-red-800',
+                default => 'bg-neutral-100 text-neutral-800',
+            };
+        @endphp
+        <div class="p-4 {{ $cardBg }}">
+            <div class="flex items-start justify-between mb-3">
+                <div class="flex-1 min-w-0">
+                    <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:underline font-semibold text-sm">#{{ $order->order_number }}</a>
+                    <p class="text-xs text-neutral-600">{{ $order->created_at->format('M d, Y') }}</p>
+                </div>
+                <div class="flex flex-col items-end gap-1 ml-2">
+                    <span class="text-sm font-bold text-neutral-900">৳{{ number_format($order->total_price, 2) }}</span>
+                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusBadge }}">{{ ucfirst($order->status) }}</span>
+                </div>
+            </div>
+            <div class="space-y-1 text-sm">
+                <div><span class="text-neutral-500">Product:</span> <span class="font-medium">{{ $order->product?->name ?? '—' }}</span></div>
+                <div><span class="text-neutral-500">Type:</span> <span class="px-2 py-0.5 text-xs rounded {{ $order->product && $order->product->is_digital ? 'bg-indigo-100 text-indigo-800' : 'bg-amber-100 text-amber-800' }}">{{ $order->product && $order->product->is_digital ? 'Digital' : 'Physical' }}</span></div>
+                <div><span class="text-neutral-500">Customer:</span> <span class="font-medium">{{ $order->customer_name }}</span></div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-neutral-200 flex items-center justify-between gap-2">
+                <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:underline font-semibold text-sm">View</a>
+                <a href="{{ route('admin.orders.edit', $order) }}" class="text-neutral-600 hover:text-neutral-800 font-semibold text-sm">Edit</a>
+                <button type="button" class="text-red-600 hover:text-red-800 font-semibold text-sm" data-delete-url="{{ route('admin.orders.destroy', $order) }}" onclick="deleteSingleOrder(this)">Delete</button>
+            </div>
+        </div>
+        @empty
+        <div class="p-6 text-center text-neutral-500">No orders found for the selected period</div>
+        @endforelse
+    </div>
 </div>
+
+<form id="single-delete-form" method="POST" style="display:none;">
+    @csrf
+    @method('DELETE')
+</form>
 @endsection
+
+@push('scripts')
+<script>
+    function deleteSingleOrder(button) {
+        if (!confirm('Are you sure you want to delete this order?')) return;
+        const url = button.getAttribute('data-delete-url');
+        const form = document.getElementById('single-delete-form');
+        if (url && form) { form.action = url; form.submit(); }
+    }
+</script>
+@endpush
 
 
 
