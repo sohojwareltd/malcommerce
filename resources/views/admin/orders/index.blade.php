@@ -97,12 +97,17 @@
     @if(!request('trashed'))
     <form method="POST" action="{{ route('admin.orders.bulk-delete') }}" id="bulk-delete-form">
         @csrf
-        <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+        <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b border-neutral-200">
             <div class="flex items-center gap-2">
                 <input type="checkbox" id="select-all-orders" class="w-4 h-4 text-primary border-neutral-300 rounded">
                 <label for="select-all-orders" class="text-sm text-neutral-700">Select all</label>
             </div>
-            <button type="submit" onclick="return confirm('Are you sure?');" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 disabled:opacity-50" id="bulk-delete-button" disabled>Delete Selected</button>
+            <div class="flex items-center gap-2">
+                @can('orders.updateStatus')
+                <button type="button" onclick="bulkMarkShipped()" class="inline-flex items-center px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded hover:bg-primary-light disabled:opacity-50" id="bulk-ship-button" disabled>Mark as Shipped</button>
+                @endcan
+                <button type="submit" onclick="return confirm('Are you sure?');" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 disabled:opacity-50" id="bulk-delete-button" disabled>Delete Selected</button>
+            </div>
         </div>
     @endif
         <!-- Desktop Table View -->
@@ -287,9 +292,11 @@
         if (!selectAll || !bulkDeleteButton) return;
         const checkboxes = document.querySelectorAll('.order-checkbox');
 
+        const bulkShipButton = document.getElementById('bulk-ship-button');
         function updateBulkState() {
             const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
             bulkDeleteButton.disabled = !anyChecked;
+            if (bulkShipButton) bulkShipButton.disabled = !anyChecked;
         }
 
         if (selectAll) {
@@ -310,6 +317,16 @@
             });
         });
     })();
+
+    function bulkMarkShipped() {
+        const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+        if (!checkboxes.length) return;
+        if (!confirm('Mark ' + checkboxes.length + ' order(s) as shipped? Steadfast parcels will be created for physical orders.')) return;
+        const form = document.getElementById('bulk-delete-form');
+        if (!form) return;
+        form.action = '{{ route("admin.orders.bulk-ship") }}';
+        form.submit();
+    }
 
     function deleteSingleOrder(button) {
         if (!confirm('Are you sure you want to delete this order?')) {

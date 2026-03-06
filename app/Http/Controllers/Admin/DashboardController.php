@@ -334,6 +334,21 @@ class DashboardController extends Controller
                     'error' => $e->getMessage(),
                 ]);
             }
+
+            // Auto-create Steadfast parcel when status changes to shipped
+            if ($newStatus === 'shipped') {
+                try {
+                    $steadfast = app(SteadfastService::class);
+                    if ($steadfast->isConfigured()) {
+                        $steadfast->createOrder($order);
+                    }
+                } catch (\Throwable $e) {
+                    \Log::warning('Auto-create Steadfast parcel failed on status change', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
         }
         
         return redirect()->route('admin.orders.show', $order)
@@ -1114,6 +1129,56 @@ class DashboardController extends Controller
 
         return redirect()->route('admin.orders.index')
             ->with('success', 'Selected orders deleted successfully!');
+    }
+
+    /**
+     * Bulk mark orders as shipped and auto-create Steadfast parcels.
+     */
+    public function bulkMarkShipped(Request $request, SteadfastService $steadfast)
+    {
+        $validated = $request->validate([
+            'order_ids' => 'required|array',
+            'order_ids.*' => 'integer|exists:orders,id',
+        ]);
+
+        $orders = Order::with('product')->whereIn('id', $validated['order_ids'])->get();
+        $updated = 0;
+        $steadfastCreated = 0;
+
+        foreach ($orders as $order) {
+            if ($order->status === 'shipped') {
+                continue;
+            }
+            $oldStatus = $order->status;
+            $order->status = 'shipped';
+            $order->save();
+            $updated++;
+
+            OrderLog::create([
+                'order_id' => $order->id,
+                'admin_id' => Auth::id(),
+                'type' => 'status_changed',
+                'from_status' => $oldStatus,
+                'to_status' => 'shipped',
+                'notes' => 'Bulk mark as shipped',
+                'meta' => null,
+            ]);
+
+            if ($steadfast->isConfigured() && $order->product && !$order->product->is_digital && !$order->steadfast_consignment_id) {
+                $result = $steadfast->createOrder($order);
+                if ($result['success']) {
+                    $steadfastCreated++;
+                }
+            }
+        }
+
+        $msg = $updated ? "{$updated} order(s) marked as shipped." : 'No orders updated.';
+        if ($steadfastCreated) {
+            $msg .= " Steadfast parcels created: {$steadfastCreated}.";
+        }
+
+        return redirect()->route('admin.orders.index', request()->only(['search', 'status', 'date_from', 'date_to', 'per_page']))
+            ->with('success', $msg);
     }
     
     public function settings()

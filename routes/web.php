@@ -101,6 +101,7 @@ Route::middleware('auth')->group(function () {
         
         Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index')->middleware('can:orders.viewAny');
         Route::post('/orders/bulk-delete', [AdminDashboardController::class, 'bulkDeleteOrders'])->name('orders.bulk-delete')->middleware('can:orders.bulkDelete');
+        Route::post('/orders/bulk-ship', [AdminDashboardController::class, 'bulkMarkShipped'])->name('orders.bulk-ship')->middleware('can:orders.updateStatus');
         Route::get('/orders/{order}/edit', [AdminDashboardController::class, 'editOrder'])->name('orders.edit')->middleware('can:orders.update');
         Route::put('/orders/{order}', [AdminDashboardController::class, 'updateOrder'])->name('orders.update')->middleware('can:orders.update');
         Route::put('/orders/{order}/status', [AdminDashboardController::class, 'updateOrderStatus'])->name('orders.updateStatus')->middleware('can:orders.updateStatus');
