@@ -254,7 +254,17 @@
             </thead>
             <tbody class="bg-white divide-y divide-neutral-200">
                 @forelse($orders->take(20) as $order)
-                <tr class="hover:bg-neutral-50">
+                @php
+                    $rowBg = match($order->status) {
+                        'pending' => 'bg-yellow-50',
+                        'processing' => 'bg-blue-50',
+                        'shipped' => 'bg-purple-50',
+                        'delivered' => 'bg-green-50',
+                        'cancelled' => 'bg-red-50',
+                        default => 'bg-white',
+                    };
+                @endphp
+                <tr class="{{ $rowBg }} hover:brightness-95">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:underline">{{ $order->order_number }}</a>
                     </td>
