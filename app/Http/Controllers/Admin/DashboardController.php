@@ -232,13 +232,37 @@ class DashboardController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
+
+        // Filter by product
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+
+        // Filter by product type (physical/digital)
+        if ($request->filled('product_type')) {
+            $isDigital = $request->product_type === 'digital';
+            $productQuery = $request->boolean('trashed')
+                ? fn ($q) => $q->withTrashed()->where('is_digital', $isDigital)
+                : fn ($q) => $q->where('is_digital', $isDigital);
+            $query->whereHas('product', $productQuery);
+        }
+
+        // Filter by category
+        if ($request->filled('category_id')) {
+            $categoryQuery = $request->boolean('trashed')
+                ? fn ($q) => $q->withTrashed()->where('category_id', $request->category_id)
+                : fn ($q) => $q->where('category_id', $request->category_id);
+            $query->whereHas('product', $categoryQuery);
+        }
         
         // Get per page value from request, default to 20
         $perPage = $request->get('per_page', 20);
         $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
         
         $orders = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
-        return view('admin.orders.index', compact('orders'));
+        $products = Product::orderBy('name')->get(['id', 'name']);
+        $categories = Category::orderBy('name')->get(['id', 'name']);
+        return view('admin.orders.index', compact('orders', 'products', 'categories'));
     }
     
     public function showOrder(Order $order)
@@ -1177,7 +1201,7 @@ class DashboardController extends Controller
             $msg .= " Steadfast parcels created: {$steadfastCreated}.";
         }
 
-        return redirect()->route('admin.orders.index', request()->only(['search', 'status', 'date_from', 'date_to', 'per_page']))
+        return redirect()->route('admin.orders.index', request()->only(['search', 'status', 'product_id', 'product_type', 'category_id', 'date_from', 'date_to', 'per_page']))
             ->with('success', $msg);
     }
     

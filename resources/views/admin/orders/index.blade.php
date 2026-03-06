@@ -14,16 +14,16 @@
 <!-- Search and Filter Form -->
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
     <form method="GET" action="{{ route('admin.orders.index') }}" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             <!-- Search Input -->
-            <div class="md:col-span-2">
+            <div class="lg:col-span-2">
                 <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search</label>
                 <div class="relative">
                     <input type="text" 
                            name="search" 
                            id="search" 
                            value="{{ request('search') }}" 
-                           placeholder="Search by order number, customer name, phone, product, or sponsor..."
+                           placeholder="Search by order number, customer, phone, product, sponsor..."
                            class="w-full px-4 py-2 pl-10 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
                     <svg class="absolute left-3 top-2.5 h-5 w-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -43,14 +43,56 @@
                     <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                 </select>
             </div>
+
+            <!-- Product Filter -->
+            <div>
+                <label for="product_id" class="block text-sm font-medium text-neutral-700 mb-2">Product</label>
+                <select name="product_id" id="product_id" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
+                    <option value="">All Products</option>
+                    @foreach($products as $p)
+                        <option value="{{ $p->id }}" {{ request('product_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Product Type Filter -->
+            <div>
+                <label for="product_type" class="block text-sm font-medium text-neutral-700 mb-2">Product Type</label>
+                <select name="product_type" id="product_type" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
+                    <option value="">All Types</option>
+                    <option value="physical" {{ request('product_type') === 'physical' ? 'selected' : '' }}>Physical</option>
+                    <option value="digital" {{ request('product_type') === 'digital' ? 'selected' : '' }}>Digital</option>
+                </select>
+            </div>
+
+            <!-- Category Filter -->
+            <div>
+                <label for="category_id" class="block text-sm font-medium text-neutral-700 mb-2">Category</label>
+                <select name="category_id" id="category_id" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
+                    <option value="">All Categories</option>
+                    @foreach($categories as $c)
+                        <option value="{{ $c->id }}" {{ request('category_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+                    @endforeach
+                </select>
+            </div>
             
-            <!-- Date Range (Optional) -->
+            <!-- Date From -->
             <div>
                 <label for="date_from" class="block text-sm font-medium text-neutral-700 mb-2">Date From</label>
                 <input type="date" 
                        name="date_from" 
                        id="date_from" 
                        value="{{ request('date_from') }}" 
+                       class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
+            </div>
+            
+            <!-- Date To -->
+            <div>
+                <label for="date_to" class="block text-sm font-medium text-neutral-700 mb-2">Date To</label>
+                <input type="date" 
+                       name="date_to" 
+                       id="date_to" 
+                       value="{{ request('date_to') }}" 
                        class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
             </div>
             
@@ -66,22 +108,11 @@
             </div>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-                <label for="date_to" class="block text-sm font-medium text-neutral-700 mb-2">Date To</label>
-                <input type="date" 
-                       name="date_to" 
-                       id="date_to" 
-                       value="{{ request('date_to') }}" 
-                       class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
-            </div>
-        </div>
-        
         <div class="flex flex-col sm:flex-row gap-2">
             <button type="submit" class="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold text-sm sm:text-base">
                 Search
             </button>
-            @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+            @if(request()->hasAny(['search', 'status', 'product_id', 'product_type', 'category_id', 'date_from', 'date_to']))
                 <a href="{{ route('admin.orders.index') }}{{ request('per_page') ? '?per_page=' . request('per_page') : '' }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base text-center">
                     Clear Filters
                 </a>
