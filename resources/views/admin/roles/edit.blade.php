@@ -30,26 +30,98 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-neutral-700 mb-2">Permissions</label>
-            <div class="space-y-4 max-h-96 overflow-y-auto border border-neutral-200 rounded-lg p-4">
-                @php $rolePerms = $role->permissions->pluck('name')->toArray(); @endphp
+            <div class="flex items-center justify-between mb-3">
+                <label class="block text-sm font-medium text-neutral-700">Permissions</label>
+                <span id="perm-count" class="text-xs text-neutral-500 font-medium">0 selected</span>
+            </div>
+            <p class="text-sm text-neutral-500 mb-4">Select the actions this role can perform. Permissions are grouped by resource.</p>
+            @php $rolePerms = old('permissions', $role->permissions->pluck('name')->toArray()); @endphp
+            <div class="space-y-3 max-h-[28rem] overflow-y-auto pr-1 -mr-1">
                 @foreach($permissions as $group => $perms)
-                <div>
-                    <h4 class="text-sm font-semibold text-neutral-700 mb-2 capitalize">{{ $group }}</h4>
-                    <div class="flex flex-wrap gap-3">
-                        @foreach($perms as $perm)
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" name="permissions[]" value="{{ $perm->name }}"
-                                {{ in_array($perm->name, old('permissions', $rolePerms)) ? 'checked' : '' }}
-                                class="rounded border-neutral-300 text-primary focus:ring-primary">
-                            <span class="ml-2 text-sm text-neutral-700">{{ $perm->name }}</span>
-                        </label>
-                        @endforeach
+                <div class="rounded-xl border border-neutral-200 bg-neutral-50/60 overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200/60">
+                        <span class="text-sm font-semibold text-neutral-800 capitalize">{{ $group }}</span>
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="text-xs text-primary hover:text-primary/80 font-medium select-group-all">Select all</button>
+                            <button type="button" class="text-xs text-neutral-500 hover:text-neutral-700 font-medium select-group-none">Clear</button>
+                        </div>
+                    </div>
+                    <div class="px-4 py-3" data-perm-group="{{ $group }}">
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($perms as $perm)
+                            @php $checked = in_array($perm->name, $rolePerms); @endphp
+                            <label class="perm-chip cursor-pointer inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 {{ $checked ? 'bg-primary border-primary text-white shadow-sm' : 'bg-white border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50' }}">
+                                <input type="checkbox" name="permissions[]" value="{{ $perm->name }}" {{ $checked ? 'checked' : '' }}
+                                    class="perm-checkbox sr-only" data-perm="{{ $perm->name }}">
+                                <span>{{ $perm->name }}</span>
+                            </label>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
                 @endforeach
             </div>
         </div>
+
+        @push('scripts')
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chips = document.querySelectorAll('.perm-chip');
+            const checkboxes = document.querySelectorAll('.perm-checkbox');
+            const countEl = document.getElementById('perm-count');
+            function updateCount() {
+                const n = document.querySelectorAll('.perm-checkbox:checked').length;
+                const total = checkboxes.length;
+                countEl.textContent = n + ' of ' + total + ' selected';
+            }
+            chips.forEach(chip => {
+                chip.addEventListener('click', function(e) {
+                    if (e.target.type === 'checkbox') return;
+                    const cb = this.querySelector('input');
+                    cb.checked = !cb.checked;
+                    this.classList.toggle('bg-primary', cb.checked);
+                    this.classList.toggle('border-primary', cb.checked);
+                    this.classList.toggle('text-white', cb.checked);
+                    this.classList.toggle('bg-white', !cb.checked);
+                    this.classList.toggle('border-neutral-200', !cb.checked);
+                    this.classList.toggle('text-neutral-700', !cb.checked);
+                    updateCount();
+                });
+            });
+            document.querySelectorAll('.select-group-all').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const card = this.closest('.rounded-xl');
+                    const group = card?.querySelector('[data-perm-group]');
+                    if (group) {
+                        group.querySelectorAll('.perm-checkbox').forEach(cb => { cb.checked = true; });
+                        group.querySelectorAll('.perm-chip').forEach(c => {
+                            c.classList.add('bg-primary','border-primary','text-white');
+                            c.classList.remove('bg-white','border-neutral-200','text-neutral-700');
+                        });
+                        updateCount();
+                    }
+                });
+            });
+            document.querySelectorAll('.select-group-none').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const card = this.closest('.rounded-xl');
+                    const group = card?.querySelector('[data-perm-group]');
+                    if (group) {
+                        group.querySelectorAll('.perm-checkbox').forEach(cb => { cb.checked = false; });
+                        group.querySelectorAll('.perm-chip').forEach(c => {
+                            c.classList.remove('bg-primary','border-primary','text-white');
+                            c.classList.add('bg-white','border-neutral-200','text-neutral-700');
+                        });
+                        updateCount();
+                    }
+                });
+            });
+            updateCount();
+        });
+        </script>
+        @endpush
 
         <div class="flex gap-3 pt-4 border-t border-neutral-200">
             <button type="submit" class="bg-primary text-white px-6 py-2.5 rounded-lg hover:bg-primary-light transition font-semibold">
