@@ -106,6 +106,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/orders/{order}/status', [AdminDashboardController::class, 'updateOrderStatus'])->name('orders.updateStatus')->middleware('can:orders.updateStatus');
         Route::post('/orders/{order}/steadfast-parcel', [AdminDashboardController::class, 'createSteadfastParcel'])->name('orders.steadfast.parcel')->middleware('can:orders.update');
         Route::post('/orders/{order}/steadfast-refresh', [AdminDashboardController::class, 'refreshSteadfastStatus'])->name('orders.steadfast.refresh')->middleware('can:orders.update');
+        Route::delete('/orders/{order}/steadfast', [AdminDashboardController::class, 'removeSteadfastInfo'])->name('orders.steadfast.remove')->middleware('can:orders.update');
         Route::delete('/orders/{order}', [AdminDashboardController::class, 'destroyOrder'])->name('orders.destroy')->middleware('can:orders.delete');
         Route::post('/orders/{order}/restore', [AdminDashboardController::class, 'restoreOrder'])->name('orders.restore')->middleware('can:orders.restore');
         Route::get('/orders/{order}', [AdminDashboardController::class, 'showOrder'])->name('orders.show')->middleware('can:orders.view');

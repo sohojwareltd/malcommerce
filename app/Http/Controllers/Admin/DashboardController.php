@@ -378,6 +378,21 @@ class DashboardController extends Controller
         return redirect()->route('admin.orders.show', $order)
             ->with('error', $result['error'] ?? 'Failed to fetch status');
     }
+
+    /**
+     * Remove Steadfast parcel info from an order.
+     */
+    public function removeSteadfastInfo(Order $order)
+    {
+        $order->update([
+            'steadfast_consignment_id' => null,
+            'steadfast_tracking_code' => null,
+            'steadfast_delivery_status' => null,
+        ]);
+
+        return redirect()->route('admin.orders.show', $order)
+            ->with('success', 'Steadfast info removed from order.');
+    }
     
     public function editOrder(Order $order)
     {

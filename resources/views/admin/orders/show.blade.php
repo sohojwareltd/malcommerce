@@ -124,10 +124,17 @@
                     </div>
                     @endif
                 </dl>
-                <form action="{{ route('admin.orders.steadfast.refresh', $order) }}" method="POST" class="mt-4 inline">
-                    @csrf
-                    <button type="submit" class="text-sm text-primary hover:underline">Refresh status</button>
-                </form>
+                <div class="mt-4 flex items-center gap-4">
+                    <form action="{{ route('admin.orders.steadfast.refresh', $order) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="text-sm text-primary hover:underline">Refresh status</button>
+                    </form>
+                    <form action="{{ route('admin.orders.steadfast.remove', $order) }}" method="POST" class="inline" onsubmit="return confirm('Remove Steadfast info from this order? You can create a new parcel later if needed.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-sm text-red-600 hover:underline">Remove Steadfast info</button>
+                    </form>
+                </div>
             @else
                 <p class="text-sm text-neutral-600 mb-4">Create a parcel with Steadfast Courier for shipping.</p>
                 @if(\App\Models\Setting::get('steadfast_api_key') && \App\Models\Setting::get('steadfast_secret_key'))
