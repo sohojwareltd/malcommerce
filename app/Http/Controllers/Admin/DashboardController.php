@@ -40,6 +40,9 @@ class DashboardController extends Controller
     public function categories(Request $request)
     {
         $query = Category::query();
+        if ($request->boolean('trashed')) {
+            $query->onlyTrashed();
+        }
         
         // Search functionality
         if ($request->filled('search')) {
@@ -176,21 +179,28 @@ class DashboardController extends Controller
     
     public function destroyCategory(Category $category)
     {
-        // Delete image if exists
-        if ($category->image) {
-            $oldPath = str_replace('/storage/', '', parse_url($category->image, PHP_URL_PATH));
-            Storage::disk('public')->delete($oldPath);
-        }
-        
         $category->delete();
-        
+
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category deleted successfully!');
+    }
+
+    public function restoreCategory(Request $request)
+    {
+        $category = Category::withTrashed()->findOrFail($request->route('category'));
+        $this->authorize('restore', $category);
+        $category->restore();
+        return redirect()->route('admin.categories.index')->with('success', 'Category restored successfully!');
     }
     
     public function orders(Request $request)
     {
-        $query = Order::with('product', 'sponsor');
+        $query = Order::query();
+        if ($request->boolean('trashed')) {
+            $query->onlyTrashed()->with(['product' => fn ($q) => $q->withTrashed(), 'sponsor' => fn ($q) => $q->withTrashed()]);
+        } else {
+            $query->with('product', 'sponsor');
+        }
         
         // Search functionality
         if ($request->filled('search')) {
@@ -410,11 +420,15 @@ class DashboardController extends Controller
     
     public function sponsors(Request $request)
     {
-        $query = User::where('role', 'sponsor')
-            ->withCount(['orders', 'referrals'])
-            ->with(['sponsor', 'orders' => function($query) {
-                $query->where('status', '!=', 'cancelled');
-            }]);
+        $query = User::where('role', 'sponsor');
+        if ($request->boolean('trashed')) {
+            $query->onlyTrashed();
+        }
+        $with = ['sponsor', 'orders' => fn ($q) => $q->where('status', '!=', 'cancelled')];
+        if ($request->boolean('trashed')) {
+            $with['sponsor'] = fn ($q) => $q->withTrashed();
+        }
+        $query->withCount(['orders', 'referrals'])->with($with);
         
         // Apply search filter if provided
         if ($request->has('search') && !empty($request->search)) {
@@ -693,14 +707,26 @@ class DashboardController extends Controller
         }
         
         $sponsor->delete();
-        
+
         return redirect()->route('admin.sponsors.index')
             ->with('success', 'Sponsor deleted successfully!');
+    }
+
+    public function restoreSponsor(Request $request)
+    {
+        $sponsor = User::withTrashed()->findOrFail($request->route('sponsor'));
+        if ($sponsor->role !== 'sponsor') abort(404);
+        $this->authorize('restore', $sponsor);
+        $sponsor->restore();
+        return redirect()->route('admin.sponsors.index')->with('success', 'Sponsor restored successfully!');
     }
     
     public function users(Request $request)
     {
         $query = User::where('role', 'admin');
+        if ($request->boolean('trashed')) {
+            $query->onlyTrashed();
+        }
         
         // Apply search filter if provided
         if ($request->has('search') && !empty($request->search)) {
@@ -715,23 +741,27 @@ class DashboardController extends Controller
         $perPage = $request->get('per_page', 20);
         $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
         
-        $users = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+        $users = $query->with('roles')->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
         
         return view('admin.users.index', compact('users'));
     }
     
     public function createUser()
     {
-        return view('admin.users.create');
+        $roles = \Spatie\Permission\Models\Role::where('guard_name', config('auth.defaults.guard'))
+            ->orderBy('name')
+            ->get();
+        return view('admin.users.create', compact('roles'));
     }
-    
+
     public function storeUser(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users,phone',
+            'role_id' => 'required|exists:roles,id',
         ]);
-        
+
         try {
             $phone = $this->normalizePhone($request->phone);
         } catch (\Exception $e) {
@@ -739,23 +769,30 @@ class DashboardController extends Controller
                 ->withInput()
                 ->withErrors(['phone' => $e->getMessage()]);
         }
-        
+
         // Check if user already exists with normalized phone
         if (User::where('phone', $phone)->exists()) {
             return redirect()->back()
                 ->withInput()
                 ->withErrors(['phone' => 'This phone number is already registered.']);
         }
-        
+
+        $role = \Spatie\Permission\Models\Role::findOrFail($request->role_id);
+        if ($role->guard_name !== config('auth.defaults.guard')) {
+            abort(422, 'Invalid role.');
+        }
+
         // Create admin user
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'phone' => $phone,
             'role' => 'admin',
             'password' => null, // OTP-based auth doesn't need password
             'affiliate_code' => null, // Admins don't need affiliate codes
         ]);
-        
+
+        $user->assignRole($role);
+
         return redirect()->route('admin.users.index')
             ->with('success', 'Admin user created successfully!');
     }
@@ -766,10 +803,13 @@ class DashboardController extends Controller
         if ($user->role !== 'admin') {
             abort(404);
         }
-        
-        return view('admin.users.edit', compact('user'));
+
+        $roles = \Spatie\Permission\Models\Role::where('guard_name', config('auth.defaults.guard'))
+            ->orderBy('name')
+            ->get();
+        return view('admin.users.edit', compact('user', 'roles'));
     }
-    
+
     public function updateUser(Request $request, User $user)
     {
         // Ensure it's an admin
@@ -780,8 +820,9 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20|unique:users,phone,' . $user->id,
+            'role_id' => 'required|exists:roles,id',
         ]);
-        
+
         try {
             $phone = $this->normalizePhone($request->phone);
         } catch (\Exception $e) {
@@ -789,19 +830,26 @@ class DashboardController extends Controller
                 ->withInput()
                 ->withErrors(['phone' => $e->getMessage()]);
         }
-        
+
         // Check if phone is already taken by another user
         if (User::where('phone', $phone)->where('id', '!=', $user->id)->exists()) {
             return redirect()->back()
                 ->withInput()
                 ->withErrors(['phone' => 'This phone number is already registered.']);
         }
-        
+
+        $role = \Spatie\Permission\Models\Role::findOrFail($request->role_id);
+        if ($role->guard_name !== config('auth.defaults.guard')) {
+            abort(422, 'Invalid role.');
+        }
+
         $user->update([
             'name' => $request->name,
             'phone' => $phone,
         ]);
-        
+
+        $user->syncRoles([$role]);
+
         return redirect()->route('admin.users.index')
             ->with('success', 'Admin user updated successfully!');
     }
@@ -820,9 +868,18 @@ class DashboardController extends Controller
         }
         
         $user->delete();
-        
+
         return redirect()->route('admin.users.index')
             ->with('success', 'Admin user deleted successfully!');
+    }
+
+    public function restoreUser(Request $request)
+    {
+        $user = User::withTrashed()->findOrFail($request->route('user'));
+        if ($user->role !== 'admin') abort(404);
+        $this->authorize('restore', $user);
+        $user->restore();
+        return redirect()->route('admin.users.index')->with('success', 'Admin user restored successfully!');
     }
     
     public function salesReport(Request $request)
@@ -877,6 +934,14 @@ class DashboardController extends Controller
 
         return redirect()->route('admin.orders.index')
             ->with('success', 'Order deleted successfully!');
+    }
+
+    public function restoreOrder(Request $request)
+    {
+        $order = Order::withTrashed()->findOrFail($request->route('order'));
+        $this->authorize('restore', $order);
+        $order->restore();
+        return redirect()->route('admin.orders.index')->with('success', 'Order restored successfully!');
     }
 
     /**

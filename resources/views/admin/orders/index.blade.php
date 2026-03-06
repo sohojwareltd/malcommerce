@@ -3,8 +3,12 @@
 @section('title', 'Orders')
 
 @section('content')
-<div class="mb-4 sm:mb-6">
+<div class="mb-4 sm:mb-6 flex items-center gap-3">
     <h1 class="text-2xl sm:text-3xl font-bold">Orders</h1>
+    <nav class="flex gap-2">
+        <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['trashed' => 0])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ !request('trashed') ? 'bg-primary text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">Active</a>
+        <a href="{{ route('admin.orders.index', array_merge(request()->query(), ['trashed' => 1])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ request('trashed') ? 'bg-neutral-500 text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">Deleted</a>
+    </nav>
 </div>
 
 <!-- Search and Filter Form -->
@@ -84,14 +88,13 @@
             @endif
         </div>
         <!-- Preserve per_page when clearing filters -->
-        @if(request('per_page'))
-        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
-        @endif
+        @if(request('trashed'))<input type="hidden" name="trashed" value="1">@endif
+        @if(request('per_page'))<input type="hidden" name="per_page" value="{{ request('per_page') }}">@endif
     </form>
 </div>
 
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <!-- Bulk actions -->
+    @if(!request('trashed'))
     <form method="POST" action="{{ route('admin.orders.bulk-delete') }}" id="bulk-delete-form">
         @csrf
         <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
@@ -99,19 +102,17 @@
                 <input type="checkbox" id="select-all-orders" class="w-4 h-4 text-primary border-neutral-300 rounded">
                 <label for="select-all-orders" class="text-sm text-neutral-700">Select all</label>
             </div>
-            <button type="submit" onclick="return confirm('Are you sure you want to delete the selected orders? This cannot be undone.');" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 disabled:opacity-50" id="bulk-delete-button" disabled>
-                Delete Selected
-            </button>
+            <button type="submit" onclick="return confirm('Are you sure?');" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded hover:bg-red-700 disabled:opacity-50" id="bulk-delete-button" disabled>Delete Selected</button>
         </div>
-
+    @endif
         <!-- Desktop Table View -->
         <div class="hidden lg:block overflow-x-auto">
             <table class="min-w-full divide-y divide-neutral-200">
                 <thead class="bg-neutral-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">
-                            <span class="sr-only">Select</span>
-                        </th>
+                        @if(!request('trashed'))
+                        <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase"><span class="sr-only">Select</span></th>
+                        @endif
                         <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Order #</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Product</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Customer</th>
@@ -126,18 +127,20 @@
                 @forelse($orders as $order)
                 @php
                     $rowBgClass = match($order->status) {
-                        'pending' => 'bg-yellow-100 hover:bg-yellow-200',
-                        'processing' => 'bg-violet-100 hover:bg-violet-200',
-                        'shipped' => 'bg-indigo-100 hover:bg-indigo-200',
-                        'delivered' => 'bg-green-100 hover:bg-green-200',
-                        'cancelled' => 'bg-red-100 hover:bg-red-200',
-                        default => 'bg-neutral-100 hover:bg-neutral-200'
+                        'pending' => 'bg-amber-50 hover:bg-amber-100',
+                        'processing' => 'bg-blue-50 hover:bg-blue-100',
+                        'shipped' => 'bg-orange-50 hover:bg-orange-100',
+                        'delivered' => 'bg-emerald-50 hover:bg-emerald-100',
+                        'cancelled' => 'bg-red-50 hover:bg-red-100',
+                        default => 'bg-neutral-50 hover:bg-neutral-100'
                     };
                 @endphp
                 <tr class="{{ $rowBgClass }} transition-colors">
+                    @if(!request('trashed'))
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <input type="checkbox" name="order_ids[]" value="{{ $order->id }}" class="order-checkbox w-4 h-4 text-primary border-neutral-300 rounded">
                     </td>
+                    @endif
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-900">
                         <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:underline font-semibold">{{ $order->order_number }}</a>
                     </td>
@@ -151,48 +154,56 @@
                         {{ $order->sponsor->name ?? 'N/A' }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                               ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
-                               ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                               ($order->status === 'processing' ? 'bg-violet-100 text-violet-800' :
-                               ($order->status === 'shipped' ? 'bg-indigo-100 text-indigo-800' :
-                               'bg-gray-100 text-gray-800')))) }}">
+                        @php
+                            $statusBadgeClass = match($order->status) {
+                                'pending' => 'bg-amber-100 text-amber-800',
+                                'processing' => 'bg-blue-100 text-blue-800',
+                                'shipped' => 'bg-orange-100 text-orange-800',
+                                'delivered' => 'bg-emerald-100 text-emerald-800',
+                                'cancelled' => 'bg-red-100 text-red-800',
+                                default => 'bg-neutral-100 text-neutral-800'
+                            };
+                        @endphp
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusBadgeClass }}">
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-800">{{ $order->created_at->format('M d, Y') }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                        @if(request('trashed') && $order->trashed())
+                            @can('orders.restore')
+                            <form action="{{ route('admin.orders.restore', $order) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-semibold">Restore</button>
+                            </form>
+                            @endcan
+                        @else
                         <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:text-primary-light font-semibold">View</a>
-                        <button
-                            type="button"
-                            class="text-red-600 hover:text-red-800 text-sm font-semibold"
-                            data-delete-url="{{ route('admin.orders.destroy', $order) }}"
-                            onclick="deleteSingleOrder(this)"
-                        >
-                            Delete
-                        </button>
+                        <button type="button" class="text-red-600 hover:text-red-800 text-sm font-semibold" data-delete-url="{{ route('admin.orders.destroy', $order) }}" onclick="deleteSingleOrder(this)">Delete</button>
+                        @endif
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="px-6 py-4 text-center text-neutral-500">No orders found</td>
+                    <td colspan="{{ request('trashed') ? 8 : 9 }}" class="px-6 py-4 text-center text-neutral-500">No orders found</td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
         </div>
+    @if(!request('trashed'))
     </form>
+    @endif
     
     <!-- Mobile Card View -->
     <div class="lg:hidden divide-y divide-neutral-200">
         @forelse($orders as $order)
         @php
             $cardBgClass = match($order->status) {
-                'pending' => 'bg-yellow-50',
-                'processing' => 'bg-violet-50',
-                'shipped' => 'bg-indigo-50',
-                'delivered' => 'bg-green-50',
+                'pending' => 'bg-amber-50',
+                'processing' => 'bg-blue-50',
+                'shipped' => 'bg-orange-50',
+                'delivered' => 'bg-emerald-50',
                 'cancelled' => 'bg-red-50',
                 default => 'bg-neutral-50'
             };
@@ -205,13 +216,17 @@
                 </div>
                 <div class="flex flex-col items-end gap-2 ml-2">
                     <span class="text-sm font-bold text-neutral-900">৳{{ number_format($order->total_price, 2) }}</span>
-                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                           ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 
-                           ($order->status === 'cancelled' ? 'bg-red-100 text-red-800' : 
-                           ($order->status === 'processing' ? 'bg-violet-100 text-violet-800' :
-                           ($order->status === 'shipped' ? 'bg-indigo-100 text-indigo-800' :
-                           'bg-gray-100 text-gray-800')))) }}">
+                    @php
+                        $mobileBadgeClass = match($order->status) {
+                            'pending' => 'bg-amber-100 text-amber-800',
+                            'processing' => 'bg-blue-100 text-blue-800',
+                            'shipped' => 'bg-orange-100 text-orange-800',
+                            'delivered' => 'bg-emerald-100 text-emerald-800',
+                            'cancelled' => 'bg-red-100 text-red-800',
+                            default => 'bg-neutral-100 text-neutral-800'
+                        };
+                    @endphp
+                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full {{ $mobileBadgeClass }}">
                         {{ ucfirst($order->status) }}
                     </span>
                 </div>
@@ -234,15 +249,17 @@
                 @endif
             </div>
             <div class="mt-3 pt-3 border-t border-neutral-200 flex items-center justify-between">
+                @if(request('trashed') && $order->trashed())
+                    @can('orders.restore')
+                    <form action="{{ route('admin.orders.restore', $order) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-semibold text-sm">Restore</button>
+                    </form>
+                    @endcan
+                @else
                 <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:text-primary-light font-semibold text-sm">View Details →</a>
-                <button
-                    type="button"
-                    class="text-red-600 hover:text-red-800 text-xs font-semibold"
-                    data-delete-url="{{ route('admin.orders.destroy', $order) }}"
-                    onclick="deleteSingleOrder(this)"
-                >
-                    Delete
-                </button>
+                <button type="button" class="text-red-600 hover:text-red-800 text-xs font-semibold" data-delete-url="{{ route('admin.orders.destroy', $order) }}" onclick="deleteSingleOrder(this)">Delete</button>
+                @endif
             </div>
         </div>
         @empty
@@ -252,7 +269,6 @@
         @endforelse
     </div>
 </div>
-
 <div class="mt-4">
     {{ $orders->links() }}
 </div>
@@ -267,8 +283,9 @@
 <script>
     (function () {
         const selectAll = document.getElementById('select-all-orders');
-        const checkboxes = document.querySelectorAll('.order-checkbox');
         const bulkDeleteButton = document.getElementById('bulk-delete-button');
+        if (!selectAll || !bulkDeleteButton) return;
+        const checkboxes = document.querySelectorAll('.order-checkbox');
 
         function updateBulkState() {
             const anyChecked = Array.from(checkboxes).some(cb => cb.checked);

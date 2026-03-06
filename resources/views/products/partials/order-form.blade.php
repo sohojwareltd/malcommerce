@@ -357,34 +357,29 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
     var form = document.querySelector('#order form[action="{{ route('orders.store') }}"]');
     if (!form) return;
-    var gtmFired = false;
-    form.addEventListener('submit', function () {
-        if (gtmFired) return;
-        gtmFired = true;
-        var quantityInput = form.querySelector('input[name="quantity"]');
-        var quantity = 1;
-        if (quantityInput && quantityInput.value) {
-            var parsed = parseInt(quantityInput.value, 10);
-            if (!isNaN(parsed) && parsed > 0) quantity = parsed;
+    var quantityInput = form.querySelector('input[name="quantity"]');
+    var quantity = 1;
+    if (quantityInput && quantityInput.value) {
+        var parsed = parseInt(quantityInput.value, 10);
+        if (!isNaN(parsed) && parsed > 0) quantity = parsed;
+    }
+    var productPrice = {{ (float) $product->price }};
+    var value = productPrice * quantity;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+        event: 'begin_checkout',
+        ecommerce: {
+            currency: 'BDT',
+            value: value,
+            items: [{
+                item_id: @json((string) $product->id),
+                item_name: @json($product->name),
+                item_category: @json(optional($product->category)->name ?? ''),
+                price: productPrice,
+                quantity: quantity,
+                index: 0
+            }]
         }
-        var productPrice = {{ (float) $product->price }};
-        var value = productPrice * quantity;
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({
-            event: 'begin_checkout',
-            ecommerce: {
-                currency: 'BDT',
-                value: value,
-                items: [{
-                    item_id: @json((string) $product->id),
-                    item_name: @json($product->name),
-                    item_category: @json(optional($product->category)->name ?? ''),
-                    price: productPrice,
-                    quantity: quantity,
-                    index: 0
-                }]
-            }
-        });
     });
 });
 </script>

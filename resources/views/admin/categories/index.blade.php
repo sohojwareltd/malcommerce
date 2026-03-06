@@ -4,13 +4,21 @@
 
 @section('content')
 <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-    <div>
-        <h1 class="text-2xl sm:text-3xl font-bold">Categories</h1>
-        <p class="text-neutral-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage product categories</p>
+    <div class="flex items-center gap-3">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold">Categories</h1>
+            <p class="text-neutral-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage product categories</p>
+        </div>
+        <nav class="flex gap-2">
+            <a href="{{ route('admin.categories.index', array_merge(request()->query(), ['trashed' => 0])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ !request('trashed') ? 'bg-primary text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">Active</a>
+            <a href="{{ route('admin.categories.index', array_merge(request()->query(), ['trashed' => 1])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ request('trashed') ? 'bg-neutral-500 text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">Deleted</a>
+        </nav>
     </div>
+    @if(!request('trashed'))
     <a href="{{ route('admin.categories.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition font-semibold text-sm sm:text-base text-center">
         + Create Category
     </a>
+    @endif
 </div>
 
 <!-- Search Form -->
@@ -48,10 +56,8 @@
             @endif
             </div>
         </div>
-        <!-- Preserve per_page when clearing search -->
-        @if(request('per_page') && !request('search'))
-        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
-        @endif
+        @if(request('trashed'))<input type="hidden" name="trashed" value="1">@endif
+        @if(request('per_page') && !request('search'))<input type="hidden" name="per_page" value="{{ request('per_page') }}">@endif
     </form>
 </div>
 
@@ -92,6 +98,14 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $category->sort_order }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        @if(request('trashed') && $category->trashed())
+                            @can('categories.restore')
+                            <form action="{{ route('admin.categories.restore', $category) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
+                            </form>
+                            @endcan
+                        @else
                         <div class="flex gap-2">
                             <a href="{{ route('admin.categories.edit', $category) }}" class="text-primary hover:text-primary-light font-medium">Edit</a>
                             <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this category?');">
@@ -100,6 +114,7 @@
                                 <button type="submit" class="text-red-600 hover:text-red-700 font-medium">Delete</button>
                             </form>
                         </div>
+                        @endif
                     </td>
                 </tr>
                 @empty
@@ -141,13 +156,22 @@
                         Sort Order: <span class="font-medium">{{ $category->sort_order }}</span>
                     </div>
                     <div class="flex gap-3 pt-2 border-t border-neutral-200">
+                        @if(request('trashed') && $category->trashed())
+                            @can('categories.restore')
+                            <form action="{{ route('admin.categories.restore', $category) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium text-sm">Restore</button>
+                            </form>
+                            @endcan
+                        @else
                         <a href="{{ route('admin.categories.edit', $category) }}" class="text-primary hover:text-primary-light font-medium text-sm">Edit</a>
                         <span class="text-neutral-300">|</span>
-                        <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this category?');">
+                        <form action="{{ route('admin.categories.destroy', $category) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-red-600 hover:text-red-700 font-medium text-sm">Delete</button>
                         </form>
+                        @endif
                     </div>
                 </div>
             </div>

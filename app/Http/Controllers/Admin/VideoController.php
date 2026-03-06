@@ -12,6 +12,9 @@ class VideoController extends Controller
     public function index(Request $request)
     {
         $query = Video::query();
+        if ($request->boolean('trashed')) {
+            $query->onlyTrashed();
+        }
 
         if ($request->filled('category')) {
             $query->where('category', $request->category);
@@ -115,10 +118,15 @@ class VideoController extends Controller
 
     public function destroy(Video $video)
     {
-        if ($video->thumbnail && !str_starts_with($video->thumbnail, 'http')) {
-            Storage::disk('public')->delete($video->thumbnail);
-        }
         $video->delete();
         return redirect()->route('admin.videos.index')->with('success', 'Video deleted successfully.');
+    }
+
+    public function restore(Request $request)
+    {
+        $video = Video::withTrashed()->findOrFail($request->route('video'));
+        $this->authorize('restore', $video);
+        $video->restore();
+        return redirect()->route('admin.videos.index')->with('success', 'Video restored successfully.');
     }
 }

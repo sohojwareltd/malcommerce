@@ -4,13 +4,23 @@
 
 @section('content')
 <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-    <div>
-        <h1 class="text-2xl sm:text-3xl font-bold">Admin Users</h1>
-        <p class="text-neutral-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage admin user accounts</p>
+    <div class="flex items-center gap-3">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold">Admin Users</h1>
+            <p class="text-neutral-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage admin user accounts</p>
+        </div>
+        <nav class="flex gap-2">
+            <a href="{{ route('admin.users.index', array_merge(request()->query(), ['trashed' => 0])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ !request('trashed') ? 'bg-primary text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">Active</a>
+            <a href="{{ route('admin.users.index', array_merge(request()->query(), ['trashed' => 1])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ request('trashed') ? 'bg-neutral-500 text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">Deleted</a>
+        </nav>
     </div>
+    @if(!request('trashed'))
+    @can('users.create')
     <a href="{{ route('admin.users.create') }}" class="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-primary-light transition text-sm sm:text-base text-center">
         + Add Admin User
     </a>
+    @endcan
+    @endif
 </div>
 
 <!-- Search Form -->
@@ -51,10 +61,8 @@
             @endif
         </div>
         </div>
-        <!-- Preserve per_page when clearing search -->
-        @if(request('per_page') && !request('search'))
-        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
-        @endif
+        @if(request('trashed'))<input type="hidden" name="trashed" value="1">@endif
+        @if(request('per_page') && !request('search'))<input type="hidden" name="per_page" value="{{ request('per_page') }}">@endif
     </form>
 </div>
 
@@ -66,6 +74,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Phone</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Role</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Created</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Actions</th>
                 </tr>
@@ -80,25 +89,37 @@
                         {{ $user->phone }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
+                        {{ $user->roles->first()?->name ?? '—' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">
                         {{ $user->created_at->format('M d, Y') }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        @if(request('trashed') && $user->trashed())
+                            @can('users.restore')
+                            <form action="{{ route('admin.users.restore', $user) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-emerald-600 hover:text-emerald-700">Restore</button>
+                            </form>
+                            @endcan
+                        @else
                         <div class="flex items-center gap-2">
                             <a href="{{ route('admin.users.edit', $user) }}" class="text-primary hover:text-primary-light">Edit</a>
                             @if($user->id !== Auth::id())
                             <span class="text-neutral-300">|</span>
-                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this admin user?');">
+                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
                             </form>
                             @endif
                         </div>
+                        @endif
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="px-6 py-4 text-center text-neutral-500">No admin users found</td>
+                    <td colspan="5" class="px-6 py-4 text-center text-neutral-500">No admin users found</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -118,6 +139,10 @@
                             <span class="text-neutral-900 font-medium ml-1">{{ $user->phone }}</span>
                         </div>
                         <div>
+                            <span class="text-neutral-500">Role:</span>
+                            <span class="text-neutral-900 font-medium ml-1">{{ $user->roles->first()?->name ?? '—' }}</span>
+                        </div>
+                        <div>
                             <span class="text-neutral-500">Created:</span>
                             <span class="text-neutral-900 font-medium ml-1">{{ $user->created_at->format('M d, Y') }}</span>
                         </div>
@@ -125,14 +150,23 @@
                 </div>
             </div>
             <div class="flex gap-3 pt-2 border-t border-neutral-200">
+                @if(request('trashed') && $user->trashed())
+                    @can('users.restore')
+                    <form action="{{ route('admin.users.restore', $user) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="text-emerald-600 font-medium text-sm">Restore</button>
+                    </form>
+                    @endcan
+                @else
                 <a href="{{ route('admin.users.edit', $user) }}" class="text-primary hover:text-primary-light font-medium text-sm">Edit</a>
                 @if($user->id !== Auth::id())
                 <span class="text-neutral-300">|</span>
-                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this admin user?');">
+                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?');">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="text-red-600 hover:text-red-700 font-medium text-sm">Delete</button>
                 </form>
+                @endif
                 @endif
             </div>
         </div>

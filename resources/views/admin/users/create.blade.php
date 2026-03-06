@@ -56,6 +56,22 @@
                 @enderror
                 <p class="mt-1 text-xs text-neutral-500">Enter 11-digit Bangladesh mobile number</p>
             </div>
+            
+            <!-- Role -->
+            <div>
+                <label for="role_id" class="block text-sm font-medium text-neutral-700 mb-2">Role <span class="text-red-500">*</span></label>
+                <select id="role_id" name="role_id" required
+                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base @error('role_id') border-red-500 @enderror">
+                    <option value="">Select role</option>
+                    @foreach($roles as $role)
+                    <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+                    @endforeach
+                </select>
+                @error('role_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-neutral-500">Role determines what features this user can access</p>
+            </div>
         </div>
         
         <div class="bg-blue-50 border-l-4 border-blue-400 p-4">

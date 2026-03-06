@@ -13,6 +13,9 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $query = Product::with('category');
+        if ($request->boolean('trashed')) {
+            $query->onlyTrashed();
+        }
         
         // Search functionality
         if ($request->filled('search')) {
@@ -330,5 +333,13 @@ class ProductController extends Controller
     {
         $product->delete();
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully!');
+    }
+
+    public function restore(Request $request)
+    {
+        $product = Product::withTrashed()->findOrFail($request->route('product'));
+        $this->authorize('restore', $product);
+        $product->restore();
+        return redirect()->route('admin.products.index')->with('success', 'Product restored successfully!');
     }
 }

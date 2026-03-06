@@ -4,10 +4,22 @@
 
 @section('content')
 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-0">
-    <h1 class="text-2xl sm:text-3xl font-bold">Products</h1>
+    <div class="flex items-center gap-3">
+        <h1 class="text-2xl sm:text-3xl font-bold">Products</h1>
+        <nav class="flex gap-2">
+            <a href="{{ route('admin.products.index', array_merge(request()->query(), ['trashed' => 0])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ !request('trashed') ? 'bg-primary text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">
+                Active
+            </a>
+            <a href="{{ route('admin.products.index', array_merge(request()->query(), ['trashed' => 1])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ request('trashed') ? 'bg-neutral-500 text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">
+                Deleted
+            </a>
+        </nav>
+    </div>
+    @if(!request('trashed'))
     <a href="{{ route('admin.products.create') }}" class="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-primary-light transition text-sm sm:text-base text-center">
         Add New Product
     </a>
+    @endif
 </div>
 
 <!-- Search and Filter Form -->
@@ -75,7 +87,9 @@
                 </a>
             @endif
         </div>
-        <!-- Preserve per_page when clearing filters -->
+        @if(request('trashed'))
+        <input type="hidden" name="trashed" value="1">
+        @endif
         @if(request('per_page'))
         <input type="hidden" name="per_page" value="{{ request('per_page') }}">
         @endif
@@ -118,6 +132,14 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        @if(request('trashed') && $product->trashed())
+                            @can('products.restore')
+                            <form action="{{ route('admin.products.restore', $product) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
+                            </form>
+                            @endcan
+                        @else
                         <div class="flex items-center gap-2">
                             <a href="{{ route('admin.products.edit', $product) }}" class="text-primary hover:text-primary-light">Edit</a>
                             <span class="text-neutral-300">|</span>
@@ -129,6 +151,7 @@
                                 <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
                             </form>
                         </div>
+                        @endif
                     </td>
                 </tr>
                 @empty
@@ -168,6 +191,14 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 pt-2 border-t border-neutral-200">
+                @if(request('trashed') && $product->trashed())
+                    @can('products.restore')
+                    <form action="{{ route('admin.products.restore', $product) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium">Restore</button>
+                    </form>
+                    @endcan
+                @else
                 <a href="{{ route('admin.products.edit', $product) }}" class="text-primary hover:text-primary-light text-sm font-medium">Edit</a>
                 <span class="text-neutral-300">|</span>
                 <a href="{{ route('admin.products.builder', $product) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Page Builder</a>
@@ -177,6 +208,7 @@
                     @method('DELETE')
                     <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">Delete</button>
                 </form>
+                @endif
             </div>
         </div>
         @empty
