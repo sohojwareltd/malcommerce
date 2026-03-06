@@ -81,6 +81,7 @@ class SyncPermissionsFromPolicies extends Command
         $map = [
             'ProductPolicy' => 'products',
             'CategoryPolicy' => 'categories',
+            'ExpensePolicy' => 'expenses',
             'OrderPolicy' => 'orders',
             'UserPolicy' => 'users',
             'SponsorPolicy' => 'sponsors',

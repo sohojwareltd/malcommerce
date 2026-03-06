@@ -104,6 +104,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders/{order}/edit', [AdminDashboardController::class, 'editOrder'])->name('orders.edit')->middleware('can:orders.update');
         Route::put('/orders/{order}', [AdminDashboardController::class, 'updateOrder'])->name('orders.update')->middleware('can:orders.update');
         Route::put('/orders/{order}/status', [AdminDashboardController::class, 'updateOrderStatus'])->name('orders.updateStatus')->middleware('can:orders.updateStatus');
+        Route::post('/orders/{order}/steadfast-parcel', [AdminDashboardController::class, 'createSteadfastParcel'])->name('orders.steadfast.parcel')->middleware('can:orders.update');
+        Route::post('/orders/{order}/steadfast-refresh', [AdminDashboardController::class, 'refreshSteadfastStatus'])->name('orders.steadfast.refresh')->middleware('can:orders.update');
         Route::delete('/orders/{order}', [AdminDashboardController::class, 'destroyOrder'])->name('orders.destroy')->middleware('can:orders.delete');
         Route::post('/orders/{order}/restore', [AdminDashboardController::class, 'restoreOrder'])->name('orders.restore')->middleware('can:orders.restore');
         Route::get('/orders/{order}', [AdminDashboardController::class, 'showOrder'])->name('orders.show')->middleware('can:orders.view');
@@ -132,7 +134,16 @@ Route::middleware('auth')->group(function () {
         Route::put('/roles/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'update'])->name('roles.update')->middleware('can:roles.update');
         Route::delete('/roles/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'destroy'])->name('roles.destroy')->middleware('can:roles.delete');
         
+        Route::get('/expenses', [\App\Http\Controllers\Admin\ExpenseController::class, 'index'])->name('expenses.index')->middleware('can:expenses.viewAny');
+        Route::get('/expenses/export', [\App\Http\Controllers\Admin\ExpenseController::class, 'export'])->name('expenses.export')->middleware('can:expenses.viewAny');
+        Route::get('/expenses/create', [\App\Http\Controllers\Admin\ExpenseController::class, 'create'])->name('expenses.create')->middleware('can:expenses.create');
+        Route::post('/expenses', [\App\Http\Controllers\Admin\ExpenseController::class, 'store'])->name('expenses.store')->middleware('can:expenses.create');
+        Route::get('/expenses/{expense}/edit', [\App\Http\Controllers\Admin\ExpenseController::class, 'edit'])->name('expenses.edit')->middleware('can:expenses.update');
+        Route::put('/expenses/{expense}', [\App\Http\Controllers\Admin\ExpenseController::class, 'update'])->name('expenses.update')->middleware('can:expenses.update');
+        Route::delete('/expenses/{expense}', [\App\Http\Controllers\Admin\ExpenseController::class, 'destroy'])->name('expenses.destroy')->middleware('can:expenses.delete');
+
         Route::get('/reports/sales', [AdminDashboardController::class, 'salesReport'])->name('reports.sales')->middleware('can:reports.sales');
+        Route::get('/reports/sales/export', [AdminDashboardController::class, 'exportSalesReport'])->name('reports.sales.export')->middleware('can:reports.sales');
         Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings')->middleware('can:settings.view');
         Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update')->middleware('can:settings.update');
         Route::get('/withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index')->middleware('can:withdrawals.viewAny');

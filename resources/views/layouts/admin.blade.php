@@ -54,33 +54,36 @@
                         </button>
                     </div>
                 </div>
-                <nav class="space-y-1 sm:space-y-2">
-                <a href="{{ route('home') }}" 
-                target="_blank"
+                <nav class="space-y-4">
+                <!-- General -->
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">General</p>
+                    <a href="{{ route('home') }}" target="_blank"
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'View Site' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-white/90 hover:bg-white/10 transition group relative text-sm sm:text-base"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">View Site</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">View Site</span>
                     </a>
                     @can('dashboard.view')
-                    <a href="{{ route('admin.dashboard') }}" 
+                    <a href="{{ route('admin.dashboard') }}"
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Dashboard' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.dashboard') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                        </svg>
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Dashboard</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Dashboard</span>
                     </a>
                     @endcan
+                </div>
+
+                <!-- Catalog -->
+                @if(auth()->user()->can('products.viewAny') || auth()->user()->can('categories.viewAny') || auth()->user()->can('videos.viewAny'))
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Catalog</p>
                     @can('products.viewAny')
-                    <a href="{{ route('admin.products.index') }}" 
+                    <a href="{{ route('admin.products.index') }}"
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Products' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.products.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
@@ -115,8 +118,14 @@
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Videos</span>
                     </a>
                     @endcan
-                    @can('orders.viewAny')
-                    <a href="{{ route('admin.orders.index') }}" 
+                </div>
+                @endif
+
+                <!-- Sales -->
+                @can('orders.viewAny')
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Sales</p>
+                    <a href="{{ route('admin.orders.index') }}"
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Orders' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.orders.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
@@ -126,8 +135,13 @@
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Orders</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Orders</span>
                     </a>
-                    @endcan
-                    @can('sponsors.viewAny')
+                </div>
+                @endcan
+
+                <!-- Affiliates -->
+                @can('sponsors.viewAny')
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Affiliates</p>
                     <a href="{{ route('admin.sponsors.index') }}" 
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Sponsors' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.sponsors.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
@@ -138,9 +152,63 @@
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Sponsors</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Sponsors</span>
                     </a>
+                </div>
+                @endcan
+
+                <!-- Finance -->
+                @if(auth()->user()->can('withdrawals.viewAny') || auth()->user()->can('expenses.viewAny'))
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Finance</p>
+                    @can('withdrawals.viewAny')
+                    <a href="{{ route('admin.withdrawals.index') }}" 
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Withdrawals' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.withdrawals.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 11h10M4 15h7M4 19h16"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Withdrawals</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Withdrawals</span>
+                    </a>
                     @endcan
+                    @can('expenses.viewAny')
+                    <a href="{{ route('admin.expenses.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Expenses' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.expenses.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Expenses</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Expenses</span>
+                    </a>
+                    @endcan
+                </div>
+                @endif
+
+                <!-- Reports -->
+                @can('reports.sales')
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Reports</p>
+                    <a href="{{ route('admin.reports.sales') }}" 
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Sales Report' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.reports.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Sales Report</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Sales Report</span>
+                    </a>
+                </div>
+                @endcan
+
+                <!-- Users & Access -->
+                @if(auth()->user()->can('users.viewAny') || auth()->user()->can('roles.viewAny'))
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Users & Access</p>
                     @can('users.viewAny')
-                    <a href="{{ route('admin.users.index') }}" 
+                    <a href="{{ route('admin.users.index') }}"
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Admin Users' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.users.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
@@ -163,32 +231,14 @@
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Roles</span>
                     </a>
                     @endcan
-                    @can('withdrawals.viewAny')
-                    <a href="{{ route('admin.withdrawals.index') }}" 
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Withdrawals' : ''"
-                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.withdrawals.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
-                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 11h10M4 15h7M4 19h16"></path>
-                        </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Withdrawals</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Withdrawals</span>
-                    </a>
-                    @endcan
-                    @can('reports.sales')
-                    <a href="{{ route('admin.reports.sales') }}" 
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Sales Report' : ''"
-                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.reports.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
-                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Sales Report</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Sales Report</span>
-                    </a>
-                    @endcan
+                </div>
+                @endif
+
+                <!-- Account -->
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Account</p>
                     @can('profile.view')
-                    <a href="{{ route('admin.profile.edit') }}" 
+                    <a href="{{ route('admin.profile.edit') }}"
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Profile' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.profile.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
@@ -212,9 +262,9 @@
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Settings</span>
                     </a>
                     @endcan
-                    <form method="POST" action="{{ route('logout') }}" class="pt-2">
+                    <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" 
+                        <button type="submit"
                                 :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Logout' : ''"
                                 class="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-white/90 hover:bg-red-500/20 transition group relative text-sm sm:text-base"
                                 :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
@@ -225,6 +275,7 @@
                             <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Logout</span>
                         </button>
                     </form>
+                </div>
                 </nav>
             </div>
         </aside>

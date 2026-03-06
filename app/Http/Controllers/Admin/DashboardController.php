@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\Product;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Models\Setting;
 use App\Services\EarningService;
 use App\Services\SmsService;
+use App\Services\SteadfastService;
 use Illuminate\Support\Facades\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -336,6 +338,45 @@ class DashboardController extends Controller
         
         return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Order status updated successfully!');
+    }
+
+    /**
+     * Create Steadfast (Packzy) parcel for an order.
+     */
+    public function createSteadfastParcel(Order $order, SteadfastService $steadfast)
+    {
+        $result = $steadfast->createOrder($order);
+
+        if ($result['success']) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', 'Parcel created successfully! Tracking code: ' . ($result['tracking_code'] ?? 'N/A'));
+        }
+
+        return redirect()->route('admin.orders.show', $order)
+            ->with('error', $result['error'] ?? 'Failed to create parcel');
+    }
+
+    /**
+     * Refresh Steadfast delivery status for an order.
+     */
+    public function refreshSteadfastStatus(Order $order, SteadfastService $steadfast)
+    {
+        if (!$order->steadfast_consignment_id && !$order->steadfast_tracking_code) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('error', 'No Steadfast parcel found for this order.');
+        }
+
+        $invoice = 'ORD-' . $order->order_number . '-' . $order->id;
+        $result = $steadfast->getStatus($invoice);
+
+        if ($result['success']) {
+            $order->update(['steadfast_delivery_status' => $result['delivery_status']]);
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', 'Status refreshed: ' . $result['delivery_status']);
+        }
+
+        return redirect()->route('admin.orders.show', $order)
+            ->with('error', $result['error'] ?? 'Failed to fetch status');
     }
     
     public function editOrder(Order $order)
@@ -884,45 +925,145 @@ class DashboardController extends Controller
     
     public function salesReport(Request $request)
     {
-        $query = Order::with('product', 'sponsor')
-            ->where('status', '!=', 'cancelled');
-        
+        $query = Order::with('product', 'sponsor');
+
         // Date range filter
         $dateFrom = $request->input('date_from', now()->subDays(30)->format('Y-m-d'));
         $dateTo = $request->input('date_to', now()->format('Y-m-d'));
-        
+
         $query->whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
-        
+
         // Status filter
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        } else {
+            $query->where('status', '!=', 'cancelled');
         }
-        
+
+        // Product filter
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+
+        // Product type filter (physical / digital)
+        if ($request->filled('product_type')) {
+            $isDigital = $request->product_type === 'digital';
+            $query->whereHas('product', fn ($q) => $q->where('is_digital', $isDigital));
+        }
+
         $orders = $query->orderBy('created_at', 'desc')->get();
-        
+        $products = Product::orderBy('name')->get(['id', 'name', 'is_digital']);
+
+        // Revenue = delivered only. Pending revenue = pending, processing, shipped (excl. cancelled)
+        $deliveredOrders = $orders->where('status', 'delivered');
+        $pendingOrders = $orders->whereIn('status', ['pending', 'processing', 'shipped']);
+        $revenue = $deliveredOrders->sum('total_price');
+        $pendingRevenue = $pendingOrders->sum('total_price');
+
+        // Total expenses in date range (for profit calculation)
+        $totalExpenses = Expense::whereBetween('expense_date', [$dateFrom, $dateTo])->sum('amount');
+        $profit = $revenue - $totalExpenses;
+
         // Calculate statistics
         $stats = [
             'total_orders' => $orders->count(),
-            'total_revenue' => $orders->sum('total_price'),
-            'average_order_value' => $orders->count() > 0 ? $orders->sum('total_price') / $orders->count() : 0,
+            'revenue' => $revenue,
+            'pending_revenue' => $pendingRevenue,
+            'total_expenses' => $totalExpenses,
+            'profit' => $profit,
+            'average_order_value' => $deliveredOrders->count() > 0 ? $revenue / $deliveredOrders->count() : 0,
             'total_items_sold' => $orders->sum('quantity'),
-            'by_status' => $orders->groupBy('status')->map(function($group) {
+            'by_status' => $orders->groupBy('status')->map(function ($group) {
+                $isDelivered = $group->first()->status === 'delivered';
                 return [
                     'count' => $group->count(),
-                    'revenue' => $group->sum('total_price'),
+                    'revenue' => $isDelivered ? $group->sum('total_price') : 0,
+                    'pending_revenue' => !$isDelivered && $group->first()->status !== 'cancelled' ? $group->sum('total_price') : 0,
                 ];
             }),
-            'by_day' => $orders->groupBy(function($order) {
-                return $order->created_at->format('Y-m-d');
-            })->map(function($group) {
+            'by_product' => $orders->groupBy('product_id')->map(function ($group) {
+                $product = $group->first()->product;
+                $delivered = $group->where('status', 'delivered');
+                $pending = $group->whereIn('status', ['pending', 'processing', 'shipped']);
                 return [
+                    'name' => $product?->name ?? 'Unknown',
                     'count' => $group->count(),
-                    'revenue' => $group->sum('total_price'),
+                    'quantity' => $group->sum('quantity'),
+                    'revenue' => $delivered->sum('total_price'),
+                    'pending_revenue' => $pending->sum('total_price'),
                 ];
-            }),
+            })->sortByDesc(fn ($r) => $r['revenue'] + $r['pending_revenue']),
+            'by_product_type' => collect([
+                'physical' => [
+                    'name' => 'Physical',
+                    'orders' => $orders->filter(fn ($o) => $o->product && !$o->product->is_digital),
+                ],
+                'digital' => [
+                    'name' => 'Digital',
+                    'orders' => $orders->filter(fn ($o) => $o->product && $o->product->is_digital),
+                ],
+            ])->map(fn ($data) => [
+                'name' => $data['name'],
+                'count' => $data['orders']->count(),
+                'quantity' => $data['orders']->sum('quantity'),
+                'revenue' => $data['orders']->where('status', 'delivered')->sum('total_price'),
+                'pending_revenue' => $data['orders']->whereIn('status', ['pending', 'processing', 'shipped'])->sum('total_price'),
+            ]),
+            'by_day' => $orders->groupBy(fn ($o) => $o->created_at->format('Y-m-d'))->map(fn ($group) => [
+                'count' => $group->count(),
+                'revenue' => $group->where('status', 'delivered')->sum('total_price'),
+                'pending_revenue' => $group->whereIn('status', ['pending', 'processing', 'shipped'])->sum('total_price'),
+            ]),
         ];
-        
-        return view('admin.reports.sales', compact('orders', 'stats', 'dateFrom', 'dateTo'));
+
+        return view('admin.reports.sales', compact('orders', 'stats', 'dateFrom', 'dateTo', 'products'));
+    }
+
+    public function exportSalesReport(Request $request)
+    {
+        $this->authorize('reports.sales');
+        $query = Order::with('product', 'sponsor');
+
+        $dateFrom = $request->input('date_from', now()->subDays(30)->format('Y-m-d'));
+        $dateTo = $request->input('date_to', now()->format('Y-m-d'));
+        $query->whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        } else {
+            $query->where('status', '!=', 'cancelled');
+        }
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+        if ($request->filled('product_type')) {
+            $isDigital = $request->product_type === 'digital';
+            $query->whereHas('product', fn ($q) => $q->where('is_digital', $isDigital));
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->get();
+        $filename = 'sales-report-' . now()->format('Y-m-d-His') . '.csv';
+
+        return response()->streamDownload(function () use ($orders) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Order #', 'Date', 'Product', 'Type', 'Customer', 'Quantity', 'Amount', 'Status']);
+            foreach ($orders as $o) {
+                fputcsv($handle, [
+                    $o->order_number,
+                    $o->created_at->format('Y-m-d'),
+                    $o->product?->name ?? '',
+                    ($o->product && $o->product->is_digital) ? 'Digital' : 'Physical',
+                    $o->customer_name,
+                    $o->quantity,
+                    $o->total_price,
+                    $o->status,
+                ]);
+            }
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     /**
@@ -1097,6 +1238,11 @@ class DashboardController extends Controller
         Setting::set('order_hide_summary', $request->has('order_hide_summary') ? '1' : '0');
         Setting::set('order_hide_quantity', $request->has('order_hide_quantity') ? '1' : '0');
         unset($data['order_hide_summary'], $data['order_hide_quantity']);
+
+        // Steadfast: don't overwrite secret key if left blank (password-style field)
+        if (isset($data['steadfast_secret_key']) && $data['steadfast_secret_key'] === '') {
+            unset($data['steadfast_secret_key']);
+        }
         
         // Handle other settings
         foreach ($data as $key => $value) {

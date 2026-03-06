@@ -2,6 +2,8 @@
 
 @section('title', 'Edit Role')
 
+@php use Illuminate\Support\Str; @endphp
+
 @section('content')
 <div class="mb-4 sm:mb-6">
     <div class="flex items-center justify-between">
@@ -46,14 +48,27 @@
                             <button type="button" class="text-xs text-neutral-500 hover:text-neutral-700 font-medium select-group-none">Clear</button>
                         </div>
                     </div>
-                    <div class="px-4 py-3" data-perm-group="{{ $group }}">
-                        <div class="flex flex-wrap gap-2">
+                    <div class="px-4 py-2" data-perm-group="{{ $group }}">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
                             @foreach($perms as $perm)
-                            @php $checked = in_array($perm->name, $rolePerms); @endphp
-                            <label class="perm-chip cursor-pointer inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-all duration-200 {{ $checked ? 'bg-primary border-primary text-white shadow-sm' : 'bg-white border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50' }}">
+                            @php
+                                $checked = in_array($perm->name, $rolePerms);
+                                $parts = explode('.', $perm->name, 2);
+                                $resource = $parts[0] ?? '';
+                                $action = $parts[1] ?? '';
+                                $actionLabels = ['viewAny' => 'View list', 'view' => 'View', 'create' => 'Create', 'update' => 'Update', 'delete' => 'Delete', 'restore' => 'Restore', 'bulkDelete' => 'Bulk delete', 'updateStatus' => 'Update status', 'builder' => 'Page builder', 'changePassword' => 'Change password', 'sales' => 'View sales report'];
+                                $actionLabel = $actionLabels[$action] ?? ucfirst($action);
+                                $resourceLabel = ucfirst(Str::singular($resource));
+                                $label = match($perm->name) {
+                                    'reports.sales' => 'View sales report',
+                                    'profile.changePassword' => 'Change password',
+                                    default => $actionLabel . ' ' . $resourceLabel,
+                                };
+                            @endphp
+                            <label class="perm-row flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-neutral-100/80 cursor-pointer transition-colors">
                                 <input type="checkbox" name="permissions[]" value="{{ $perm->name }}" {{ $checked ? 'checked' : '' }}
-                                    class="perm-checkbox sr-only" data-perm="{{ $perm->name }}">
-                                <span>{{ $perm->name }}</span>
+                                    class="perm-checkbox w-4 h-4 rounded border-neutral-300 text-primary focus:ring-primary">
+                                <span class="text-sm text-neutral-700">{{ $label }}</span>
                             </label>
                             @endforeach
                         </div>
@@ -66,7 +81,6 @@
         @push('scripts')
         <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const chips = document.querySelectorAll('.perm-chip');
             const checkboxes = document.querySelectorAll('.perm-checkbox');
             const countEl = document.getElementById('perm-count');
             function updateCount() {
@@ -74,33 +88,14 @@
                 const total = checkboxes.length;
                 countEl.textContent = n + ' of ' + total + ' selected';
             }
-            chips.forEach(chip => {
-                chip.addEventListener('click', function(e) {
-                    if (e.target.type === 'checkbox') return;
-                    const cb = this.querySelector('input');
-                    cb.checked = !cb.checked;
-                    this.classList.toggle('bg-primary', cb.checked);
-                    this.classList.toggle('border-primary', cb.checked);
-                    this.classList.toggle('text-white', cb.checked);
-                    this.classList.toggle('bg-white', !cb.checked);
-                    this.classList.toggle('border-neutral-200', !cb.checked);
-                    this.classList.toggle('text-neutral-700', !cb.checked);
-                    updateCount();
-                });
-            });
+            checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
             document.querySelectorAll('.select-group-all').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const card = this.closest('.rounded-xl');
                     const group = card?.querySelector('[data-perm-group]');
-                    if (group) {
-                        group.querySelectorAll('.perm-checkbox').forEach(cb => { cb.checked = true; });
-                        group.querySelectorAll('.perm-chip').forEach(c => {
-                            c.classList.add('bg-primary','border-primary','text-white');
-                            c.classList.remove('bg-white','border-neutral-200','text-neutral-700');
-                        });
-                        updateCount();
-                    }
+                    if (group) group.querySelectorAll('.perm-checkbox').forEach(cb => { cb.checked = true; });
+                    updateCount();
                 });
             });
             document.querySelectorAll('.select-group-none').forEach(btn => {
@@ -108,14 +103,8 @@
                     e.stopPropagation();
                     const card = this.closest('.rounded-xl');
                     const group = card?.querySelector('[data-perm-group]');
-                    if (group) {
-                        group.querySelectorAll('.perm-checkbox').forEach(cb => { cb.checked = false; });
-                        group.querySelectorAll('.perm-chip').forEach(c => {
-                            c.classList.remove('bg-primary','border-primary','text-white');
-                            c.classList.add('bg-white','border-neutral-200','text-neutral-700');
-                        });
-                        updateCount();
-                    }
+                    if (group) group.querySelectorAll('.perm-checkbox').forEach(cb => { cb.checked = false; });
+                    updateCount();
                 });
             });
             updateCount();

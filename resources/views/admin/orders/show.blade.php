@@ -103,6 +103,47 @@
         </div>
         @endif
 
+        <!-- Steadfast Courier / Parcel -->
+        @if($order->product && !$order->product->is_digital)
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-4">Steadfast Courier</h2>
+            @if($order->steadfast_consignment_id)
+                <dl class="space-y-2">
+                    <div>
+                        <dt class="text-sm font-medium text-neutral-500">Consignment ID</dt>
+                        <dd class="text-sm font-mono">{{ $order->steadfast_consignment_id }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-neutral-500">Tracking Code</dt>
+                        <dd class="text-sm font-mono font-semibold">{{ $order->steadfast_tracking_code }}</dd>
+                    </div>
+                    @if($order->steadfast_delivery_status)
+                    <div>
+                        <dt class="text-sm font-medium text-neutral-500">Delivery Status</dt>
+                        <dd class="text-sm">{{ ucfirst(str_replace('_', ' ', $order->steadfast_delivery_status)) }}</dd>
+                    </div>
+                    @endif
+                </dl>
+                <form action="{{ route('admin.orders.steadfast.refresh', $order) }}" method="POST" class="mt-4 inline">
+                    @csrf
+                    <button type="submit" class="text-sm text-primary hover:underline">Refresh status</button>
+                </form>
+            @else
+                <p class="text-sm text-neutral-600 mb-4">Create a parcel with Steadfast Courier for shipping.</p>
+                @if(\App\Models\Setting::get('steadfast_api_key') && \App\Models\Setting::get('steadfast_secret_key'))
+                    <form action="{{ route('admin.orders.steadfast.parcel', $order) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition font-semibold">
+                            Create Parcel (Steadfast)
+                        </button>
+                    </form>
+                @else
+                    <p class="text-sm text-amber-600">Configure API Key and Secret Key in <a href="{{ route('admin.settings') }}" class="underline">Settings</a> to create parcels.</p>
+                @endif
+            @endif
+        </div>
+        @endif
+
         <!-- Order Timeline / Logs -->
         @if($order->logs && $order->logs->count() > 0)
         <div class="bg-white rounded-lg shadow-md p-6">

@@ -38,6 +38,9 @@ class Order extends Model
         'payment_invoice_id',
         'payment_response',
         'payment_completed_at',
+        'steadfast_consignment_id',
+        'steadfast_tracking_code',
+        'steadfast_delivery_status',
     ];
 
     protected function casts(): array

@@ -70,6 +70,16 @@
         </div>
         
         <div>
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Product Type</label>
+            @php $isDigital = old('is_digital', $product->is_digital ?? false); @endphp
+            <select name="is_digital" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                <option value="0" {{ !$isDigital ? 'selected' : '' }}>Physical</option>
+                <option value="1" {{ $isDigital ? 'selected' : '' }}>Digital</option>
+            </select>
+            <p class="mt-1 text-xs text-neutral-500">Physical products require shipping. Digital products are delivered electronically.</p>
+        </div>
+        
+        <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Price *</label>
             <div class="flex items-center gap-3">
                 <input type="number" name="price" id="product-price" step="0.01" value="{{ old('price', $product->price) }}" required 

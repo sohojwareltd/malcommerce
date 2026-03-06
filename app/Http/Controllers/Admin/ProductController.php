@@ -81,6 +81,7 @@ class ProductController extends Controller
             'stock_quantity' => 'required|integer|min:0',
             'images' => 'nullable|array',
             'is_active' => 'boolean',
+            'is_digital' => 'boolean',
             'only_on_categories' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer',
@@ -132,6 +133,7 @@ class ProductController extends Controller
         $validated['order_hide_summary'] = $request->has('order_hide_summary');
         $validated['order_hide_quantity'] = $request->has('order_hide_quantity');
         $validated['is_free'] = $request->has('is_free');
+        $validated['is_digital'] = filter_var($request->input('is_digital'), FILTER_VALIDATE_BOOLEAN);
 
         // Clean SMS templates (remove empty ones)
         if (isset($validated['sms_templates']) && is_array($validated['sms_templates'])) {
@@ -194,6 +196,7 @@ class ProductController extends Controller
             'images' => 'nullable|array',
             'page_layout' => 'nullable',
             'is_active' => 'boolean',
+            'is_digital' => 'boolean',
             'only_on_categories' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer',
@@ -281,12 +284,13 @@ class ProductController extends Controller
             $validated['order_hide_summary'] = $request->has('order_hide_summary');
             $validated['order_hide_quantity'] = $request->has('order_hide_quantity');
             $validated['is_free'] = $request->has('is_free');
+            $validated['is_digital'] = filter_var($request->input('is_digital'), FILTER_VALIDATE_BOOLEAN);
         } else {
-            // Remove all order-form and payment fields so update() does not touch them
+            // Remove order-form and other fields so update() does not touch them (preserve existing)
             $preserveKeys = [
                 'order_form_title', 'order_button_text', 'order_min_quantity', 'order_max_quantity',
                 'order_delivery_options', 'order_hide_summary', 'order_hide_quantity', 'is_free',
-                'payment_options', 'sms_templates', 'order_custom_charge',
+                'payment_options', 'sms_templates', 'order_custom_charge', 'is_digital',
             ];
             foreach ($preserveKeys as $key) {
                 unset($validated[$key]);
