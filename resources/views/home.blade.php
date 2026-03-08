@@ -364,7 +364,78 @@
         </div>
     @endif
 
+    <!-- Featured Jobs Section -->
+    @if(isset($featuredJobs) && $featuredJobs->isNotEmpty())
+    <div class="bg-gray-50 py-16 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla">চাকরির বিজ্ঞপ্তি</h2>
+                <a href="{{ route('jobs.index') }}" class="inline-block text-primary hover:underline font-bangla font-medium">
+                    সব চাকরি দেখুন →
+                </a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($featuredJobs as $job)
+                <a href="{{ route('jobs.show', $job) }}" class="card overflow-hidden hover:shadow-lg transition block">
+                    @if($job->thumbnail)
+                    <div class="aspect-video bg-gray-100">
+                        <img src="{{ $job->thumbnail }}" alt="{{ $job->title }}" class="w-full h-full object-cover">
+                    </div>
+                    @endif
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-900 font-bangla mb-2">{{ $job->title }}</h3>
+                        @if($job->deadline)
+                        <p class="text-sm text-gray-500 mb-3 font-bangla">আবেদনের শেষ তারিখ: {{ $job->deadline->format('d M, Y') }}</p>
+                        @endif
+                        @if($job->description)
+                        <p class="text-gray-600 text-sm line-clamp-2 font-bangla">{{ Str::limit(strip_tags($job->description), 100) }}</p>
+                        @endif
+                        <span class="inline-block mt-4 text-primary font-bangla text-sm font-medium">বিস্তারিত ও আবেদন →</span>
+                    </div>
+                </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
 
+    <!-- Featured Workshops Section -->
+    @if(isset($featuredWorkshops) && $featuredWorkshops->isNotEmpty())
+    <div class="bg-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla">ওয়ার্কশপ ও সেমিনার</h2>
+                <a href="{{ route('workshops.index') }}" class="inline-block text-primary hover:underline font-bangla font-medium">
+                    সব ওয়ার্কশপ দেখুন →
+                </a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($featuredWorkshops as $ws)
+                <a href="{{ route('workshops.show', $ws) }}" class="card overflow-hidden hover:shadow-lg transition block">
+                    @if($ws->thumbnail)
+                    <div class="aspect-video bg-gray-100">
+                        <img src="{{ $ws->thumbnail }}" alt="{{ $ws->title }}" class="w-full h-full object-cover">
+                    </div>
+                    @endif
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-900 font-bangla mb-2">{{ $ws->title }}</h3>
+                        @if($ws->event_date)
+                        <p class="text-sm text-gray-500 mb-1 font-bangla">তারিখ: {{ $ws->event_date->format('d M, Y') }}</p>
+                        @endif
+                        @if($ws->venue)
+                        <p class="text-sm text-gray-500 mb-3 font-bangla">স্থান: {{ Str::limit($ws->venue, 40) }}</p>
+                        @endif
+                        @if($ws->description)
+                        <p class="text-gray-600 text-sm line-clamp-2 font-bangla">{{ Str::limit(strip_tags($ws->description), 100) }}</p>
+                        @endif
+                        <span class="inline-block mt-4 text-primary font-bangla text-sm font-medium">বিস্তারিত ও নিবন্ধন →</span>
+                    </div>
+                </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Latest Products Section -->
     <div class="bg-white py-16">

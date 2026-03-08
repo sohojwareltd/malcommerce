@@ -155,6 +155,61 @@
                 </div>
                 @endcan
 
+                <!-- Jobs & Workshops -->
+                @if(auth()->user()->can('jobCirculars.viewAny') || auth()->user()->can('workshopSeminars.viewAny'))
+                <div class="space-y-1">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Jobs & Workshops</p>
+                    @can('jobCirculars.viewAny')
+                    <a href="{{ route('admin.job-circulars.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Job Circulars' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.job-circulars.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Job Circulars</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Job Circulars</span>
+                    </a>
+                    @endcan
+                    @can('jobApplications.viewAny')
+                    <a href="{{ route('admin.job-applications.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Job Applications' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.job-applications.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Job Applications</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Job Applications</span>
+                    </a>
+                    @endcan
+                    @can('workshopSeminars.viewAny')
+                    <a href="{{ route('admin.workshop-seminars.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Workshops' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.workshop-seminars.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Workshops & Seminars</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Workshops</span>
+                    </a>
+                    @endcan
+                    @can('workshopEnrollments.viewAny')
+                    <a href="{{ route('admin.workshop-enrollments.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Enrollments' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.workshop-enrollments.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth >= 1024" class="transition-opacity duration-300">Workshop Enrollments</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Enrollments</span>
+                    </a>
+                    @endcan
+                </div>
+                @endif
+
                 <!-- Finance -->
                 @if(auth()->user()->can('withdrawals.viewAny') || auth()->user()->can('expenses.viewAny'))
                 <div class="space-y-1">
