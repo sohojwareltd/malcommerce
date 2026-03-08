@@ -41,6 +41,11 @@ class ProductController extends Controller
                 $query->where('is_active', false);
             }
         }
+
+        // Filter by product type (digital/physical)
+        if ($request->filled('is_digital')) {
+            $query->where('is_digital', filter_var($request->is_digital, FILTER_VALIDATE_BOOLEAN));
+        }
         
         // Get per page value from request, default to 20
         $perPage = $request->get('per_page', 20);

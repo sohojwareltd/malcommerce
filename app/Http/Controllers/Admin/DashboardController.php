@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
+use App\Models\JobApplication;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
+use App\Models\WorkshopEnrollment;
 use App\Models\Setting;
 use App\Services\EarningService;
 use App\Services\SmsService;
@@ -27,6 +29,10 @@ class DashboardController extends Controller
             'total_orders' => Order::count(),
             'pending_orders' => Order::where('status', 'pending')->count(),
             'total_products' => Product::count(),
+            'digital_products' => Product::where('is_digital', true)->count(),
+            'physical_products' => Product::where('is_digital', false)->count(),
+            'job_applications' => JobApplication::count(),
+            'workshop_enrollments' => WorkshopEnrollment::count(),
             'total_revenue' => Order::where('status', '!=', 'cancelled')->sum('total_price'),
             'total_sponsors' => User::where('role', 'sponsor')->count(),
         ];

@@ -54,6 +54,65 @@
     </a>
 </div>
 
+<!-- Digital, Physical, Jobs, Workshops Row -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
+    <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0">
+        <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+            <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Digital Products</h3>
+        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate mb-2 sm:mb-3">{{ $stats['digital_products'] }}</p>
+        <div class="flex gap-1 sm:gap-2 flex-wrap">
+            <a href="{{ route('admin.products.index', ['is_digital' => 1]) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Products</a>
+            <a href="{{ route('admin.orders.index', ['product_type' => 'digital']) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Orders</a>
+        </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0">
+        <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+            <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Physical Products</h3>
+        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate mb-2 sm:mb-3">{{ $stats['physical_products'] }}</p>
+        <div class="flex gap-1 sm:gap-2 flex-wrap">
+            <a href="{{ route('admin.products.index', ['is_digital' => 0]) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Products</a>
+            <a href="{{ route('admin.orders.index', ['product_type' => 'physical']) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Orders</a>
+        </div>
+    </div>
+
+    <a href="{{ route('admin.job-applications.index') }}" class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0 block">
+        <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+            <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Job Applications</h3>
+        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['job_applications'] }}</p>
+    </a>
+
+    <a href="{{ route('admin.workshop-enrollments.index') }}" class="bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0 block">
+        <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+            <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Workshop Enrollments</h3>
+        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['workshop_enrollments'] }}</p>
+    </a>
+</div>
+
 <!-- Additional Stats Row -->
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
     <a href="{{ route('admin.sponsors.index') }}" class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0 block">
