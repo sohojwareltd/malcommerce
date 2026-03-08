@@ -117,6 +117,29 @@
     </a>
 </div>
 
+<!-- Sales Report Stats (matches Sales Report - Last 30 days) -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
+    <a href="{{ route('admin.reports.sales') }}" class="bg-white rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 border border-neutral-100 min-w-0 block hover:shadow-xl transition-shadow">
+        <p class="text-xs font-medium text-neutral-500">Items Sold</p>
+        <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 mt-1">{{ $stats['total_items_sold'] }}</p>
+        <p class="text-neutral-400 text-[9px] sm:text-xs mt-1">Last 30 days</p>
+    </a>
+    <a href="{{ route('admin.reports.sales') }}" class="bg-white rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 border border-neutral-100 min-w-0 block hover:shadow-xl transition-shadow">
+        <p class="text-xs font-medium text-neutral-500">Expenses</p>
+        <p class="text-xl sm:text-2xl lg:text-3xl font-bold text-red-600 mt-1">৳{{ number_format($stats['total_expenses'], 2) }}</p>
+        <p class="text-neutral-400 text-[9px] sm:text-xs mt-1">Last 30 days</p>
+    </a>
+    <a href="{{ route('admin.reports.sales') }}" class="bg-white rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 border-l-4 {{ $stats['profit'] >= 0 ? 'border-green-500' : 'border-red-500' }} min-w-0 block hover:shadow-xl transition-shadow">
+        <p class="text-xs font-medium text-neutral-500">Profit</p>
+        <p class="text-xl sm:text-2xl lg:text-3xl font-bold mt-1 {{ $stats['profit'] >= 0 ? 'text-green-600' : 'text-red-600' }}">৳{{ number_format($stats['profit'], 2) }}</p>
+        <p class="text-neutral-400 text-[9px] sm:text-xs mt-1">Revenue − Expenses</p>
+    </a>
+    <a href="{{ route('admin.reports.sales') }}" class="bg-primary/10 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 border border-primary/20 min-w-0 block hover:bg-primary/20 transition-colors flex flex-col justify-center items-center">
+        <span class="text-primary font-semibold text-sm">View Full Sales Report</span>
+        <span class="text-primary/70 text-xs mt-1">Filters, export, by product</span>
+    </a>
+</div>
+
 <!-- Additional Stats Row -->
 <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
     <a href="{{ route('admin.sponsors.index') }}" class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0 block">
