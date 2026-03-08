@@ -25,24 +25,45 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Use same logic as sales report: last 30 days, exclude cancelled
+        $dateFrom = now()->subDays(30)->format('Y-m-d');
+        $dateTo = now()->format('Y-m-d');
+
+        $ordersQuery = Order::with('product')
+            ->whereBetween('created_at', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
+            ->where('status', '!=', 'cancelled');
+        $orders = $ordersQuery->get();
+
+        $deliveredOrders = $orders->where('status', 'delivered');
+        $revenue = $deliveredOrders->sum('total_price');
+        $pendingRevenue = $orders->whereIn('status', ['pending', 'processing', 'shipped'])->sum('total_price');
+        $totalExpenses = Expense::whereBetween('expense_date', [$dateFrom, $dateTo])->sum('amount');
+        $profit = $revenue - $totalExpenses;
+
         $stats = [
-            'total_orders' => Order::count(),
+            'total_orders' => $orders->count(),
             'pending_orders' => Order::where('status', 'pending')->count(),
             'total_products' => Product::count(),
             'digital_products' => Product::where('is_digital', true)->count(),
             'physical_products' => Product::where('is_digital', false)->count(),
             'job_applications' => JobApplication::count(),
             'workshop_enrollments' => WorkshopEnrollment::count(),
-            'total_revenue' => Order::where('status', '!=', 'cancelled')->sum('total_price'),
+            'revenue' => $revenue,
+            'pending_revenue' => $pendingRevenue,
+            'total_expenses' => $totalExpenses,
+            'profit' => $profit,
+            'average_order_value' => $deliveredOrders->count() > 0 ? $revenue / $deliveredOrders->count() : 0,
+            'total_items_sold' => $orders->sum('quantity'),
             'total_sponsors' => User::where('role', 'sponsor')->count(),
         ];
-        
+
         $recentOrders = Order::with('product', 'sponsor')
+            ->where('status', '!=', 'cancelled')
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
-            
-        return view('admin.dashboard', compact('stats', 'recentOrders'));
+
+        return view('admin.dashboard', compact('stats', 'recentOrders', 'dateFrom', 'dateTo'));
     }
     
     public function categories(Request $request)

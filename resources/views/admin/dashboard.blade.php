@@ -3,7 +3,7 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
-<!-- Stats Grid -->
+<!-- Stats Grid (Last 30 days, excl. cancelled - matches Sales Report) -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
     <a href="{{ route('admin.orders.index') }}" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
@@ -15,6 +15,7 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Total Orders</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['total_orders'] }}</p>
+        <p class="text-white/60 text-[9px] sm:text-xs mt-1">Last 30 days</p>
     </a>
     
     <a href="{{ route('admin.orders.index', ['status' => 'pending']) }}" class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0 block">
@@ -49,8 +50,9 @@
                 </svg>
             </div>
         </div>
-        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Total Revenue</h3>
-        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">৳{{ number_format($stats['total_revenue'], 2) }}</p>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Revenue (Delivered)</h3>
+        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">৳{{ number_format($stats['revenue'], 2) }}</p>
+        <p class="text-white/60 text-[9px] sm:text-xs mt-1">Last 30 days</p>
     </a>
 </div>
 
@@ -69,6 +71,7 @@
         <div class="flex gap-1 sm:gap-2 flex-wrap">
             <a href="{{ route('admin.products.index', ['is_digital' => 1]) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Products</a>
             <a href="{{ route('admin.orders.index', ['product_type' => 'digital']) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Orders</a>
+            <a href="{{ route('admin.reports.sales', ['product_type' => 'digital']) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Sales Report</a>
         </div>
     </div>
 
@@ -85,6 +88,7 @@
         <div class="flex gap-1 sm:gap-2 flex-wrap">
             <a href="{{ route('admin.products.index', ['is_digital' => 0]) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Products</a>
             <a href="{{ route('admin.orders.index', ['product_type' => 'physical']) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Orders</a>
+            <a href="{{ route('admin.reports.sales', ['product_type' => 'physical']) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Sales Report</a>
         </div>
     </div>
 
@@ -131,12 +135,13 @@
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
         </div>
-        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Growth Rate</h3>
-        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">+12%</p>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Pending Revenue</h3>
+        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">৳{{ number_format($stats['pending_revenue'], 2) }}</p>
+        <p class="text-white/60 text-[9px] sm:text-xs mt-1">Last 30 days</p>
     </a>
     
     <a href="{{ route('admin.reports.sales') }}" class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white min-w-0 block">
@@ -147,8 +152,9 @@
                 </svg>
             </div>
         </div>
-        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Avg Order Value</h3>
-        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">৳{{ number_format($stats['total_revenue'] / max($stats['total_orders'], 1), 2) }}</p>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Avg Order (Delivered)</h3>
+        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">৳{{ number_format($stats['average_order_value'], 2) }}</p>
+        <p class="text-white/60 text-[9px] sm:text-xs mt-1">Last 30 days</p>
     </a>
 </div>
 
