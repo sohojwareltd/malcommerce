@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\User;
 use App\Models\WorkshopEnrollment;
 use App\Models\Setting;
+use App\Exports\SalesReportExport;
 use App\Services\EarningService;
 use App\Services\SmsService;
 use App\Services\SteadfastService;
@@ -1123,28 +1124,63 @@ class DashboardController extends Controller
         }
 
         $orders = $query->orderBy('created_at', 'desc')->get();
-        $filename = 'sales-report-' . now()->format('Y-m-d-His') . '.csv';
 
-        return response()->streamDownload(function () use ($orders) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Order #', 'Date', 'Product', 'Type', 'Customer', 'Quantity', 'Amount', 'Status']);
-            foreach ($orders as $o) {
-                fputcsv($handle, [
-                    $o->order_number,
-                    $o->created_at->format('Y-m-d'),
-                    $o->product?->name ?? '',
-                    ($o->product && $o->product->is_digital) ? 'Digital' : 'Physical',
-                    $o->customer_name,
-                    $o->quantity,
-                    $o->total_price,
-                    $o->status,
-                ]);
-            }
-            fclose($handle);
-        }, $filename, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
+        $deliveredOrders = $orders->where('status', 'delivered');
+        $pendingOrders = $orders->whereIn('status', ['pending', 'processing', 'shipped']);
+        $revenue = $deliveredOrders->sum('total_price');
+        $pendingRevenue = $pendingOrders->sum('total_price');
+        $totalExpenses = Expense::whereBetween('expense_date', [$dateFrom, $dateTo])->sum('amount');
+        $profit = $revenue - $totalExpenses;
+
+        $stats = [
+            'total_orders' => $orders->count(),
+            'revenue' => $revenue,
+            'pending_revenue' => $pendingRevenue,
+            'total_expenses' => $totalExpenses,
+            'profit' => $profit,
+            'average_order_value' => $deliveredOrders->count() > 0 ? $revenue / $deliveredOrders->count() : 0,
+            'total_items_sold' => $orders->sum('quantity'),
+            'by_status' => $orders->groupBy('status')->map(function ($group) {
+                $isDelivered = $group->first()->status === 'delivered';
+                return [
+                    'count' => $group->count(),
+                    'revenue' => $isDelivered ? $group->sum('total_price') : 0,
+                    'pending_revenue' => !$isDelivered && $group->first()->status !== 'cancelled' ? $group->sum('total_price') : 0,
+                ];
+            })->toArray(),
+            'by_product' => $orders->groupBy('product_id')->map(function ($group) {
+                $product = $group->first()->product;
+                $delivered = $group->where('status', 'delivered');
+                $pending = $group->whereIn('status', ['pending', 'processing', 'shipped']);
+                return [
+                    'name' => $product?->name ?? 'Unknown',
+                    'count' => $group->count(),
+                    'quantity' => $group->sum('quantity'),
+                    'revenue' => $delivered->sum('total_price'),
+                    'pending_revenue' => $pending->sum('total_price'),
+                ];
+            })->sortByDesc(fn ($r) => $r['revenue'] + $r['pending_revenue'])->values(),
+            'by_product_type' => collect([
+                'physical' => [
+                    'name' => 'Physical',
+                    'orders' => $orders->filter(fn ($o) => $o->product && !$o->product->is_digital),
+                ],
+                'digital' => [
+                    'name' => 'Digital',
+                    'orders' => $orders->filter(fn ($o) => $o->product && $o->product->is_digital),
+                ],
+            ])->map(fn ($data) => [
+                'name' => $data['name'],
+                'count' => $data['orders']->count(),
+                'quantity' => $data['orders']->sum('quantity'),
+                'revenue' => $data['orders']->where('status', 'delivered')->sum('total_price'),
+                'pending_revenue' => $data['orders']->whereIn('status', ['pending', 'processing', 'shipped'])->sum('total_price'),
+            ])->toArray(),
+        ];
+
+        $filename = 'sales-report-' . now()->format('Y-m-d-His') . '.xlsx';
+
+        return (new SalesReportExport($stats, $orders, $dateFrom, $dateTo))->download($filename);
     }
 
     /**

@@ -8,10 +8,18 @@
         <h1 class="text-3xl font-bold">Sales Report</h1>
         <p class="text-neutral-600 mt-2">View detailed sales statistics and analytics</p>
     </div>
-    <a href="{{ route('admin.reports.sales.export', request()->query()) }}" class="bg-neutral-200 text-neutral-700 px-4 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm flex items-center gap-2 self-start">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-        Export CSV
-    </a>
+    <div class="flex flex-wrap gap-2 self-start">
+        @can('create', App\Models\Expense::class)
+        <a href="{{ route('admin.expenses.create', ['return_to' => urlencode(route('admin.reports.sales') . '?' . http_build_query(request()->query())), 'expense_date' => $dateTo]) }}" class="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition font-semibold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+            Record Expense
+        </a>
+        @endcan
+        <a href="{{ route('admin.reports.sales.export', request()->query()) }}" class="bg-neutral-200 text-neutral-700 px-4 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            Export Excel
+        </a>
+    </div>
 </div>
 
 <!-- Filters -->

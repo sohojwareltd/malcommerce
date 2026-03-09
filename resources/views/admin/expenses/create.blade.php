@@ -18,6 +18,9 @@
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 max-w-xl">
     <form method="POST" action="{{ route('admin.expenses.store') }}" class="space-y-6">
         @csrf
+        @if(!empty($returnTo))
+            <input type="hidden" name="return_to" value="{{ $returnTo }}">
+        @endif
 
         <div>
             <label for="expense_category_id" class="block text-sm font-medium text-neutral-700 mb-2">Category <span class="text-red-500">*</span></label>
@@ -29,6 +32,20 @@
                 @endforeach
             </select>
             @error('expense_category_id')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="product_id" class="block text-sm font-medium text-neutral-700 mb-2">Product</label>
+            <select name="product_id" id="product_id"
+                class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary @error('product_id') border-red-500 @enderror">
+                <option value="">— None —</option>
+                @foreach($products as $p)
+                    <option value="{{ $p->id }}" {{ old('product_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                @endforeach
+            </select>
+            @error('product_id')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
@@ -55,7 +72,7 @@
 
         <div>
             <label for="expense_date" class="block text-sm font-medium text-neutral-700 mb-2">Date <span class="text-red-500">*</span></label>
-            <input type="date" name="expense_date" id="expense_date" value="{{ old('expense_date', date('Y-m-d')) }}" required
+            <input type="date" name="expense_date" id="expense_date" value="{{ old('expense_date', $defaultDate ?? date('Y-m-d')) }}" required
                 class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary @error('expense_date') border-red-500 @enderror">
             @error('expense_date')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

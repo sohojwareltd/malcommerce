@@ -15,6 +15,9 @@ use App\Http\Middleware\TrackReferral;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
+// Webhooks (no auth, no CSRF - external POST)
+Route::post('/webhooks/steadfast', \App\Http\Controllers\SteadfastWebhookController::class)->name('webhooks.steadfast');
+
 // SEO / Feed routes (no auth, no referral - for crawlers and feeds)
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
@@ -161,6 +164,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sales/export', [AdminDashboardController::class, 'exportSalesReport'])->name('reports.sales.export')->middleware('can:reports.sales');
         Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings')->middleware('can:settings.view');
         Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update')->middleware('can:settings.update');
+        Route::get('/steadfast-attempts', [\App\Http\Controllers\Admin\SteadfastAttemptController::class, 'index'])->name('steadfast-attempts.index')->middleware('can:settings.view');
+        Route::get('/steadfast-attempts/{steadfastAttempt}', [\App\Http\Controllers\Admin\SteadfastAttemptController::class, 'show'])->name('steadfast-attempts.show')->middleware('can:settings.view');
         Route::get('/withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index')->middleware('can:withdrawals.viewAny');
         Route::get('/withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\WithdrawalController::class, 'show'])->name('withdrawals.show')->middleware('can:withdrawals.view');
         Route::put('/withdrawals/{withdrawal}', [\App\Http\Controllers\Admin\WithdrawalController::class, 'update'])->name('withdrawals.update')->middleware('can:withdrawals.update');

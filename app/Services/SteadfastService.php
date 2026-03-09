@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Setting;
+use App\Models\SteadfastAttempt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -102,6 +103,8 @@ class SteadfastService
                     'steadfast_delivery_status' => $consignment['status'] ?? null,
                 ]);
 
+                SteadfastAttempt::logApi('create_order', true, $order->id, null, $payload, $body);
+
                 return [
                     'success' => true,
                     'consignment_id' => $consignment['consignment_id'] ?? null,
@@ -111,6 +114,7 @@ class SteadfastService
             }
 
             $errorMsg = $body['message'] ?? $body['error'] ?? 'Unknown API error';
+            SteadfastAttempt::logApi('create_order', false, $order->id, $errorMsg, $payload, $body);
             Log::warning('Steadfast create order failed', [
                 'order_id' => $order->id,
                 'response' => $body,
@@ -122,6 +126,7 @@ class SteadfastService
                 'error' => $errorMsg,
             ];
         } catch (\Throwable $e) {
+            SteadfastAttempt::logApi('create_order', false, $order->id, $e->getMessage(), $payload);
             Log::error('Steadfast create order exception', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
@@ -153,17 +158,21 @@ class SteadfastService
             $body = $response->json();
 
             if ($response->successful() && isset($body['delivery_status'])) {
+                SteadfastAttempt::logApi('get_status', true, null, null, ['invoice' => $invoice], $body);
                 return [
                     'success' => true,
                     'delivery_status' => $body['delivery_status'],
                 ];
             }
 
+            $errorMsg = $body['message'] ?? 'Failed to get status';
+            SteadfastAttempt::logApi('get_status', false, null, $errorMsg, ['invoice' => $invoice], $body);
             return [
                 'success' => false,
-                'error' => $body['message'] ?? 'Failed to get status',
+                'error' => $errorMsg,
             ];
         } catch (\Throwable $e) {
+            SteadfastAttempt::logApi('get_status', false, null, $e->getMessage(), ['invoice' => $invoice]);
             Log::error('Steadfast get status exception', ['invoice' => $invoice, 'error' => $e->getMessage()]);
 
             return [
@@ -192,17 +201,21 @@ class SteadfastService
             $body = $response->json();
 
             if ($response->successful() && isset($body['current_balance'])) {
+                SteadfastAttempt::logApi('get_balance', true, null, null, [], $body);
                 return [
                     'success' => true,
                     'current_balance' => (float) $body['current_balance'],
                 ];
             }
 
+            $errorMsg = $body['message'] ?? 'Failed to get balance';
+            SteadfastAttempt::logApi('get_balance', false, null, $errorMsg, [], $body);
             return [
                 'success' => false,
-                'error' => $body['message'] ?? 'Failed to get balance',
+                'error' => $errorMsg,
             ];
         } catch (\Throwable $e) {
+            SteadfastAttempt::logApi('get_balance', false, null, $e->getMessage());
             Log::error('Steadfast get balance exception', ['error' => $e->getMessage()]);
 
             return [

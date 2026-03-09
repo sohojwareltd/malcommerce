@@ -34,6 +34,20 @@
         </div>
 
         <div>
+            <label for="product_id" class="block text-sm font-medium text-neutral-700 mb-2">Product</label>
+            <select name="product_id" id="product_id"
+                class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary @error('product_id') border-red-500 @enderror">
+                <option value="">— None —</option>
+                @foreach($products as $p)
+                    <option value="{{ $p->id }}" {{ old('product_id', $expense->product_id) == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                @endforeach
+            </select>
+            @error('product_id')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
             <label for="amount" class="block text-sm font-medium text-neutral-700 mb-2">Amount <span class="text-red-500">*</span></label>
             <input type="number" name="amount" id="amount" value="{{ old('amount', $expense->amount) }}" step="0.01" min="0" required
                 class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary @error('amount') border-red-500 @enderror">

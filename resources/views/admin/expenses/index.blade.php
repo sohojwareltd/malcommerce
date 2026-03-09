@@ -33,6 +33,15 @@
                 @endforeach
             </select>
         </div>
+        <div class="sm:w-48">
+            <label for="product_id" class="block text-sm font-medium text-neutral-700 mb-1">Product</label>
+            <select name="product_id" id="product_id" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                <option value="">All</option>
+                @foreach($products as $p)
+                    <option value="{{ $p->id }}" {{ request('product_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="sm:w-40">
             <label for="from" class="block text-sm font-medium text-neutral-700 mb-1">From</label>
             <input type="date" name="from" id="from" value="{{ request('from') }}" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">
@@ -61,6 +70,7 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Category</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Product</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Description</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase">Amount</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase">Actions</th>
@@ -70,7 +80,8 @@
                 @forelse($expenses as $expense)
                 <tr class="hover:bg-neutral-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-900">{{ $expense->expense_date->format('Y-m-d') }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-700">{{ $expense->category->name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-700">{{ $expense->category?->name ?? '—' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-700">{{ $expense->product?->name ?? '—' }}</td>
                     <td class="px-6 py-4 text-sm text-neutral-600 max-w-xs truncate">{{ $expense->description ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-neutral-900 text-right">৳{{ number_format($expense->amount, 2) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
@@ -90,7 +101,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-neutral-500">No expenses recorded yet. @can('expenses.create')<a href="{{ route('admin.expenses.create') }}" class="text-primary hover:underline">Add your first expense</a>@endcan</td>
+                    <td colspan="6" class="px-6 py-8 text-center text-neutral-500">No expenses recorded yet. @can('expenses.create')<a href="{{ route('admin.expenses.create') }}" class="text-primary hover:underline">Add your first expense</a>@endcan</td>
                 </tr>
                 @endforelse
             </tbody>

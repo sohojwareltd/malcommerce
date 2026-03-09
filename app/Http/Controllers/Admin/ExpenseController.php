@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -13,10 +14,14 @@ class ExpenseController extends Controller
     public function index(Request $request)
     {
         $this->authorize('viewAny', Expense::class);
-        $query = Expense::with('category')->latest('expense_date');
+        $query = Expense::with('category', 'product')->latest('expense_date');
 
         if ($request->filled('category')) {
             $query->where('expense_category_id', $request->category);
+        }
+
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
         }
 
         if ($request->filled('from')) {
@@ -30,16 +35,20 @@ class ExpenseController extends Controller
         $total = (clone $query)->sum('amount');
         $expenses = $query->paginate(20)->withQueryString();
         $categories = ExpenseCategory::orderBy('sort_order')->get();
+        $products = Product::orderBy('name')->get(['id', 'name']);
 
-        return view('admin.expenses.index', compact('expenses', 'categories', 'total'));
+        return view('admin.expenses.index', compact('expenses', 'categories', 'products', 'total'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $this->authorize('create', Expense::class);
         $categories = ExpenseCategory::orderBy('sort_order')->get();
+        $products = Product::orderBy('name')->get(['id', 'name']);
+        $returnTo = $request->get('return_to');
+        $defaultDate = $request->get('expense_date', now()->format('Y-m-d'));
 
-        return view('admin.expenses.create', compact('categories'));
+        return view('admin.expenses.create', compact('categories', 'products', 'returnTo', 'defaultDate'));
     }
 
     public function store(Request $request)
@@ -47,6 +56,7 @@ class ExpenseController extends Controller
         $this->authorize('create', Expense::class);
         $request->validate([
             'expense_category_id' => 'required|exists:expense_categories,id',
+            'product_id' => 'nullable|exists:products,id',
             'amount' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:255',
             'expense_date' => 'required|date',
@@ -54,10 +64,17 @@ class ExpenseController extends Controller
 
         Expense::create($request->only([
             'expense_category_id',
+            'product_id',
             'amount',
             'description',
             'expense_date',
         ]));
+
+        $returnTo = $request->get('return_to');
+        if ($returnTo && \Illuminate\Support\Str::startsWith(urldecode($returnTo), url('/'))) {
+            return redirect(urldecode($returnTo))
+                ->with('success', 'Expense recorded successfully.');
+        }
 
         return redirect()
             ->route('admin.expenses.index')
@@ -68,8 +85,9 @@ class ExpenseController extends Controller
     {
         $this->authorize('update', $expense);
         $categories = ExpenseCategory::orderBy('sort_order')->get();
+        $products = Product::orderBy('name')->get(['id', 'name']);
 
-        return view('admin.expenses.edit', compact('expense', 'categories'));
+        return view('admin.expenses.edit', compact('expense', 'categories', 'products'));
     }
 
     public function update(Request $request, Expense $expense)
@@ -77,6 +95,7 @@ class ExpenseController extends Controller
         $this->authorize('update', $expense);
         $request->validate([
             'expense_category_id' => 'required|exists:expense_categories,id',
+            'product_id' => 'nullable|exists:products,id',
             'amount' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:255',
             'expense_date' => 'required|date',
@@ -84,6 +103,7 @@ class ExpenseController extends Controller
 
         $expense->update($request->only([
             'expense_category_id',
+            'product_id',
             'amount',
             'description',
             'expense_date',
@@ -107,10 +127,13 @@ class ExpenseController extends Controller
     public function export(Request $request): StreamedResponse
     {
         $this->authorize('viewAny', Expense::class);
-        $query = Expense::with('category')->latest('expense_date');
+        $query = Expense::with('category', 'product')->latest('expense_date');
 
         if ($request->filled('category')) {
             $query->where('expense_category_id', $request->category);
+        }
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
         }
         if ($request->filled('from')) {
             $query->whereDate('expense_date', '>=', $request->from);
@@ -124,11 +147,12 @@ class ExpenseController extends Controller
 
         return response()->streamDownload(function () use ($expenses) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Date', 'Category', 'Description', 'Amount']);
+            fputcsv($handle, ['Date', 'Category', 'Product', 'Description', 'Amount']);
             foreach ($expenses as $e) {
                 fputcsv($handle, [
                     $e->expense_date->format('Y-m-d'),
                     $e->category?->name ?? '',
+                    $e->product?->name ?? '',
                     $e->description ?? '',
                     $e->amount,
                 ]);
