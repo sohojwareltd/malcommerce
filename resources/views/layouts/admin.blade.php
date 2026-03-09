@@ -156,7 +156,12 @@
                 @endcan
 
                 <!-- Jobs & Workshops -->
-                @if(auth()->user()->can('jobCirculars.viewAny') || auth()->user()->can('workshopSeminars.viewAny'))
+                @if(
+                    auth()->user()->can('jobCirculars.viewAny') ||
+                    auth()->user()->can('jobApplications.viewAny') ||
+                    auth()->user()->can('workshopSeminars.viewAny') ||
+                    auth()->user()->can('workshopEnrollments.viewAny')
+                )
                 <div class="space-y-1">
                     <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Jobs & Workshops</p>
                     @can('jobCirculars.viewAny')
@@ -203,7 +208,7 @@
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth >= 1024" class="transition-opacity duration-300">Workshop Enrollments</span>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Workshop Enrollments</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Enrollments</span>
                     </a>
                     @endcan

@@ -52,11 +52,16 @@ class WorkshopSeminarController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
+            'sms_templates' => 'nullable|array',
+            'sms_templates.pending' => 'nullable|string|max:1000',
+            'sms_templates.confirmed' => 'nullable|string|max:1000',
+            'sms_templates.cancelled' => 'nullable|string|max:1000',
         ]);
         $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
         $data['is_active'] = $request->has('is_active');
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
+        $data['sms_templates'] = $request->input('sms_templates');
 
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');
@@ -99,11 +104,16 @@ class WorkshopSeminarController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'nullable|integer|min:0',
+            'sms_templates' => 'nullable|array',
+            'sms_templates.pending' => 'nullable|string|max:1000',
+            'sms_templates.confirmed' => 'nullable|string|max:1000',
+            'sms_templates.cancelled' => 'nullable|string|max:1000',
         ]);
         $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
         $data['is_active'] = $request->has('is_active');
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
+        $data['sms_templates'] = $request->input('sms_templates');
 
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');

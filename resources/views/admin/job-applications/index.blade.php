@@ -3,9 +3,29 @@
 @section('title', 'Job Applications')
 
 @section('content')
-<div class="mb-4 sm:mb-6">
-    <h1 class="text-2xl sm:text-3xl font-bold">Job Applications</h1>
-    <p class="text-neutral-600 mt-1 text-sm">View and manage job applications</p>
+<div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+        <h1 class="text-2xl sm:text-3xl font-bold">Job Applications</h1>
+        <p class="text-neutral-600 mt-1 text-sm">View and manage job applications</p>
+    </div>
+    <nav class="flex flex-wrap gap-2" aria-label="Status tabs">
+        @php
+            $statusTabs = [
+                '' => 'All',
+                'pending' => 'Pending',
+                'shortlisted' => 'Shortlisted',
+                'rejected' => 'Rejected',
+                'hired' => 'Hired',
+            ];
+            $currentStatus = request('status', '');
+        @endphp
+        @foreach($statusTabs as $value => $label)
+            <a href="{{ route('admin.job-applications.index', array_merge(request()->query(), ['status' => $value, 'page' => null])) }}"
+               class="px-3 py-1.5 rounded-lg text-sm font-medium {{ ($currentStatus === (string)$value) ? 'bg-primary text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </nav>
 </div>
 
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4">

@@ -18,7 +18,15 @@
         @csrf
         @method('PUT')
 
-        <div>
+        <div class="border-b border-neutral-200 mb-6">
+            <div class="inline-flex rounded-lg border border-neutral-200 overflow-hidden">
+                <button type="button" data-tab-target="details" class="tab-button px-4 py-2 text-sm font-semibold text-primary bg-primary/10">Details</button>
+                <button type="button" data-tab-target="sms" class="tab-button px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100">SMS Settings</button>
+            </div>
+        </div>
+
+        <div id="tab-details" class="tab-panel space-y-6">
+            <div>
             <label for="title" class="block text-sm font-medium text-neutral-700 mb-2">Title <span class="text-red-500">*</span></label>
             <input type="text" name="title" id="title" value="{{ old('title', $jobCircular->title) }}" required
                 class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary @error('title') border-red-500 @enderror">
@@ -89,6 +97,25 @@
             <p class="mt-1 text-xs text-neutral-500">Lower numbers appear first</p>
             @error('sort_order')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
+        </div><!-- End tab-details -->
+
+        @php
+            $jobApplicationStatuses = ['pending' => 'Pending', 'shortlisted' => 'Shortlisted', 'rejected' => 'Rejected', 'hired' => 'Hired'];
+            $jobSmsTemplates = old('sms_templates', $jobCircular->sms_templates ?? []);
+        @endphp
+        <div id="tab-sms" class="tab-panel hidden">
+            <h2 class="text-lg font-semibold mb-2">Status Messages (SMS)</h2>
+            <p class="text-sm text-neutral-600 mb-4">Set custom SMS messages for each application status. Sent when you change an application's status. Leave blank to use default.</p>
+            <div class="grid grid-cols-1 gap-4">
+                @foreach($jobApplicationStatuses as $statusKey => $statusLabel)
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-neutral-800">{{ $statusLabel }} Message <span class="text-neutral-400 font-normal text-xs uppercase">{{ $statusKey }}</span></label>
+                    <textarea name="sms_templates[{{ $statusKey }}]" rows="3" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary" placeholder="e.g., Dear {name}, your application for {job_title} is now {{ strtolower($statusLabel) }}.">{{ $jobSmsTemplates[$statusKey] ?? '' }}</textarea>
+                    <p class="text-xs text-neutral-500">Placeholders: {name}, {job_title}, {status}, {phone}, {email}</p>
+                </div>
+                @endforeach
+            </div>
+        </div><!-- End tab-sms -->
 
         <div class="flex gap-3 pt-4 border-t border-neutral-200">
             <button type="submit" class="bg-primary text-white px-6 py-2.5 rounded-lg hover:bg-primary-light transition font-semibold">Update</button>
@@ -147,6 +174,24 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    var tabButtons = document.querySelectorAll('.tab-button');
+    var tabPanels = document.querySelectorAll('.tab-panel');
+    function activateTab(target) {
+        tabPanels.forEach(function(panel) {
+            panel.classList.toggle('hidden', panel.id !== 'tab-' + target);
+        });
+        tabButtons.forEach(function(button) {
+            var isActive = button.dataset.tabTarget === target;
+            button.classList.toggle('bg-primary/10', isActive);
+            button.classList.toggle('text-primary', isActive);
+            button.classList.toggle('text-neutral-700', !isActive);
+        });
+    }
+    tabButtons.forEach(function(button) {
+        button.addEventListener('click', function() { activateTab(button.dataset.tabTarget); });
+    });
+    activateTab('details');
 });
 </script>
 @endpush

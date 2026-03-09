@@ -152,6 +152,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('workshop-seminars', \App\Http\Controllers\Admin\WorkshopSeminarController::class)->names('workshop-seminars');
         Route::get('/workshop-enrollments', [\App\Http\Controllers\Admin\WorkshopEnrollmentController::class, 'index'])->name('workshop-enrollments.index')->middleware('can:workshopEnrollments.viewAny');
         Route::get('/workshop-enrollments/{workshopEnrollment}', [\App\Http\Controllers\Admin\WorkshopEnrollmentController::class, 'show'])->name('workshop-enrollments.show')->middleware('can:workshopEnrollments.view');
+        Route::patch('/workshop-enrollments/{workshopEnrollment}/status', [\App\Http\Controllers\Admin\WorkshopEnrollmentController::class, 'updateStatus'])->name('workshop-enrollments.update-status')->middleware('can:workshopEnrollments.update');
         Route::get('/expenses', [\App\Http\Controllers\Admin\ExpenseController::class, 'index'])->name('expenses.index')->middleware('can:expenses.viewAny');
         Route::get('/expenses/export', [\App\Http\Controllers\Admin\ExpenseController::class, 'export'])->name('expenses.export')->middleware('can:expenses.viewAny');
         Route::get('/expenses/create', [\App\Http\Controllers\Admin\ExpenseController::class, 'create'])->name('expenses.create')->middleware('can:expenses.create');

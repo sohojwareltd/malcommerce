@@ -13,6 +13,7 @@ class WorkshopEnrollment extends Model
         'phone',
         'address',
         'notes',
+        'status',
     ];
 
     public function workshopSeminar(): BelongsTo

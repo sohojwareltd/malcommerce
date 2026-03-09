@@ -19,12 +19,14 @@ class WorkshopSeminar extends Model
         'is_active',
         'is_featured',
         'sort_order',
+        'sms_templates',
     ];
 
     protected function casts(): array
     {
         return [
             'event_date' => 'date',
+            'sms_templates' => 'array',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
         ];

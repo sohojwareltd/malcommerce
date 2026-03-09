@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\JobApplication;
 use App\Models\JobCircular;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 
 class JobApplicationController extends Controller
@@ -44,13 +45,50 @@ class JobApplicationController extends Controller
         return view('admin.job-applications.show', compact('jobApplication'));
     }
 
-    public function updateStatus(Request $request, JobApplication $jobApplication)
+    public function updateStatus(Request $request, JobApplication $jobApplication, SmsService $smsService)
     {
         $this->authorize('update', $jobApplication);
         $request->validate(['status' => 'required|in:pending,shortlisted,rejected,hired']);
 
-        $jobApplication->update(['status' => $request->status]);
+        $oldStatus = $jobApplication->status;
+        $newStatus = $request->status;
+        $jobApplication->update(['status' => $newStatus]);
+
+        if ($oldStatus !== $newStatus && $jobApplication->phone) {
+            $message = $this->buildJobApplicationStatusMessage($jobApplication, $newStatus);
+            if ($message) {
+                try {
+                    $smsService->send($jobApplication->phone, $message);
+                } catch (\Throwable $e) {
+                    \Log::warning('Failed to send job application status SMS', [
+                        'job_application_id' => $jobApplication->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
 
         return redirect()->back()->with('success', 'Application status updated.');
+    }
+
+    protected function buildJobApplicationStatusMessage(JobApplication $jobApplication, string $status): ?string
+    {
+        $jobApplication->loadMissing('jobCircular');
+        $circular = $jobApplication->jobCircular;
+        $templates = $circular->sms_templates ?? [];
+        $template = $templates[$status] ?? null;
+
+        $defaultMessage = "Dear {$jobApplication->name}, your application for {$circular->title} is now " . ucfirst($status) . ".";
+        $message = $template ?: $defaultMessage;
+
+        $replacements = [
+            '{name}' => $jobApplication->name,
+            '{job_title}' => $circular->title,
+            '{status}' => ucfirst($status),
+            '{phone}' => $jobApplication->phone ?? '',
+            '{email}' => $jobApplication->email ?? '',
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $message);
     }
 }
