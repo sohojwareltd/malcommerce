@@ -12,7 +12,6 @@ use App\Models\Category;
 use App\Models\User;
 use App\Models\WorkshopEnrollment;
 use App\Models\Setting;
-use App\Exports\SalesReportExport;
 use App\Services\EarningService;
 use App\Services\SmsService;
 use App\Services\SteadfastService;
@@ -1178,9 +1177,17 @@ class DashboardController extends Controller
             ])->toArray(),
         ];
 
-        $filename = 'sales-report-' . now()->format('Y-m-d-His') . '.xlsx';
-
-        return (new SalesReportExport($stats, $orders, $dateFrom, $dateTo))->download($filename);
+        return view('admin.reports.sales-print', [
+            'orders' => $orders,
+            'stats' => $stats,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'filters' => [
+                'product_id' => $request->input('product_id'),
+                'product_type' => $request->input('product_type'),
+                'status' => $request->input('status'),
+            ],
+        ]);
     }
 
     /**
