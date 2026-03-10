@@ -25,7 +25,7 @@
 <!-- Search and Filter Form -->
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
     <form method="GET" action="{{ route('admin.products.index') }}" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
             <!-- Search Input -->
             <div class="md:col-span-2">
                 <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search</label>
@@ -64,6 +64,16 @@
                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                 </select>
             </div>
+
+            <!-- Product Type Filter -->
+            <div>
+                <label for="is_digital" class="block text-sm font-medium text-neutral-700 mb-2">Product Type</label>
+                <select name="is_digital" id="is_digital" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
+                    <option value="">All Types</option>
+                    <option value="physical" {{ request('is_digital') === 'physical' ? 'selected' : '' }}>Physical</option>
+                    <option value="digital" {{ request('is_digital') === 'digital' ? 'selected' : '' }}>Digital</option>
+                </select>
+            </div>
             
             <!-- Per Page -->
             <div>
@@ -81,7 +91,7 @@
             <button type="submit" class="bg-primary text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-primary-light transition font-semibold text-sm sm:text-base">
                 Search
             </button>
-            @if(request()->hasAny(['search', 'category', 'status']))
+            @if(request()->hasAny(['search', 'category', 'status', 'is_digital']))
                 <a href="{{ route('admin.products.index') }}{{ request('per_page') ? '?per_page=' . request('per_page') : '' }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base text-center">
                     Clear Filters
                 </a>
@@ -92,6 +102,9 @@
         @endif
         @if(request('per_page'))
         <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+        @endif
+        @if(request('is_digital'))
+        <input type="hidden" name="is_digital" value="{{ request('is_digital') }}">
         @endif
     </form>
 </div>

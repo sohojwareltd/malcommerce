@@ -45,7 +45,12 @@ class ProductController extends Controller
 
         // Filter by product type (digital/physical)
         if ($request->filled('is_digital')) {
-            $query->where('is_digital', filter_var($request->is_digital, FILTER_VALIDATE_BOOLEAN));
+            $value = $request->is_digital;
+            if (in_array($value, ['1', 'true', 'digital'], true)) {
+                $query->where('is_digital', true);
+            } elseif (in_array($value, ['0', 'false', 'physical'], true)) {
+                $query->where('is_digital', false);
+            }
         }
         
         // Get per page value from request, default to 20
