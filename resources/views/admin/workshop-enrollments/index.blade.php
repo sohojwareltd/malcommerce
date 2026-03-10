@@ -57,7 +57,34 @@
 </div>
 
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="overflow-x-auto">
+    {{-- Mobile: cards --}}
+    <div class="md:hidden divide-y divide-neutral-200">
+        @forelse($enrollments as $en)
+        <div class="p-4">
+            @php($st = $en->status ?? 'pending')
+            <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-neutral-900">{{ $en->name }}</p>
+                    <p class="text-sm text-neutral-600 mt-0.5">{{ $en->workshopSeminar->title }}</p>
+                    <p class="text-sm text-neutral-500 mt-1">{{ $en->phone }}</p>
+                    @if($en->address)
+                    <p class="text-sm text-neutral-500 mt-0.5 line-clamp-2">{{ $en->address }}</p>
+                    @endif
+                </div>
+                <span class="shrink-0 inline-flex px-2 py-0.5 text-xs font-semibold rounded-full {{ $st === 'confirmed' ? 'bg-green-100 text-green-800' : ($st === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800') }}">{{ ucfirst($st) }}</span>
+            </div>
+            <p class="text-xs text-neutral-400 mt-2">{{ $en->created_at->format('M d, Y') }}</p>
+            @can('workshopEnrollments.view')
+            <a href="{{ route('admin.workshop-enrollments.show', $en) }}" class="inline-block mt-3 text-primary font-medium text-sm">View →</a>
+            @endcan
+        </div>
+        @empty
+        <div class="px-4 py-8 text-center text-neutral-500">No enrollments found.</div>
+        @endforelse
+    </div>
+
+    {{-- Desktop: table --}}
+    <div class="hidden md:block overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
             <thead class="bg-neutral-50">
                 <tr>

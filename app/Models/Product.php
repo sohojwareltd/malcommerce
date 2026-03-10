@@ -28,6 +28,9 @@ class Product extends Model
         'page_layout',
         'is_active',
         'is_digital',
+        'digital_content_type',
+        'digital_file_path',
+        'digital_link_text',
         'only_on_categories',
         'is_featured',
         'sort_order',
@@ -108,5 +111,21 @@ class Product extends Model
     {
         $images = $this->images ?? [];
         return !empty($images) ? $images[0] : null;
+    }
+
+    /**
+     * Whether this digital product has a downloadable file.
+     */
+    public function hasDigitalFile(): bool
+    {
+        return $this->is_digital && $this->digital_content_type === 'file' && !empty($this->digital_file_path);
+    }
+
+    /**
+     * Whether this digital product has link/text content.
+     */
+    public function hasDigitalLink(): bool
+    {
+        return $this->is_digital && $this->digital_content_type === 'link' && !empty(trim((string) $this->digital_link_text));
     }
 }

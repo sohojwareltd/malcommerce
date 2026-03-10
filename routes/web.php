@@ -74,9 +74,13 @@ Route::middleware(['guest', TrackReferral::class])->group(function () {
     Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
 });
 
-// Logout (requires auth)
+// Logout and digital product access (requires auth)
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+    // Digital product: download file or view link for own order
+    Route::get('/orders/{order}/digital-download', [\App\Http\Controllers\DigitalProductController::class, 'download'])->name('orders.digital.download');
+    Route::get('/orders/{order}/digital-link', [\App\Http\Controllers\DigitalProductController::class, 'showLink'])->name('orders.digital.link');
     
     // Admin routes
     Route::middleware(['admin', 'require.password.setup'])->prefix('admin')->name('admin.')->group(function () {
@@ -165,6 +169,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sales/export', [AdminDashboardController::class, 'exportSalesReport'])->name('reports.sales.export')->middleware('can:reports.sales');
         Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings')->middleware('can:settings.view');
         Route::post('/settings', [AdminDashboardController::class, 'updateSettings'])->name('settings.update')->middleware('can:settings.update');
+        Route::get('/settings/sms-send', [\App\Http\Controllers\Admin\SmsSendController::class, 'index'])->name('settings.sms-send')->middleware('can:settings.smsSend');
+        Route::post('/settings/sms-send/preview', [\App\Http\Controllers\Admin\SmsSendController::class, 'preview'])->name('settings.sms-send.preview')->middleware('can:settings.smsSend');
+        Route::post('/settings/sms-send/send', [\App\Http\Controllers\Admin\SmsSendController::class, 'send'])->name('settings.sms-send.send')->middleware('can:settings.smsSend');
         Route::get('/steadfast-attempts', [\App\Http\Controllers\Admin\SteadfastAttemptController::class, 'index'])->name('steadfast-attempts.index')->middleware('can:settings.view');
         Route::get('/steadfast-attempts/{steadfastAttempt}', [\App\Http\Controllers\Admin\SteadfastAttemptController::class, 'show'])->name('steadfast-attempts.show')->middleware('can:settings.view');
         Route::get('/withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index')->middleware('can:withdrawals.viewAny');

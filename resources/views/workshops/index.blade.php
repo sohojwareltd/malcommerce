@@ -11,7 +11,7 @@
             <p class="text-gray-600 font-bangla">আমাদের আয়োজিত ওয়ার্কশপ ও সেমিনারে নিবন্ধন করুন</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
             @forelse($workshops as $ws)
             <div class="card overflow-hidden hover:shadow-lg transition">
                 @if($ws->thumbnail)
@@ -19,7 +19,7 @@
                     <img src="{{ $ws->thumbnail }}" alt="{{ $ws->title }}" class="w-full h-full object-cover">
                 </div>
                 @endif
-                <div class="p-6">
+                <div class="p-4 sm:p-6">
                     <h2 class="text-xl font-bold text-gray-900 font-bangla mb-2">
                         <a href="{{ route('workshops.show', $ws) }}" class="hover:text-primary">{{ $ws->title }}</a>
                     </h2>

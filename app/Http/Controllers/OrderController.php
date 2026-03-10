@@ -23,9 +23,9 @@ class OrderController extends Controller
         ]);
         
         $product = Product::findOrFail($request->product_id);
-        
-        // Check stock
-        if ($product->stock_quantity < $request->quantity) {
+
+        // Check stock (digital products have unlimited quantity)
+        if (!$product->is_digital && $product->stock_quantity < $request->quantity) {
             return back()->withErrors(['quantity' => 'Insufficient stock available.'])->withInput();
         }
         
@@ -42,8 +42,8 @@ class OrderController extends Controller
         $minQuantity = (int) ($product->order_min_quantity ?: \App\Models\Setting::get('order_min_quantity', 0));
         $maxQuantity = (int) ($product->order_max_quantity ?: \App\Models\Setting::get('order_max_quantity', 0));
         
-        // Validate delivery option is required when delivery options exist
-        if (!empty($deliveryOptions)) {
+        // Validate delivery option when delivery options exist (digital products have no delivery charge)
+        if (!empty($deliveryOptions) && !$product->is_digital) {
             $request->validate([
                 'delivery_option' => 'required|integer',
             ], [
@@ -60,9 +60,10 @@ class OrderController extends Controller
             }
         }
         
-        // Calculate total price
+        // Calculate total price (delivery charge not applied for digital)
         $subtotal = $product->price * $request->quantity;
-        $totalPrice = $subtotal + $deliveryCharge;
+        $deliveryChargeForTotal = $product->is_digital ? 0 : $deliveryCharge;
+        $totalPrice = $subtotal + $deliveryChargeForTotal;
         
         // Validate min/max order quantity
         if ($minQuantity > 0 && $request->quantity < $minQuantity) {
@@ -105,11 +106,16 @@ class OrderController extends Controller
             }
         }
         
+        // Free digital: auto-complete so customer can access content immediately
+        $isFreeDigital = $product->is_digital && (float) $totalPrice === 0.0;
+        $orderStatus = $isFreeDigital ? 'delivered' : ($paymentMethod === 'bkash' ? 'pending' : 'pending');
+        $paymentStatus = $isFreeDigital ? 'completed' : ($paymentMethod === 'bkash' ? 'pending' : 'pending');
+
         $order = Order::create([
             'product_id' => $product->id,
             'quantity' => $request->quantity,
             'unit_price' => $product->price,
-            'delivery_charge' => $deliveryCharge,
+            'delivery_charge' => $deliveryChargeForTotal,
             'total_price' => $totalPrice,
             'customer_name' => $request->customer_name,
             'customer_phone' => $normalizedPhone,
@@ -117,15 +123,17 @@ class OrderController extends Controller
             'user_id' => $user->id,
             'sponsor_id' => $sponsorId,
             'referral_code' => $referralCode,
-            'status' => $paymentMethod === 'bkash' ? 'pending' : 'pending',
+            'status' => $orderStatus,
             'payment_method' => $paymentMethod,
-            'payment_status' => $paymentMethod === 'bkash' ? 'pending' : 'pending',
+            'payment_status' => $paymentStatus,
         ]);
 
-        // Update stock
-        $product->decrement('stock_quantity', $request->quantity);
-        if ($product->stock_quantity <= 0) {
-            $product->update(['in_stock' => false]);
+        // Update stock (digital products have unlimited quantity - do not decrement)
+        if (!$product->is_digital) {
+            $product->decrement('stock_quantity', $request->quantity);
+            if ($product->stock_quantity <= 0) {
+                $product->update(['in_stock' => false]);
+            }
         }
         
         // Send SMS confirmation only for COD orders (bKash orders will get SMS after payment)
@@ -151,18 +159,18 @@ class OrderController extends Controller
             }
         }
         
-        // If bKash payment, redirect to payment initiation
-        if ($paymentMethod === 'bkash') {
+        // If bKash payment (and not free digital), redirect to payment initiation
+        if ($paymentMethod === 'bkash' && !$isFreeDigital) {
             return redirect()->route('payment.bkash.initiate', ['order_id' => $order->id]);
         }
-        
+
         return redirect()->route('orders.success', $order->order_number)
             ->with('success', 'Order placed successfully!');
     }
     
     public function success($orderNumber)
     {
-        $order = Order::where('order_number', $orderNumber)->firstOrFail();
+        $order = Order::with('product')->where('order_number', $orderNumber)->firstOrFail();
         return view('orders.success', compact('order'));
     }
     

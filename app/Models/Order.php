@@ -75,6 +75,20 @@ class Order extends Model
         return $this->belongsTo(User::class, 'sponsor_id');
     }
 
+    /**
+     * Whether the customer can access digital content (paid or order processed).
+     */
+    public function canAccessDigitalContent(): bool
+    {
+        if (!$this->product || !$this->product->is_digital) {
+            return false;
+        }
+        if ($this->payment_method === 'bkash') {
+            return $this->payment_status === 'completed';
+        }
+        return in_array($this->status, ['processing', 'shipped', 'delivered'], true);
+    }
+
     public function earnings()
     {
         return $this->hasMany(Earning::class);

@@ -19,6 +19,9 @@
     }
     $defaultPaymentMethod = !empty($allowedPaymentMethods) ? $allowedPaymentMethods[0] : 'cod';
     $showPrice = (float) $product->price > 0;
+    $isDigital = $product->is_digital ?? false;
+    // Digital products: unlimited quantity (no stock limit)
+    $maxQuantityForForm = $isDigital ? 99999 : min($product->stock_quantity ?? 999, $maxQuantity > 0 ? $maxQuantity : 999);
 @endphp
 
 <div id="order" class="grid grid-cols-1  gap-6">
@@ -37,7 +40,7 @@
         paymentMethod: '{{ $defaultPaymentMethod }}',
         totalPrice: {{ ($product->price * max(1, $minQuantity)) + (!empty($deliveryOptions) && isset($deliveryOptions[0]['charge']) ? $deliveryOptions[0]['charge'] : 0) }},
         minQuantity: {{ max(1, $minQuantity) }},
-        maxQuantity: {{ min($product->stock_quantity ?? 999, $maxQuantity > 0 ? $maxQuantity : 999) }},
+        maxQuantity: {{ $maxQuantityForForm }},
         hasDeliveryOptions: {{ !empty($deliveryOptions) ? 'true' : 'false' }},
         updateTotal() {
             this.totalPrice = (this.quantity * this.price) + this.deliveryCharge;
@@ -113,10 +116,10 @@
                         +
                     </button>
                 </div>
-                <span class="text-gray-600 font-bangla text-xs md:text-sm hidden md:inline whitespace-nowrap">(স্টকে: {{ $product->stock_quantity ?? '∞' }} টি)</span>
+                <span class="text-gray-600 font-bangla text-xs md:text-sm hidden md:inline whitespace-nowrap">(স্টকে: {{ $isDigital ? '∞' : ($product->stock_quantity ?? '∞') }} টি)</span>
             </div>
             <div class="mt-2 md:hidden">
-                <span class="text-gray-600 font-bangla text-sm">স্টকে: {{ $product->stock_quantity ?? '∞' }} টি</span>
+                <span class="text-gray-600 font-bangla text-sm">স্টকে: {{ $isDigital ? '∞' : ($product->stock_quantity ?? '∞') }} টি</span>
             </div>
         </div>
         @else

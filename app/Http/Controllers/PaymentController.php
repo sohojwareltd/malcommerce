@@ -87,13 +87,13 @@ class PaymentController extends Controller
 
         // Payment initiation failed - delete order and restore stock
         $product = $order->product;
-        if ($product) {
+        if ($product && !$product->is_digital) {
             $product->increment('stock_quantity', $order->quantity);
             if ($product->stock_quantity > 0) {
                 $product->update(['in_stock' => true]);
             }
         }
-        
+
         $orderNumber = $order->order_number;
         $order->delete();
 
@@ -128,15 +128,15 @@ class PaymentController extends Controller
 
         // If status is not success, delete the order and restore stock
         if ($status !== 'success') {
-            // Restore stock before deleting order
+            // Restore stock before deleting order (digital products have no stock)
             $product = $order->product;
-            if ($product) {
+            if ($product && !$product->is_digital) {
                 $product->increment('stock_quantity', $order->quantity);
                 if ($product->stock_quantity > 0) {
                     $product->update(['in_stock' => true]);
                 }
             }
-            
+
             // Delete the order
             $orderNumber = $order->order_number;
             $order->delete();
@@ -179,13 +179,13 @@ class PaymentController extends Controller
             } else {
                 // Payment not completed - delete order and restore stock
                 $product = $order->product;
-                if ($product) {
+                if ($product && !$product->is_digital) {
                     $product->increment('stock_quantity', $order->quantity);
                     if ($product->stock_quantity > 0) {
                         $product->update(['in_stock' => true]);
                     }
                 }
-                
+
                 $orderNumber = $order->order_number;
                 $order->delete();
 
@@ -195,13 +195,13 @@ class PaymentController extends Controller
         } else {
             // Payment execution failed - delete order and restore stock
             $product = $order->product;
-            if ($product) {
+            if ($product && !$product->is_digital) {
                 $product->increment('stock_quantity', $order->quantity);
                 if ($product->stock_quantity > 0) {
                     $product->update(['in_stock' => true]);
                 }
             }
-            
+
             $orderNumber = $order->order_number;
             $order->delete();
 
@@ -276,15 +276,15 @@ class PaymentController extends Controller
                 ->with('error', 'Order not found or cannot be cancelled.');
         }
 
-        // Restore stock before deleting order
+        // Restore stock before deleting order (digital products have no stock)
         $product = $order->product;
-        if ($product) {
+        if ($product && !$product->is_digital) {
             $product->increment('stock_quantity', $order->quantity);
             if ($product->stock_quantity > 0) {
                 $product->update(['in_stock' => true]);
             }
         }
-        
+
         // Delete the order
         $order->delete();
 

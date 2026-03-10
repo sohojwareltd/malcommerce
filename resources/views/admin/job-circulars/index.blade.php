@@ -36,7 +36,44 @@
 </div>
 
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="overflow-x-auto">
+    {{-- Mobile: cards --}}
+    <div class="md:hidden divide-y divide-neutral-200">
+        @forelse($jobCirculars as $job)
+        <div class="p-4">
+            <div class="flex items-start justify-between gap-2">
+                <a href="{{ route('admin.job-circulars.show', $job) }}" class="font-semibold text-primary hover:underline min-w-0 flex-1">{{ $job->title }}</a>
+                <div class="shrink-0 flex flex-wrap gap-1 justify-end">
+                    <span class="px-2 py-0.5 text-xs rounded {{ $job->is_active ? 'bg-green-100 text-green-800' : 'bg-neutral-200 text-neutral-700' }}">{{ $job->is_active ? 'Active' : 'Inactive' }}</span>
+                    @if($job->is_featured)<span class="px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">★</span>@endif
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-x-3 gap-y-0 mt-2 text-sm text-neutral-600">
+                <span>Deadline: {{ $job->deadline?->format('M d, Y') ?? '—' }}</span>
+                <span>{{ $job->applications_count }} applications</span>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-3">
+                @can('jobCirculars.view')
+                <a href="{{ route('admin.job-circulars.show', $job) }}" class="text-primary font-medium text-sm">View</a>
+                @endcan
+                @can('jobCirculars.update')
+                <a href="{{ route('admin.job-circulars.edit', $job) }}" class="text-neutral-600 font-medium text-sm">Edit</a>
+                @endcan
+                @can('jobCirculars.delete')
+                <form action="{{ route('admin.job-circulars.destroy', $job) }}" method="POST" class="inline" onsubmit="return confirm('Delete this job circular?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="text-red-600 font-medium text-sm">Delete</button>
+                </form>
+                @endcan
+            </div>
+        </div>
+        @empty
+        <div class="px-4 py-8 text-center text-neutral-500">No job circulars found.</div>
+        @endforelse
+    </div>
+
+    {{-- Desktop: table --}}
+    <div class="hidden md:block overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
             <thead class="bg-neutral-50">
                 <tr>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -102,10 +103,34 @@ class ProductController extends Controller
             'sms_templates.*' => 'nullable|string|max:500',
             'payment_options' => 'required|array|min:1',
             'payment_options.*' => 'in:cod,bkash',
+            'digital_content_type' => 'nullable|string|in:file,link',
+            'digital_file' => 'nullable|file|max:51200', // 50MB
+            'digital_link_text' => 'nullable|string|max:10000',
         ], [
             'payment_options.required' => 'At least one payment method must be selected.',
             'payment_options.min' => 'At least one payment method must be selected.',
         ]);
+
+        $isDigital = filter_var($request->input('is_digital'), FILTER_VALIDATE_BOOLEAN);
+        if ($isDigital) {
+            $request->validate([
+                'digital_content_type' => 'required|in:file,link',
+            ], [], ['digital_content_type' => 'digital delivery type']);
+            $validated['digital_content_type'] = $request->input('digital_content_type');
+            if ($validated['digital_content_type'] === 'file') {
+                $request->validate(['digital_file' => 'required|file|max:51200'], [], ['digital_file' => 'digital file']);
+                $validated['digital_link_text'] = null;
+            }
+            if ($validated['digital_content_type'] === 'link') {
+                $request->validate(['digital_link_text' => 'required|string|max:10000'], [], ['digital_link_text' => 'link or text']);
+                $validated['digital_link_text'] = trim($request->input('digital_link_text'));
+                $validated['digital_file_path'] = null;
+            }
+        } else {
+            $validated['digital_content_type'] = null;
+            $validated['digital_file_path'] = null;
+            $validated['digital_link_text'] = null;
+        }
         
         // Sanitize payment_options (unique valid values only)
         $validated['payment_options'] = array_values(array_unique(array_filter($validated['payment_options'], fn($v) => in_array($v, ['cod', 'bkash']))));
@@ -114,7 +139,7 @@ class ProductController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
         
-        $validated['in_stock'] = $validated['stock_quantity'] > 0;
+        $validated['in_stock'] = $validated['is_digital'] ? true : ($validated['stock_quantity'] > 0);
 
         // Defaults for earnings settings
         $validated['cashback_amount'] = $validated['cashback_amount'] ?? 0;
@@ -161,8 +186,16 @@ class ProductController extends Controller
             $decoded = json_decode($validated['order_delivery_options'], true);
             $validated['order_delivery_options'] = $decoded ? json_encode($decoded) : null;
         }
+
+        // Remove file from validated (handled after create)
+        unset($validated['digital_file']);
         
-        Product::create($validated);
+        $product = Product::create($validated);
+
+        if ($isDigital && $validated['digital_content_type'] === 'file' && $request->hasFile('digital_file')) {
+            $path = $request->file('digital_file')->store('digital-products/' . $product->id, 'public');
+            $product->update(['digital_file_path' => $path]);
+        }
         
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully!');
     }
@@ -217,10 +250,39 @@ class ProductController extends Controller
             'sms_templates.*' => 'nullable|string|max:500',
             'payment_options' => 'required|array|min:1',
             'payment_options.*' => 'in:cod,bkash',
+            'digital_content_type' => 'nullable|string|in:file,link',
+            'digital_file' => 'nullable|file|max:51200',
+            'digital_link_text' => 'nullable|string|max:10000',
         ], [
             'payment_options.required' => 'At least one payment method must be selected.',
             'payment_options.min' => 'At least one payment method must be selected.',
         ]);
+
+        $isDigital = filter_var($request->input('is_digital'), FILTER_VALIDATE_BOOLEAN);
+        if ($isDigital) {
+            $request->validate([
+                'digital_content_type' => 'required|in:file,link',
+            ], [], ['digital_content_type' => 'digital delivery type']);
+            $validated['digital_content_type'] = $request->input('digital_content_type');
+            if ($validated['digital_content_type'] === 'file') {
+                $request->validate(['digital_file' => 'nullable|file|max:51200'], [], ['digital_file' => 'digital file']);
+                if (!$product->digital_file_path && !$request->hasFile('digital_file')) {
+                    $request->validate(['digital_file' => 'required'], ['digital_file.required' => 'Please upload a file or switch to link/text.']);
+                }
+            }
+            if ($validated['digital_content_type'] === 'file') {
+                $validated['digital_link_text'] = null;
+            }
+            if ($validated['digital_content_type'] === 'link') {
+                $request->validate(['digital_link_text' => 'required|string|max:10000'], [], ['digital_link_text' => 'link or text']);
+                $validated['digital_link_text'] = trim($request->input('digital_link_text'));
+                $validated['digital_file_path'] = null;
+            }
+        } else {
+            $validated['digital_content_type'] = null;
+            $validated['digital_file_path'] = null;
+            $validated['digital_link_text'] = null;
+        }
         
         // Sanitize payment_options (unique valid values only)
         $validated['payment_options'] = array_values(array_unique(array_filter($validated['payment_options'], fn($v) => in_array($v, ['cod', 'bkash']))));
@@ -248,8 +310,8 @@ class ProductController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
         
-        $validated['in_stock'] = $validated['stock_quantity'] > 0;
-        
+        $validated['in_stock'] = $validated['is_digital'] ? true : ($validated['stock_quantity'] > 0);
+
         // Defaults for earnings settings (if not provided, keep existing values)
         if (!isset($validated['cashback_amount'])) {
             $validated['cashback_amount'] = $product->cashback_amount ?? 0;
@@ -296,6 +358,7 @@ class ProductController extends Controller
                 'order_form_title', 'order_button_text', 'order_min_quantity', 'order_max_quantity',
                 'order_delivery_options', 'order_hide_summary', 'order_hide_quantity', 'is_free',
                 'payment_options', 'sms_templates', 'order_custom_charge', 'is_digital',
+                'digital_content_type', 'digital_file_path', 'digital_link_text',
             ];
             foreach ($preserveKeys as $key) {
                 unset($validated[$key]);
@@ -327,8 +390,17 @@ class ProductController extends Controller
             $decoded = json_decode($validated['order_delivery_options'], true);
             $validated['order_delivery_options'] = $decoded ? json_encode($decoded) : null;
         }
-        
+
+        unset($validated['digital_file']);
         $product->update($validated);
+
+        if ($isDigital && $validated['digital_content_type'] === 'file' && $request->hasFile('digital_file')) {
+            if ($product->digital_file_path && Storage::disk('public')->exists($product->digital_file_path)) {
+                Storage::disk('public')->delete($product->digital_file_path);
+            }
+            $path = $request->file('digital_file')->store('digital-products/' . $product->id, 'public');
+            $product->update(['digital_file_path' => $path]);
+        }
         
         // If coming from builder, redirect back to builder
         if ($request->has('page_layout')) {

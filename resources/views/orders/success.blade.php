@@ -117,8 +117,36 @@
                 @endif
             </div>
         </div>
+
+        @if($order->product && $order->product->is_digital)
+        <div class="border-t border-neutral-200 pt-6 mt-6">
+            <h2 class="font-semibold mb-3 font-bangla">ডিজিটাল কন্টেন্ট</h2>
+            @if($order->canAccessDigitalContent())
+                @if($order->product->hasDigitalFile())
+                <p class="text-sm text-neutral-600 mb-2 font-bangla">আপনার ফাইল ডাউনলোড করুন।</p>
+                <a href="{{ route('orders.digital.download', $order) }}" class="inline-block bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-light transition font-semibold font-bangla">
+                    ডাউনলোড করুন
+                </a>
+                @elseif($order->product->hasDigitalLink())
+                <p class="text-sm text-neutral-600 mb-2 font-bangla">লিংক বা টেক্সট দেখুন।</p>
+                <a href="{{ route('orders.digital.link', $order) }}" class="inline-block bg-primary text-white px-5 py-2 rounded-lg hover:bg-primary-light transition font-semibold font-bangla">
+                    লিংক দেখুন
+                </a>
+                @endif
+            @else
+                <p class="text-sm text-neutral-600 font-bangla">
+                    পেমেন্ট নিশ্চিত বা অর্ডার প্রসেস হওয়ার পর কন্টেন্ট পাবেন। লগইন করে "আমার অর্ডার" থেকে ডাউনলোড বা লিংক নিতে পারবেন।
+                </p>
+                @auth
+                <a href="{{ route('sponsor.orders.my-orders') }}" class="inline-block mt-2 text-primary font-medium hover:underline font-bangla">আমার অর্ডার →</a>
+                @else
+                <a href="{{ route('login') }}" class="inline-block mt-2 text-primary font-medium hover:underline font-bangla">লগইন করুন</a>
+                @endauth
+            @endif
+        </div>
+        @endif
         
-        <div class="space-y-4">
+        <div class="space-y-4 mt-6">
             <a href="{{ route('home') }}" class="inline-block bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-light transition font-bangla">
                 শপিং চালিয়ে যান
             </a>

@@ -59,7 +59,31 @@
 </div>
 
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
-    <div class="overflow-x-auto">
+    {{-- Mobile: cards --}}
+    <div class="md:hidden divide-y divide-neutral-200">
+        @forelse($applications as $app)
+        <div class="p-4">
+            <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-neutral-900 truncate">{{ $app->name }}</p>
+                    <p class="text-sm text-neutral-600 mt-0.5">{{ $app->jobCircular->title }}</p>
+                    <p class="text-sm text-neutral-500 mt-1 truncate">{{ $app->email }}</p>
+                    <p class="text-sm text-neutral-500">{{ $app->phone }}</p>
+                </div>
+                <span class="shrink-0 px-2 py-0.5 text-xs rounded {{ $app->status === 'pending' ? 'bg-amber-100' : ($app->status === 'shortlisted' ? 'bg-blue-100' : ($app->status === 'hired' ? 'bg-green-100' : 'bg-red-100')) }}">{{ ucfirst($app->status) }}</span>
+            </div>
+            <p class="text-xs text-neutral-400 mt-2">{{ $app->created_at->format('M d, Y') }}</p>
+            @can('jobApplications.view')
+            <a href="{{ route('admin.job-applications.show', $app) }}" class="inline-block mt-3 text-primary font-medium text-sm">View →</a>
+            @endcan
+        </div>
+        @empty
+        <div class="px-4 py-8 text-center text-neutral-500">No applications found.</div>
+        @endforelse
+    </div>
+
+    {{-- Desktop: table --}}
+    <div class="hidden md:block overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
             <thead class="bg-neutral-50">
                 <tr>

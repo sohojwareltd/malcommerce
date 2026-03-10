@@ -166,6 +166,7 @@
                     <th class="px-6 py-3 text-left text-xs font-semibold text-blue-900 uppercase">Amount</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-blue-900 uppercase">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-semibold text-blue-900 uppercase">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-blue-900 uppercase">Digital</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-neutral-200">
@@ -187,10 +188,27 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-600">{{ $order->created_at->format('M d, Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        @if($order->product && $order->product->is_digital)
+                            @if($order->canAccessDigitalContent())
+                                @if($order->product->hasDigitalFile())
+                                    <a href="{{ route('orders.digital.download', $order) }}" class="text-primary font-medium hover:underline">Download</a>
+                                @elseif($order->product->hasDigitalLink())
+                                    <a href="{{ route('orders.digital.link', $order) }}" class="text-primary font-medium hover:underline">View link</a>
+                                @else
+                                    <span class="text-neutral-400">—</span>
+                                @endif
+                            @else
+                                <span class="text-neutral-500 text-xs">After payment/process</span>
+                            @endif
+                        @else
+                            <span class="text-neutral-400">—</span>
+                        @endif
+                    </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-neutral-500">
+                    <td colspan="8" class="px-6 py-4 text-center text-neutral-500">
                         @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
                             No orders found matching your filters
                         @else
@@ -240,6 +258,15 @@
                     <span class="text-neutral-500 text-xs">Phone:</span>
                     <span class="text-neutral-900 font-medium ml-1">{{ $order->customer_phone }}</span>
                 </div>
+                @if($order->product && $order->product->is_digital && $order->canAccessDigitalContent())
+                <div class="mt-2 pt-2 border-t border-neutral-100">
+                    @if($order->product->hasDigitalFile())
+                        <a href="{{ route('orders.digital.download', $order) }}" class="text-sm text-primary font-medium">Download file</a>
+                    @elseif($order->product->hasDigitalLink())
+                        <a href="{{ route('orders.digital.link', $order) }}" class="text-sm text-primary font-medium">View link</a>
+                    @endif
+                </div>
+                @endif
             </div>
         </div>
         @empty

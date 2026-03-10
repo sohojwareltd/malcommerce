@@ -238,6 +238,7 @@
                         <!-- Right Menu -->
                         <div class="flex items-center gap-4">
                             <a href="{{ route('products.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
+                            <a href="{{ route('products.index', ['type' => 'digital']) }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ডিজিটাল পণ্য</a>
                             <a href="{{ route('videos.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ভিডিও</a>
                             <a href="{{ route('jobs.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">চাকরি</a>
                             <a href="{{ route('workshops.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ওয়ার্কশপ</a>
@@ -322,7 +323,7 @@
             <div x-show="mobileMenuOpen" @click.away="mobileMenuOpen = false" x-transition class="md:hidden bg-white border-t border-gray-200 shadow-lg">
                 <div class="px-4 py-4 space-y-3">
                     <!-- Mobile Search -->
-                    <form action="{p{ route('products.index') }}" method="GET" class="mb-4">
+                    <form action="{{ route('products.index') }}" method="GET" class="mb-4">
                         <div class="relative">
                             <input 
                                 type="text" 
@@ -339,6 +340,7 @@
                     
                         <a href="{{ route('home') }}" class="block text-gray-700 hover:text-primary font-bangla">হোম</a>
                         <a href="{{ route('products.index') }}" class="block text-gray-700 hover:text-primary font-bangla">পণ্য</a>
+                        <a href="{{ route('products.index', ['type' => 'digital']) }}" class="block text-gray-700 hover:text-primary font-bangla">ডিজিটাল পণ্য</a>
                         <a href="{{ route('videos.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ভিডিও</a>
                         <a href="{{ route('jobs.index') }}" class="block text-gray-700 hover:text-primary font-bangla">চাকরি</a>
                         <a href="{{ route('workshops.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ওয়ার্কশপ</a>
@@ -379,6 +381,7 @@
                         'links' => [
                             ['text' => 'হোম', 'url' => route('home')],
                             ['text' => 'সব পণ্য', 'url' => route('products.index')],
+                            ['text' => 'ডিজিটাল পণ্য', 'url' => route('products.index', ['type' => 'digital'])],
                             ['text' => 'ভিডিও', 'url' => route('videos.index')],
                             ['text' => 'চাকরির বিজ্ঞপ্তি', 'url' => route('jobs.index')],
                             ['text' => 'ওয়ার্কশপ ও সেমিনার', 'url' => route('workshops.index')],

@@ -240,7 +240,7 @@ class SmsService
      * @param string $phone Phone number in any format
      * @return string|null Normalized phone number (880XXXXXXXXXX) or null if invalid
      */
-    protected function normalizePhone($phone)
+    public function normalizePhone($phone)
     {
         if (empty($phone)) {
             return null;

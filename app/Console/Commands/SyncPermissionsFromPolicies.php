@@ -126,6 +126,7 @@ class SyncPermissionsFromPolicies extends Command
         return [
             'products.restore', 'categories.restore', 'orders.restore',
             'videos.restore', 'users.restore', 'sponsors.restore',
+            'settings.smsSend',
         ];
     }
 }

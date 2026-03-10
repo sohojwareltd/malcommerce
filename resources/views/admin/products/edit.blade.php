@@ -7,7 +7,7 @@
     <h1 class="text-3xl font-bold">Edit Product</h1>
 </div>
 
-<form action="{{ route('admin.products.update', $product) }}" method="POST" class="bg-white rounded-lg shadow-md p-6" onsubmit="updateDeliveryOptionsJson(); return true;">
+<form action="{{ route('admin.products.update', $product) }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-lg shadow-md p-6" onsubmit="updateDeliveryOptionsJson(); return true;">
     @csrf
     @method('PUT')
 
@@ -72,11 +72,41 @@
         <div>
             <label class="block text-sm font-medium text-neutral-700 mb-2">Product Type</label>
             @php $isDigital = old('is_digital', $product->is_digital ?? false); @endphp
-            <select name="is_digital" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+            <select name="is_digital" id="is_digital" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
                 <option value="0" {{ !$isDigital ? 'selected' : '' }}>Physical</option>
                 <option value="1" {{ $isDigital ? 'selected' : '' }}>Digital</option>
             </select>
             <p class="mt-1 text-xs text-neutral-500">Physical products require shipping. Digital products are delivered electronically.</p>
+        </div>
+
+        @php $digitalType = old('digital_content_type', $product->digital_content_type ?? 'link'); @endphp
+        <div id="digital-content-section" class="md:col-span-2 {{ $isDigital ? '' : 'hidden' }}">
+            <label class="block text-sm font-medium text-neutral-700 mb-2">Digital Delivery</label>
+            <p class="text-xs text-neutral-500 mb-3">Choose how customers receive this digital product after purchase.</p>
+            <div class="space-y-3">
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="digital_content_type" value="file" {{ $digitalType === 'file' ? 'checked' : '' }} class="text-primary border-neutral-300 focus:ring-primary">
+                        <span class="text-sm">Upload file</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="digital_content_type" value="link" {{ $digitalType === 'link' ? 'checked' : '' }} class="text-primary border-neutral-300 focus:ring-primary">
+                        <span class="text-sm">Link or text (playlist, Drive, etc.)</span>
+                    </label>
+                </div>
+                <div id="digital-file-wrap" class="{{ $digitalType === 'file' ? '' : 'hidden' }}">
+                    @if($product->digital_file_path)
+                    <p class="text-sm text-neutral-600 mb-2">Current file: <span class="font-medium">{{ basename($product->digital_file_path) }}</span></p>
+                    @endif
+                    <input type="file" name="digital_file" accept=".pdf,.zip,.mp3,.mp4,.doc,.docx,.epub,.m4a,.wav" class="w-full text-sm text-neutral-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white file:font-medium">
+                    <p class="text-xs text-neutral-500 mt-1">PDF, ZIP, MP3, MP4, DOC, DOCX, EPUB, M4A, WAV. Max 50MB. Leave empty to keep current file.</p>
+                    @error('digital_file')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div id="digital-link-wrap" class="{{ $digitalType === 'link' ? '' : 'hidden' }}">
+                    <textarea name="digital_link_text" rows="4" placeholder="Paste playlist link, Google Drive link, or any text to share with the customer..." class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">{{ old('digital_link_text', $product->digital_link_text) }}</textarea>
+                    @error('digital_link_text')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                </div>
+            </div>
         </div>
         
         <div>
@@ -762,6 +792,28 @@ document.addEventListener('DOMContentLoaded', function() {
             priceInput.disabled = true;
         }
     }
+
+    // Digital content section visibility
+    const isDigitalSelect = document.getElementById('is_digital');
+    const digitalSection = document.getElementById('digital-content-section');
+    const fileWrap = document.getElementById('digital-file-wrap');
+    const linkWrap = document.getElementById('digital-link-wrap');
+    const fileRadio = document.querySelector('input[name="digital_content_type"][value="file"]');
+    const linkRadio = document.querySelector('input[name="digital_content_type"][value="link"]');
+    function toggleDigitalSection() {
+        const isDigital = isDigitalSelect && isDigitalSelect.value === '1';
+        if (digitalSection) digitalSection.classList.toggle('hidden', !isDigital);
+    }
+    function toggleFileLink() {
+        const isFile = fileRadio && fileRadio.checked;
+        if (fileWrap) fileWrap.classList.toggle('hidden', !isFile);
+        if (linkWrap) linkWrap.classList.toggle('hidden', isFile);
+    }
+    if (isDigitalSelect) isDigitalSelect.addEventListener('change', toggleDigitalSection);
+    if (fileRadio) fileRadio.addEventListener('change', toggleFileLink);
+    if (linkRadio) linkRadio.addEventListener('change', toggleFileLink);
+    toggleDigitalSection();
+    toggleFileLink();
 });
 </script>
 @endsection
