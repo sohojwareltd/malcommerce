@@ -409,12 +409,14 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:1000',
+            'comment' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
         ]);
         
         $data = [
             'name' => $request->name,
             'address' => $request->address,
+            'comment' => $request->comment,
         ];
         
         // Handle photo upload with auto-resize

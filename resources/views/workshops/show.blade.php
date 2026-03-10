@@ -72,7 +72,11 @@
                     @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
-                <button type="submit" class="btn-primary font-bangla px-6 py-3 rounded-lg">নিবন্ধন করুন</button>
+                <div class="flex justify-center">
+                    <button type="submit" class="btn-primary font-bangla w-full md:w-auto md:min-w-[240px] px-8 py-4 text-base md:text-lg rounded-lg">
+                        নিবন্ধন করুন
+                    </button>
+                </div>
             </form>
         </div>
     </div>

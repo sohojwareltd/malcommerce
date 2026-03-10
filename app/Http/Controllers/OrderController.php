@@ -140,15 +140,16 @@ class OrderController extends Controller
         if ($paymentMethod !== 'bkash') {
             try {
                 $smsService = app(SmsService::class);
-                $message = "আপনার অর্ডার #{$order->order_number} গ্রহণ করা হয়েছে। মোট: ৳" . number_format($order->total_price, 0) . "। ধন্যবাদ!";
-                $smsResult = $smsService->send($order->customer_phone, $message);
-                
-                if (!$smsResult['success']) {
-                    \Log::warning('Failed to send order confirmation SMS', [
-                        'order_id' => $order->id,
-                        'phone' => $order->customer_phone,
-                        'error' => $smsResult['error'] ?? 'Unknown error'
-                    ]);
+                $message = $this->buildInitialOrderSmsMessage($order);
+                if ($message) {
+                    $smsResult = $smsService->send($order->customer_phone, $message);
+                    if (!$smsResult['success']) {
+                        \Log::warning('Failed to send order confirmation SMS', [
+                            'order_id' => $order->id,
+                            'phone' => $order->customer_phone,
+                            'error' => $smsResult['error'] ?? 'Unknown error'
+                        ]);
+                    }
                 }
             } catch (\Exception $e) {
                 \Log::error('SMS sending exception', [
@@ -172,6 +173,35 @@ class OrderController extends Controller
     {
         $order = Order::with('product')->where('order_number', $orderNumber)->firstOrFail();
         return view('orders.success', compact('order'));
+    }
+
+    /**
+     * Build the initial order SMS message, using product-level template for 'pending' status when available.
+     */
+    protected function buildInitialOrderSmsMessage(Order $order): ?string
+    {
+        $order->loadMissing('product');
+        $product = $order->product;
+        $templates = $product?->sms_templates ?? [];
+        $template = $templates['pending'] ?? null;
+
+        // Fallback to previous hardcoded Bangla message if no template is set
+        $defaultMessage = "আপনার অর্ডার #{$order->order_number} গ্রহণ করা হয়েছে। মোট: ৳" . number_format($order->total_price, 0) . "। ধন্যবাদ!";
+        $message = $template ?: $defaultMessage;
+
+        $productName = $product ? $product->name : 'product';
+
+        $replacements = [
+            '{order_number}' => $order->order_number,
+            '{customer_name}' => $order->customer_name,
+            '{product_name}' => $productName,
+            '{status}' => ucfirst($order->status ?? 'pending'),
+            '{quantity}' => $order->quantity,
+            '{total_price}' => number_format($order->total_price, 0),
+            '{delivery_charge}' => number_format($order->delivery_charge ?? 0, 0),
+        ];
+
+        return str_replace(array_keys($replacements), array_values($replacements), $message);
     }
     
     /**

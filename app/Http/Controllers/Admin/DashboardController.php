@@ -291,6 +291,24 @@ class DashboardController extends Controller
         $categories = Category::orderBy('name')->get(['id', 'name']);
         return view('admin.orders.index', compact('orders', 'products', 'categories'));
     }
+
+    /**
+     * Orders index pre-filtered to physical products.
+     */
+    public function ordersPhysical(Request $request)
+    {
+        $request->merge(['product_type' => 'physical']);
+        return $this->orders($request);
+    }
+
+    /**
+     * Orders index pre-filtered to digital products.
+     */
+    public function ordersDigital(Request $request)
+    {
+        $request->merge(['product_type' => 'digital']);
+        return $this->orders($request);
+    }
     
     public function showOrder(Order $order)
     {

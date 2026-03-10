@@ -126,14 +126,34 @@
                 <div class="space-y-1">
                     <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">Sales</p>
                     <a href="{{ route('admin.orders.index') }}"
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Orders' : ''"
-                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.orders.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'All Orders' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.orders.index') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-xs sm:text-sm"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Orders</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Orders</span>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">All Orders</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">All Orders</span>
+                    </a>
+                    <a href="{{ route('admin.orders.physical') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Physical Orders' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.orders.physical') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-xs sm:text-sm"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7l1.5-2.5A2 2 0 016.236 3h11.528a2 2 0 011.736 1L21 7M3 7h18M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Physical Orders</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Physical Orders</span>
+                    </a>
+                    <a href="{{ route('admin.orders.digital') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Digital Orders' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.orders.digital') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-xs sm:text-sm"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m-9 4h18a2 2 0 002-2V9a2 2 0 00-2-2h-6.586a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 0012.586 5H3a2 2 0 00-2 2v11a2 2 0 002 2z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Digital Orders</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Digital Orders</span>
                     </a>
                 </div>
                 @endcan

@@ -113,6 +113,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'show'])->name('videos.show')->middleware('can:videos.view');
         
         Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index')->middleware('can:orders.viewAny');
+        Route::get('/orders/physical', [AdminDashboardController::class, 'ordersPhysical'])->name('orders.physical')->middleware('can:orders.viewAny');
+        Route::get('/orders/digital', [AdminDashboardController::class, 'ordersDigital'])->name('orders.digital')->middleware('can:orders.viewAny');
         Route::post('/orders/bulk-delete', [AdminDashboardController::class, 'bulkDeleteOrders'])->name('orders.bulk-delete')->middleware('can:orders.bulkDelete');
         Route::post('/orders/bulk-ship', [AdminDashboardController::class, 'bulkMarkShipped'])->name('orders.bulk-ship')->middleware('can:orders.updateStatus');
         Route::get('/orders/{order}/edit', [AdminDashboardController::class, 'editOrder'])->name('orders.edit')->middleware('can:orders.update');

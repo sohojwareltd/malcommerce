@@ -154,12 +154,15 @@ class PaymentController extends Controller
             // Check if payment is successful
             if (isset($paymentData['transactionStatus']) && $paymentData['transactionStatus'] === 'Completed') {
                 // Update order
+                $product = $order->product;
+                $newStatus = ($product && $product->is_digital) ? 'delivered' : 'processing';
+
                 $order->update([
                     'payment_status' => 'completed',
                     'payment_transaction_id' => $paymentData['trxID'] ?? $paymentId,
                     'payment_response' => json_encode($paymentData),
                     'payment_completed_at' => now(),
-                    'status' => 'processing', // Move order to processing after payment
+                    'status' => $newStatus,
                 ]);
 
                 // Send SMS notification
