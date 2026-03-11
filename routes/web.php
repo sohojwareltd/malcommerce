@@ -167,6 +167,13 @@ Route::middleware('auth')->group(function () {
         Route::put('/expenses/{expense}', [\App\Http\Controllers\Admin\ExpenseController::class, 'update'])->name('expenses.update')->middleware('can:expenses.update');
         Route::delete('/expenses/{expense}', [\App\Http\Controllers\Admin\ExpenseController::class, 'destroy'])->name('expenses.destroy')->middleware('can:expenses.delete');
 
+        Route::get('/expense-categories', [\App\Http\Controllers\Admin\ExpenseCategoryController::class, 'index'])->name('expense-categories.index')->middleware('can:expenses.viewAny');
+        Route::get('/expense-categories/create', [\App\Http\Controllers\Admin\ExpenseCategoryController::class, 'create'])->name('expense-categories.create')->middleware('can:expenses.create');
+        Route::post('/expense-categories', [\App\Http\Controllers\Admin\ExpenseCategoryController::class, 'store'])->name('expense-categories.store')->middleware('can:expenses.create');
+        Route::get('/expense-categories/{expenseCategory}/edit', [\App\Http\Controllers\Admin\ExpenseCategoryController::class, 'edit'])->name('expense-categories.edit')->middleware('can:expenses.update');
+        Route::put('/expense-categories/{expenseCategory}', [\App\Http\Controllers\Admin\ExpenseCategoryController::class, 'update'])->name('expense-categories.update')->middleware('can:expenses.update');
+        Route::delete('/expense-categories/{expenseCategory}', [\App\Http\Controllers\Admin\ExpenseCategoryController::class, 'destroy'])->name('expense-categories.destroy')->middleware('can:expenses.delete');
+
         Route::get('/reports/sales', [AdminDashboardController::class, 'salesReport'])->name('reports.sales')->middleware('can:reports.sales');
         Route::get('/reports/sales/export', [AdminDashboardController::class, 'exportSalesReport'])->name('reports.sales.export')->middleware('can:reports.sales');
         Route::get('/settings', [AdminDashboardController::class, 'settings'])->name('settings')->middleware('can:settings.view');

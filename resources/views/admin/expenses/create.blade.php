@@ -23,7 +23,14 @@
         @endif
 
         <div>
-            <label for="expense_category_id" class="block text-sm font-medium text-neutral-700 mb-2">Category <span class="text-red-500">*</span></label>
+            <div class="flex items-center justify-between mb-2">
+                <label for="expense_category_id" class="block text-sm font-medium text-neutral-700">Category <span class="text-red-500">*</span></label>
+                @can('expenses.create')
+                <a href="{{ route('admin.expense-categories.create') }}" target="_blank" class="text-xs font-semibold text-primary hover:text-primary-light">
+                    + Add category
+                </a>
+                @endcan
+            </div>
             <select name="expense_category_id" id="expense_category_id" required
                 class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary @error('expense_category_id') border-red-500 @enderror">
                 <option value="">Select category</option>
