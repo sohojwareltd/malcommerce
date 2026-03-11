@@ -100,15 +100,12 @@ class Order extends Model
 
         static::creating(function ($order) {
             if (empty($order->order_number)) {
-                // Find the highest numeric order_number in the database and increment it
-                $maxNumeric = self::max(\Illuminate\Support\Facades\DB::raw('CAST(order_number AS UNSIGNED)'));
-                $nextNumber = ((int) $maxNumeric) + 1;
+                // Generate a unique 6-digit order number with collision check
+                do {
+                    $candidate = str_pad((string) random_int(1, 999999), 6, '0', STR_PAD_LEFT);
+                } while (self::where('order_number', $candidate)->exists());
 
-                if ($nextNumber > 999999) {
-                    $nextNumber = 1;
-                }
-
-                $order->order_number = str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
+                $order->order_number = $candidate;
             }
         });
     }
