@@ -100,29 +100,15 @@ class Order extends Model
 
         static::creating(function ($order) {
             if (empty($order->order_number)) {
-                // Get all order numbers and find the highest numeric one
-                $orderNumbers = self::pluck('order_number')->toArray();
-                $maxNumber = 0;
-                
-                foreach ($orderNumbers as $orderNum) {
-                    if ($orderNum && is_numeric($orderNum) && strlen($orderNum) <= 6) {
-                        $num = (int) $orderNum;
-                        if ($num > $maxNumber && $num <= 999999) {
-                            $maxNumber = $num;
-                        }
-                    }
-                }
-                
-                // Start from 1 if no numeric orders found, otherwise increment
-                $nextNumber = $maxNumber + 1;
-                
-                // Ensure we don't exceed 999999
+                // Find the highest numeric order_number in the database and increment it
+                $maxNumeric = self::max(\Illuminate\Support\Facades\DB::raw('CAST(order_number AS UNSIGNED)'));
+                $nextNumber = ((int) $maxNumeric) + 1;
+
                 if ($nextNumber > 999999) {
                     $nextNumber = 1;
                 }
-                
-                // Generate 6-digit order number (000001 to 999999)
-                $order->order_number = str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
+
+                $order->order_number = str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
             }
         });
     }
