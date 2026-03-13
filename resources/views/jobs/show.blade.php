@@ -15,7 +15,7 @@
 
         <div class="mb-10">
             @if($jobCircular->thumbnail)
-            <img src="{{ $jobCircular->thumbnail }}" alt="{{ $jobCircular->title }}" class="w-full max-w-2xl aspect-video object-cover rounded-lg mb-6">
+            <img src="{{ $jobCircular->thumbnail }}" alt="{{ $jobCircular->title }}" class="w-full max-w-2xl h-auto rounded-lg mb-6">
             @endif
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-2">{{ $jobCircular->title }}</h1>
             @if($jobCircular->deadline)

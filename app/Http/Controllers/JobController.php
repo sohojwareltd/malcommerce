@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JobApplication;
 use App\Models\JobCircular;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class JobController extends Controller
 {
@@ -51,6 +52,14 @@ class JobController extends Controller
             'experience' => 'nullable|string',
             'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
         ]);
+
+        if (!empty($data['date_of_birth'])) {
+            try {
+                $data['date_of_birth'] = Carbon::createFromFormat('d-m-Y', $data['date_of_birth'])->format('Y-m-d');
+            } catch (\Throwable $e) {
+                $data['date_of_birth'] = null;
+            }
+        }
 
         $education = $this->parseJsonField($request->education) ?? ($request->education ? [['details' => $request->education]] : null);
         $experience = $this->parseJsonField($request->experience) ?? ($request->experience ? [['details' => $request->experience]] : null);
