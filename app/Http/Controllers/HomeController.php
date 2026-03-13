@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\JobCircular;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Video;
 use App\Models\WorkshopSeminar;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -51,6 +53,34 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        return view('home', compact('products', 'featuredProducts', 'featuredJobs', 'featuredWorkshops', 'featuredVideos'));
+        $recentDigitalOrders = null;
+
+        if (Auth::check()) {
+            $recentDigitalOrders = Order::with('product')
+                ->where('user_id', Auth::id())
+                ->whereHas('product', fn ($q) => $q->where('is_digital', true))
+                ->where(function ($q) {
+                    // Match access rules from Order::canAccessDigitalContent()
+                    $q->where(function ($q) {
+                        $q->where('payment_method', 'bkash')
+                            ->where('payment_status', 'completed');
+                    })->orWhere(function ($q) {
+                        $q->where('payment_method', '!=', 'bkash')
+                            ->whereIn('status', ['processing', 'shipped', 'delivered']);
+                    });
+                })
+                ->orderByDesc('created_at')
+                ->take(4)
+                ->get();
+        }
+
+        return view('home', compact(
+            'products',
+            'featuredProducts',
+            'featuredJobs',
+            'featuredWorkshops',
+            'featuredVideos',
+            'recentDigitalOrders'
+        ));
     }
 }

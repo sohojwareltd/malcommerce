@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sponsor;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\GalleryPhoto;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,20 +17,14 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         
-        // Get orders where sponsor_id = current user's id (referral orders - count as revenue)
-        $referralOrders = Order::where('sponsor_id', $user->id)
-            ->where('status', '!=', 'cancelled')
-            ->sum('total_price');
-        
-        // Get orders where user_id = current user's id (my orders - don't count as revenue)
+        // Separate stats for my orders vs referral orders
         $myOrdersCount = Order::where('user_id', $user->id)->count();
         $referralOrdersCount = Order::where('sponsor_id', $user->id)->count();
         
         $stats = [
             'total_referrals' => $user->referrals()->count(),
-            'total_orders' => $myOrdersCount + $referralOrdersCount,
-            'pending_orders' => Order::where('user_id', $user->id)->where('status', 'pending')->count() + 
-                              Order::where('sponsor_id', $user->id)->where('status', 'pending')->count(),
+            'my_orders' => $myOrdersCount,
+            'referral_orders' => $referralOrdersCount,
         ];
         
         // Get recent orders (both my orders and referral orders)
@@ -53,10 +48,6 @@ class DashboardController extends Controller
                 return $order;
             });
         
-        $recentOrders = $myRecentOrders->merge($referralRecentOrders)
-            ->sortByDesc('created_at')
-            ->take(10);
-        
         // Build referrals query with search
         $referralsQuery = $user->referrals()->withCount('customerOrders as orders_count');
         
@@ -78,7 +69,26 @@ class DashboardController extends Controller
         // Get all active products for affiliate links
         $products = Product::where('is_active', true)->orderBy('name')->get();
         
-        return view('sponsor.dashboard', compact('stats', 'recentOrders', 'referrals', 'affiliateLink', 'products'));
+        // Recent gallery photos for quick preview (self + referrals)
+        $galleryPreviewPhotos = GalleryPhoto::with(['user', 'uploader'])
+            ->where(function ($q) use ($user) {
+                $q->where('uploaded_by_id', $user->id)
+                  ->orWhere('user_id', $user->id)
+                  ->orWhereIn('user_id', $user->referrals()->pluck('id'));
+            })
+            ->latest()
+            ->take(8)
+            ->get();
+        
+        return view('sponsor.dashboard', [
+            'stats' => $stats,
+            'myRecentOrders' => $myRecentOrders,
+            'referralRecentOrders' => $referralRecentOrders,
+            'referrals' => $referrals,
+            'affiliateLink' => $affiliateLink,
+            'products' => $products,
+            'galleryPreviewPhotos' => $galleryPreviewPhotos,
+        ]);
     }
     
     /**
@@ -364,9 +374,14 @@ class DashboardController extends Controller
         }
         
         // Load referral's customer orders and their products
-        $referral->load(['customerOrders.product' => function($query) {
-            $query->orderBy('created_at', 'desc');
-        }]);
+        $referral->load([
+            'customerOrders.product' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            },
+            'galleryPhotos' => function ($query) {
+                $query->with('uploader')->latest()->take(12);
+            },
+        ]);
         
         // Calculate statistics
         $stats = [

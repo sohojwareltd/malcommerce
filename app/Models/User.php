@@ -93,6 +93,16 @@ class User extends Authenticatable
         return $this->hasMany(Withdrawal::class, 'sponsor_id');
     }
 
+    public function galleryPhotos()
+    {
+        return $this->hasMany(GalleryPhoto::class);
+    }
+
+    public function uploadedGalleryPhotos()
+    {
+        return $this->hasMany(GalleryPhoto::class, 'uploaded_by_id');
+    }
+
     // Helper methods
     public function isAdmin(): bool
     {

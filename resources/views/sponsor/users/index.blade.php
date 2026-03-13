@@ -137,6 +137,11 @@ use Illuminate\Support\Str;
                                 <a href="{{ route('sponsor.users.edit', $referral) }}" class="font-medium" style="color: var(--color-medium);">Edit</a>
                                 <span class="text-neutral-300">|</span>
                                 <a href="{{ route('sponsor.users.show', $referral) }}" class="font-medium" style="color: var(--color-medium);">View</a>
+                                <span class="text-neutral-300">|</span>
+                                <a href="{{ route('sponsor.gallery.index', ['user_id' => $referral->id]) }}#upload"
+                                   class="font-medium" style="color: var(--color-medium);">
+                                    Upload Photo
+                                </a>
                             </div>
                         </td>
                     </tr>

@@ -120,6 +120,41 @@ use Illuminate\Support\Facades\Storage;
                 </dl>
             </div>
 
+            @if($referral->galleryPhotos && $referral->galleryPhotos->count() > 0)
+            <div class="app-card p-3 sm:p-4">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <h2 class="text-lg sm:text-xl font-bold" style="color: var(--color-dark);">
+                        Recent Photos
+                    </h2>
+                    <a href="{{ route('sponsor.gallery.index', ['user_id' => $referral->id]) }}"
+                       class="text-xs sm:text-sm font-semibold"
+                       style="color: var(--color-medium);">
+                        View in Gallery →
+                    </a>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
+                    @foreach($referral->galleryPhotos->take(8) as $photo)
+                        <div class="relative rounded-xl overflow-hidden border border-[rgba(189,232,245,0.8)] bg-white">
+                            <div class="aspect-square overflow-hidden">
+                                <img
+                                    src="{{ Storage::disk('public')->url($photo->path) }}"
+                                    alt="{{ $photo->caption ?? 'Photo' }}"
+                                    class="w-full h-full object-cover"
+                                >
+                            </div>
+                            @if($photo->caption)
+                                <div class="px-1.5 py-1">
+                                    <p class="text-[10px] text-[rgba(15,40,84,0.85)] truncate">
+                                        {{ $photo->caption }}
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             <!-- Quick Actions -->
             <div class="app-card p-3 sm:p-4">
                 <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">Quick Actions</h2>
@@ -134,6 +169,10 @@ use Illuminate\Support\Facades\Storage;
                     <a href="{{ route('sponsor.users.edit', $referral) }}" 
                        class="block w-full text-center px-4 py-2 rounded-lg text-white text-sm sm:text-base font-semibold" style="background: var(--color-medium);">
                         Edit User
+                    </a>
+                    <a href="{{ route('sponsor.gallery.index', ['user_id' => $referral->id]) }}#upload" 
+                       class="block w-full text-center px-4 py-2 rounded-lg text-white text-sm sm:text-base font-semibold" style="background: var(--color-medium);">
+                        Upload Photo
                     </a>
                     <a href="{{ route('sponsor.dashboard') }}" 
                        class="block w-full text-center px-4 py-2 rounded-lg text-sm sm:text-base font-semibold" style="background: var(--color-accent); color: var(--color-dark);">

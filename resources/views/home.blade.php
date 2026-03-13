@@ -311,6 +311,48 @@
     </div>
     @endif
 
+    @auth
+        @if(isset($recentDigitalOrders) && $recentDigitalOrders && $recentDigitalOrders->isNotEmpty())
+            <div class="bg-white border-b border-gray-200">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div class="bg-neutral-50 border border-neutral-200 rounded-2xl px-4 sm:px-6 py-4 sm:py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <p class="text-xs sm:text-sm font-semibold text-neutral-700 uppercase tracking-wide font-sans">
+                                My Digital Products
+                            </p>
+                            <p class="mt-1 text-sm sm:text-base text-neutral-700 font-bangla">
+                                সর্বশেষ {{ $recentDigitalOrders->count() }}টি ডিজিটাল অর্ডার একসাথে দেখুন এবং দ্রুত অ্যাক্সেস নিন।
+                            </p>
+                            <div class="mt-2 flex flex-wrap gap-2 text-xs sm:text-sm">
+                                @foreach($recentDigitalOrders as $order)
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-white border border-neutral-200 text-neutral-700">
+                                        <span class="font-mono text-[11px] sm:text-xs font-semibold">#{{ $order->order_number }}</span>
+                                        @if($order->product)
+                                            <span class="mx-1 text-neutral-300">•</span>
+                                            <span class="text-[11px] sm:text-xs font-bangla line-clamp-1 max-w-[140px] sm:max-w-[180px]">
+                                                {{ $order->product->name }}
+                                            </span>
+                                        @endif
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:items-end gap-2">
+                            <a href="{{ route('orders.digital-products') }}"
+                               class="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-medium font-bangla hover:bg-primary-light transition">
+                                সব ডিজিটাল পণ্য দেখুন
+                                <span class="ml-1" aria-hidden="true">→</span>
+                            </a>
+                            <p class="text-[11px] sm:text-xs text-neutral-500 font-bangla">
+                                যেকোনো সময় এখান থেকে ডাউনলোড বা লিংক দেখতে পারবেন।
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endauth
+
     <!-- Featured Products Section -->
     @if ($featuredProducts->count() > 0)
         <div class="bg-white py-16">

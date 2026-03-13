@@ -147,8 +147,8 @@ use Illuminate\Support\Str;
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                 </svg>
         </div>
-            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Orders</p>
-            <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['total_orders'] }}</p>
+            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">My Orders</p>
+            <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['my_orders'] }}</p>
 </div>
 
         <div class="stat-card text-center" style="padding: 12px 8px;">
@@ -157,8 +157,8 @@ use Illuminate\Support\Str;
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
-            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Pending</p>
-            <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['pending_orders'] }}</p>
+            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Referral Orders</p>
+            <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['referral_orders'] }}</p>
         </div>
     </div>
 
@@ -166,7 +166,8 @@ use Illuminate\Support\Str;
     <div class="px-4 mb-4">
         <div class="flex gap-2 overflow-x-auto pb-2" style="scrollbar-width: none;">
             <button onclick="showSection('referrals')" class="nav-tab active whitespace-nowrap" id="tab-referrals">Referrals</button>
-            <button onclick="showSection('orders')" class="nav-tab whitespace-nowrap" id="tab-orders">Recent Orders</button>
+            <button onclick="showSection('my-orders')" class="nav-tab whitespace-nowrap" id="tab-my-orders">My Orders</button>
+            <button onclick="showSection('referral-orders')" class="nav-tab whitespace-nowrap" id="tab-referral-orders">Referral Orders</button>
             <button onclick="showSection('links')" class="nav-tab whitespace-nowrap" id="tab-links">Referral Links</button>
             <button onclick="showSection('products')" class="nav-tab whitespace-nowrap" id="tab-products">Products</button>
         </div>
@@ -235,9 +236,42 @@ use Illuminate\Support\Str;
                                             <div>
                                                 <div class="font-semibold text-sm" style="color: var(--color-dark);">
                                                     {{ $referral->name }}
-                                                </div>
-                                            </div>
-                                        </div>
+            </div>
+        </div>
+
+        @if(isset($galleryPreviewPhotos) && $galleryPreviewPhotos->count() > 0)
+            <div class="app-card p-3 sm:p-4 mb-4">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">
+                        Recent Photos
+                    </h2>
+                    <a href="{{ route('sponsor.gallery.index') }}"
+                       class="text-xs sm:text-sm font-semibold"
+                       style="color: var(--color-medium);">
+                        Open Gallery →
+                    </a>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3">
+                    @foreach($galleryPreviewPhotos as $photo)
+                        <div class="relative rounded-xl overflow-hidden border border-[rgba(189,232,245,0.8)] bg-white">
+                            <div class="aspect-square overflow-hidden">
+                                <img
+                                    src="{{ Storage::disk('public')->url($photo->path) }}"
+                                    alt="{{ $photo->caption ?? 'Photo' }}"
+                                    class="w-full h-full object-cover"
+                                >
+                            </div>
+                            <div class="px-1.5 py-1">
+                                <p class="text-[10px] text-[rgba(15,40,84,0.8)] truncate">
+                                    {{ $photo->user_id === Auth::id() ? 'For: Me' : 'For: ' . ($photo->user->name ?? 'User') }}
+                                </p>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+    </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <span class="text-xs font-mono" style="color: var(--color-medium);">
@@ -290,52 +324,100 @@ use Illuminate\Support\Str;
         </div>
     </div>
 
-    <!-- Recent Orders Section -->
-    <div id="section-orders" class="section-content px-4 hidden">
+    <!-- My Orders Section -->
+    <div id="section-my-orders" class="section-content px-4 hidden">
         <div class="app-card p-3 sm:p-4 mb-4">
             <div class="flex items-center justify-between mb-3 sm:mb-4">
-                <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Recent Orders</h2>
-                <div class="flex gap-1.5 sm:gap-2">
-                    <a href="{{ route('sponsor.orders.my-orders') }}" class="text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg" style="background: var(--color-accent); color: var(--color-dark);">My Orders</a>
-                    <a href="{{ route('sponsor.orders.referral-orders') }}" class="text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-white" style="background: var(--color-medium);">Referrals</a>
-    </div>
-</div>
+                <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">My Recent Orders</h2>
+                <a href="{{ route('sponsor.orders.my-orders') }}" class="text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg" style="background: var(--color-accent); color: var(--color-dark);">
+                    View All
+                </a>
+            </div>
 
-            @if($recentOrders->count() > 0)
-            <div class="space-y-3">
-                @foreach($recentOrders->take(5) as $order)
-                <div class="p-3 rounded-xl border-2" style="border-color: var(--color-accent);">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-1">
-                                <span class="text-xs font-mono font-semibold" style="color: var(--color-dark);">#{{ $order->order_number }}</span>
-                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800' }}">
-                                    {{ ($order->order_type ?? 'referral_order') === 'my_order' ? 'My' : 'Referral' }}
-                        </span>
-                    </div>
-                            <p class="text-xs sm:text-sm font-medium" style="color: var(--color-dark);">{{ $order->product->name }}</p>
-                            <p class="text-[10px] sm:text-xs mt-1" style="color: var(--color-medium);">{{ $order->customer_name }}</p>
+            @if($myRecentOrders->count() > 0)
+                <div class="space-y-3">
+                    @foreach($myRecentOrders as $order)
+                        <div class="p-3 rounded-xl border-2" style="border-color: var(--color-accent);">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs font-mono font-semibold" style="color: var(--color-dark);">#{{ $order->order_number }}</span>
+                                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            My
+                                        </span>
+                                    </div>
+                                    <p class="text-xs sm:text-sm font-medium" style="color: var(--color-dark);">{{ $order->product->name }}</p>
+                                    <p class="text-[10px] sm:text-xs mt-1" style="color: var(--color-medium);">{{ $order->customer_name }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs sm:text-sm font-bold text-green-600">৳{{ number_format($order->total_price, 2) }}</p>
+                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full mt-1 inline-block
+                                        {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                           ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800') }}">
+                                        {{ ucfirst($order->status) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-xs mt-2" style="color: var(--color-medium);">{{ $order->created_at->format('M d, Y h:i A') }}</p>
+                        </div>
+                    @endforeach
                 </div>
-                        <div class="text-right">
-                            <p class="text-xs sm:text-sm font-bold text-green-600">৳{{ number_format($order->total_price, 2) }}</p>
-                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full mt-1 inline-block
-                        {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                   ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800') }}">
-                        {{ ucfirst($order->status) }}
-                    </span>
-                </div>
-            </div>
-                    <p class="text-xs mt-2" style="color: var(--color-medium);">{{ $order->created_at->format('M d, Y h:i A') }}</p>
-                </div>
-                @endforeach
-            </div>
             @else
-            <div class="text-center py-8">
-                <svg class="w-16 h-16 mx-auto mb-3" style="color: var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                </svg>
-                <p class="text-sm" style="color: var(--color-medium);">No orders yet</p>
+                <div class="text-center py-8">
+                    <svg class="w-16 h-16 mx-auto mb-3" style="color: var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p class="text-sm" style="color: var(--color-medium);">No recent orders</p>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Referral Orders Section -->
+    <div id="section-referral-orders" class="section-content px-4 hidden">
+        <div class="app-card p-3 sm:p-4 mb-4">
+            <div class="flex items-center justify-between mb-3 sm:mb-4">
+                <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Referral Recent Orders</h2>
+                <a href="{{ route('sponsor.orders.referral-orders') }}" class="text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-white" style="background: var(--color-medium);">
+                    View All
+                </a>
             </div>
+
+            @if($referralRecentOrders->count() > 0)
+                <div class="space-y-3">
+                    @foreach($referralRecentOrders as $order)
+                        <div class="p-3 rounded-xl border-2" style="border-color: var(--color-accent);">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs font-mono font-semibold" style="color: var(--color-dark);">#{{ $order->order_number }}</span>
+                                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                            Referral
+                                        </span>
+                                    </div>
+                                    <p class="text-xs sm:text-sm font-medium" style="color: var(--color-dark);">{{ $order->product->name }}</p>
+                                    <p class="text-[10px] sm:text-xs mt-1" style="color: var(--color-medium);">{{ $order->customer_name }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs sm:text-sm font-bold text-green-600">৳{{ number_format($order->total_price, 2) }}</p>
+                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full mt-1 inline-block
+                                        {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                           ($order->status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800') }}">
+                                        {{ ucfirst($order->status) }}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="text-xs mt-2" style="color: var(--color-medium);">{{ $order->created_at->format('M d, Y h:i A') }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-8">
+                    <svg class="w-16 h-16 mx-auto mb-3" style="color: var(--color-accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p class="text-sm" style="color: var(--color-medium);">No recent referral orders</p>
+                </div>
             @endif
         </div>
     </div>

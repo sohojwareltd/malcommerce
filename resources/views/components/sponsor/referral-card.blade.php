@@ -67,6 +67,11 @@
                style="color: var(--color-medium); border-color: var(--color-medium);">
                 View
             </a>
+            <a href="{{ route('sponsor.gallery.index', ['user_id' => $referral->id]) }}#upload"
+               class="text-xs font-semibold px-3 py-1 rounded-full border border-dashed"
+               style="color: var(--color-medium); border-color: var(--color-medium);">
+                Upload Photo
+            </a>
         </div>
     </div>
 

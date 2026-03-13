@@ -73,16 +73,27 @@ use Illuminate\Support\Facades\Storage;
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Dashboard</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Dashboard</span>
                     </a>
-                    <a href="{{ route('sponsor.orders.referral-orders') }}" 
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Orders' : ''"
-                       class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('sponsor.orders.*') ? 'bg-white shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition-all group relative text-sm font-medium"
+                    <a href="{{ route('sponsor.orders.my-orders') }}" 
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'My Orders' : ''"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('sponsor.orders.my-orders') ? 'bg-white shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition-all group relative text-sm font-medium"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-3' : ''"
-                       style="{{ request()->routeIs('sponsor.orders.*') ? 'color: #0F2854;' : '' }}">
+                       style="{{ request()->routeIs('sponsor.orders.my-orders') ? 'color: #0F2854;' : '' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Orders</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Orders</span>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">My Orders</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">My Orders</span>
+                    </a>
+                    <a href="{{ route('sponsor.orders.referral-orders') }}" 
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Referral Orders' : ''"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('sponsor.orders.referral-orders') ? 'bg-white shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition-all group relative text-sm font-medium"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-3' : ''"
+                       style="{{ request()->routeIs('sponsor.orders.referral-orders') ? 'color: #0F2854;' : '' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Referral Orders</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Referral Orders</span>
                     </a>
                     <a href="{{ route('sponsor.earnings.index') }}" 
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Earnings' : ''"
@@ -127,6 +138,17 @@ use Illuminate\Support\Facades\Storage;
                         </svg>
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">My Referrals</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">My Referrals</span>
+                    </a>
+                    <a href="{{ route('sponsor.gallery.index') }}" 
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Gallery' : ''"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('sponsor.gallery.*') ? 'bg-white shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition-all group relative text-sm font-medium"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-3' : ''"
+                       style="{{ request()->routeIs('sponsor.gallery.*') ? 'color: #0F2854;' : '' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4-4 4 4 8-8"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Gallery</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Gallery</span>
                     </a>
                     <a href="{{ route('sponsor.users.create') }}" 
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Add Referral' : ''"

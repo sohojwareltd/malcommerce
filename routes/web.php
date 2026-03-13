@@ -81,6 +81,7 @@ Route::middleware('auth')->group(function () {
     // Digital product: download file or view link for own order
     Route::get('/orders/{order}/digital-download', [\App\Http\Controllers\DigitalProductController::class, 'download'])->name('orders.digital.download');
     Route::get('/orders/{order}/digital-link', [\App\Http\Controllers\DigitalProductController::class, 'showLink'])->name('orders.digital.link');
+    Route::get('/my-digital-products', [OrderController::class, 'digitalProducts'])->name('orders.digital-products');
     
     // Admin routes
     Route::middleware(['admin', 'require.password.setup'])->prefix('admin')->name('admin.')->group(function () {
@@ -216,6 +217,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/users/{referral}', [SponsorDashboardController::class, 'showReferral'])->name('users.show');
         Route::get('/users/{referral}/edit', [SponsorDashboardController::class, 'editReferral'])->name('users.edit');
         Route::put('/users/{referral}', [SponsorDashboardController::class, 'updateReferral'])->name('users.update');
+        
+        // Gallery
+        Route::get('/gallery', [\App\Http\Controllers\Sponsor\GalleryController::class, 'index'])->name('gallery.index');
+        Route::post('/gallery', [\App\Http\Controllers\Sponsor\GalleryController::class, 'store'])->name('gallery.store');
+        Route::delete('/gallery/{photo}', [\App\Http\Controllers\Sponsor\GalleryController::class, 'destroy'])->name('gallery.destroy');
         Route::get('/profile/edit', [SponsorDashboardController::class, 'editProfile'])->name('profile.edit');
         Route::put('/profile', [SponsorDashboardController::class, 'updateProfile'])->name('profile.update');
         Route::put('/profile/password', [SponsorDashboardController::class, 'updatePassword'])->name('profile.update-password');
