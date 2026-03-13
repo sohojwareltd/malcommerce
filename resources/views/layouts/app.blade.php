@@ -360,7 +360,7 @@
             @yield('content')
         </main>
         
-        @unless(isset($hideLayoutChrome) && $hideLayoutChrome)
+        @unless(isset($hideFooter) && $hideFooter)
         <!-- Footer -->
         <footer class="bg-gray-50 border-t border-gray-200 mt-8 md:mt-16 pattern-dots">
             @php
