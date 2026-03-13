@@ -42,7 +42,7 @@ document.getElementById('status-form')?.querySelector('select[name="status_selec
                 <div><dt class="text-neutral-500">Email</dt><dd>{{ $jobApplication->email }}</dd></div>
                 <div><dt class="text-neutral-500">Phone</dt><dd>{{ $jobApplication->phone }}</dd></div>
                 @if($jobApplication->address)<div><dt class="text-neutral-500">Address</dt><dd>{{ $jobApplication->address }}</dd></div>@endif
-                @if($jobApplication->date_of_birth)<div><dt class="text-neutral-500">Date of Birth</dt><dd>{{ $jobApplication->date_of_birth->format('M d, Y') }}</dd></div>@endif
+                @if($jobApplication->date_of_birth)<div><dt class="text-neutral-500">Date of Birth</dt><dd>{{ $jobApplication->date_of_birth }}</dd></div>@endif
                 @if($jobApplication->gender)<div><dt class="text-neutral-500">Gender</dt><dd>{{ $jobApplication->gender }}</dd></div>@endif
             </dl>
         </div>
@@ -90,13 +90,6 @@ document.getElementById('status-form')?.querySelector('select[name="status_selec
                 </div>
                 @endforeach
             </div>
-        </div>
-        @endif
-
-        @if($jobApplication->cover_letter)
-        <div class="md:col-span-2">
-            <h2 class="text-lg font-semibold mb-4">Cover Letter</h2>
-            <div class="border border-neutral-200 rounded-lg p-4 text-sm whitespace-pre-wrap">{{ $jobApplication->cover_letter }}</div>
         </div>
         @endif
 

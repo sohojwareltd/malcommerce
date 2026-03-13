@@ -46,6 +46,8 @@ class JobCircularController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'description' => 'nullable|string',
             'requirements' => 'nullable|string',
+            'education_options' => 'nullable|string',
+            'experience_options' => 'nullable|string',
             'deadline' => 'nullable|date',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
@@ -61,6 +63,8 @@ class JobCircularController extends Controller
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['sms_templates'] = $request->input('sms_templates');
+        $data['education_options'] = $this->parseOptionLines($request->input('education_options'));
+        $data['experience_options'] = $this->parseOptionLines($request->input('experience_options'));
 
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');
@@ -97,6 +101,8 @@ class JobCircularController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'description' => 'nullable|string',
             'requirements' => 'nullable|string',
+            'education_options' => 'nullable|string',
+            'experience_options' => 'nullable|string',
             'deadline' => 'nullable|date',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
@@ -112,6 +118,8 @@ class JobCircularController extends Controller
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['sms_templates'] = $request->input('sms_templates');
+        $data['education_options'] = $this->parseOptionLines($request->input('education_options'));
+        $data['experience_options'] = $this->parseOptionLines($request->input('experience_options'));
 
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');
@@ -133,5 +141,27 @@ class JobCircularController extends Controller
 
         return redirect()->route('admin.job-circulars.index')
             ->with('success', 'Job circular deleted successfully.');
+    }
+
+    protected function parseOptionLines(?string $value): ?array
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $lines = preg_split('/\r\n|\r|\n/', $value);
+        if (!$lines) {
+            return null;
+        }
+
+        $items = [];
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line !== '') {
+                $items[] = $line;
+            }
+        }
+
+        return $items ?: null;
     }
 }

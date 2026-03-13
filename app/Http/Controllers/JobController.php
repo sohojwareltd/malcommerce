@@ -45,11 +45,10 @@ class JobController extends Controller
             'email' => 'nullable|email',
             'phone' => 'required|string|max:20',
             'address' => 'nullable|string',
-            'date_of_birth' => 'nullable|date',
+            'date_of_birth' => ['nullable', 'string', 'max:20', 'regex:/^\d{2}-\d{2}-\d{4}$/'],
             'gender' => 'nullable|string|max:20',
             'education' => 'nullable|string',
             'experience' => 'nullable|string',
-            'cover_letter' => 'nullable|string',
             'resume' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
         ]);
 
@@ -71,7 +70,6 @@ class JobController extends Controller
             'gender' => $data['gender'] ?? null,
             'education' => $education,
             'experience' => $experience,
-            'cover_letter' => $data['cover_letter'] ?? null,
             'resume_path' => $resumePath,
         ]);
 

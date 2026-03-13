@@ -12,8 +12,32 @@ use Illuminate\Support\Facades\Storage;
 @endpush
 
 @section('content')
-<div class="space-y-6">
-    <div id="upload" class="bg-white rounded-2xl shadow-sm border border-neutral-200 p-4 sm:p-6">
+<div x-data="{ uploadOpen: false }" class="space-y-6 pb-24 sm:pb-6">
+    <!-- Floating action button (mobile only) -->
+    <button
+        type="button"
+        class="sm:hidden fixed right-4 bottom-4 z-10 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+        style="background: linear-gradient(135deg, #1C4D8D 0%, #4988C4 100%);"
+        aria-label="Upload photo"
+        @click="uploadOpen = true"
+    >
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+    </button>
+
+    <div
+        id="upload"
+        class="bg-white border border-neutral-200 p-4 sm:p-6 rounded-t-2xl shadow-2xl fixed inset-x-0 bottom-0 z-40 sm:static sm:rounded-2xl sm:shadow-sm"
+        x-show="uploadOpen || window.innerWidth >= 640"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="translate-y-full opacity-0"
+        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="translate-y-0 opacity-100"
+        x-transition:leave-end="translate-y-full opacity-0"
+        style="display: none;"
+    >
         <h2 class="text-lg font-bold text-neutral-900 mb-4">Upload Photo</h2>
         <form action="{{ route('sponsor.gallery.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
@@ -59,9 +83,16 @@ use Illuminate\Support\Facades\Storage;
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                 @enderror
             </div>
-            <div class="pt-2">
+            <div class="pt-2 flex items-center justify-between sm:justify-start gap-3">
                 <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:bg-primary/90">
                     Upload
+                </button>
+                <button
+                    type="button"
+                    class="sm:hidden inline-flex items-center px-3 py-2 rounded-lg text-xs font-semibold text-neutral-600 bg-neutral-100 hover:bg-neutral-200"
+                    @click="uploadOpen = false"
+                >
+                    Close
                 </button>
             </div>
         </form>
@@ -145,7 +176,17 @@ use Illuminate\Support\Facades\Storage;
         <button type="button" id="gallery-lightbox-close" class="absolute top-4 right-4 rounded-full px-3 py-2 text-white/90 hover:text-white" aria-label="Close">
             ✕
         </button>
-        <img id="gallery-lightbox-img" src="" alt="Photo" class="max-h-[85vh] max-w-[95vw] rounded-2xl shadow-2xl object-contain">
+        <div class="flex flex-col items-center gap-3">
+            <div class="relative max-h-[80vh] max-w-[95vw] overflow-hidden rounded-2xl shadow-2xl bg-black">
+                <img id="gallery-lightbox-img" src="" alt="Photo" class="object-contain transform origin-center">
+            </div>
+            <div class="flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-full text-white text-xs">
+                <button type="button" id="gallery-zoom-out" class="px-2 py-1 rounded-full hover:bg-white/10">-</button>
+                <span id="gallery-zoom-level" class="min-w-[3rem] text-center">100%</span>
+                <button type="button" id="gallery-zoom-in" class="px-2 py-1 rounded-full hover:bg-white/10">+</button>
+                <button type="button" id="gallery-zoom-reset" class="ml-1 px-2 py-1 rounded-full hover:bg-white/10">Reset</button>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
@@ -185,9 +226,25 @@ use Illuminate\Support\Facades\Storage;
             const backdrop = document.getElementById('gallery-lightbox-backdrop');
             const closeBtn = document.getElementById('gallery-lightbox-close');
             const triggers = document.querySelectorAll('[data-lightbox-src]');
+            const zoomInBtn = document.getElementById('gallery-zoom-in');
+            const zoomOutBtn = document.getElementById('gallery-zoom-out');
+            const zoomResetBtn = document.getElementById('gallery-zoom-reset');
+            const zoomLevelText = document.getElementById('gallery-zoom-level');
 
             if (lightbox && lightboxImg && backdrop && closeBtn && triggers.length) {
+                let zoom = 1;
+                const updateZoom = () => {
+                    if (zoom < 0.5) zoom = 0.5;
+                    if (zoom > 4) zoom = 4;
+                    lightboxImg.style.transform = `scale(${zoom})`;
+                    if (zoomLevelText) {
+                        zoomLevelText.textContent = Math.round(zoom * 100) + '%';
+                    }
+                };
+
                 const open = (src) => {
+                    zoom = 1;
+                    updateZoom();
                     lightboxImg.src = src;
                     lightbox.classList.remove('hidden');
                     document.body.classList.add('overflow-hidden');
@@ -210,6 +267,21 @@ use Illuminate\Support\Facades\Storage;
                         close();
                     }
                 });
+
+                if (zoomInBtn && zoomOutBtn && zoomResetBtn) {
+                    zoomInBtn.addEventListener('click', () => {
+                        zoom += 0.25;
+                        updateZoom();
+                    });
+                    zoomOutBtn.addEventListener('click', () => {
+                        zoom -= 0.25;
+                        updateZoom();
+                    });
+                    zoomResetBtn.addEventListener('click', () => {
+                        zoom = 1;
+                        updateZoom();
+                    });
+                }
             }
         });
     </script>

@@ -13,6 +13,8 @@ class JobCircular extends Model
         'thumbnail',
         'description',
         'requirements',
+        'education_options',
+        'experience_options',
         'deadline',
         'is_active',
         'is_featured',
@@ -27,6 +29,8 @@ class JobCircular extends Model
             'sms_templates' => 'array',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
+            'education_options' => 'array',
+            'experience_options' => 'array',
         ];
     }
 

@@ -40,7 +40,7 @@
         <div class="card p-6 mt-8">
             <h2 class="text-xl font-bold font-bangla mb-6">আবেদন ফর্ম</h2>
 
-            <form action="{{ route('jobs.apply', $jobCircular) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form id="job-application-form" action="{{ route('jobs.apply', $jobCircular) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -75,40 +75,95 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="date_of_birth" class="block text-sm font-medium text-gray-700 font-bangla mb-1">জন্মতারিখ</label>
-                        <input type="date" name="date_of_birth" id="date_of_birth" value="{{ old('date_of_birth') }}"
+                        <input
+                            type="text"
+                            name="date_of_birth"
+                            id="date_of_birth"
+                            value="{{ old('date_of_birth') }}"
+                            placeholder="উদাহরণ: 15-03-2000 (DD-MM-YYYY)"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('date_of_birth') border-red-500 @enderror">
+                        <p class="mt-1 text-xs text-gray-500 font-bangla">দয়া করে এই ফরম্যাটে লিখুন: DD-MM-YYYY (যেমন: 15-03-2000)</p>
                         @error('date_of_birth')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="gender" class="block text-sm font-medium text-gray-700 font-bangla mb-1">লিঙ্গ</label>
-                        <select name="gender" id="gender" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary">
-                            <option value="">নির্বাচন করুন</option>
-                            <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>পুরুষ</option>
-                            <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>মহিলা</option>
-                            <option value="other" {{ old('gender') === 'other' ? 'selected' : '' }}>অন্যান্য</option>
-                        </select>
+                        <span class="block text-sm font-medium text-gray-700 font-bangla mb-1">লিঙ্গ</span>
+                        <div class="flex items-center gap-4 mt-1">
+                            <label class="inline-flex items-center gap-2">
+                                <input type="radio" name="gender" value="male" class="h-4 w-4 text-primary border-gray-300"
+                                    {{ old('gender') === 'male' ? 'checked' : '' }}>
+                                <span class="text-sm font-bangla">পুরুষ</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2">
+                                <input type="radio" name="gender" value="female" class="h-4 w-4 text-primary border-gray-300"
+                                    {{ old('gender') === 'female' ? 'checked' : '' }}>
+                                <span class="text-sm font-bangla">মহিলা</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2">
+                                <input type="radio" name="gender" value="other" class="h-4 w-4 text-primary border-gray-300"
+                                    {{ old('gender') === 'other' ? 'checked' : '' }}>
+                                <span class="text-sm font-bangla">অন্যান্য</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <div>
-                    <label for="education" class="block text-sm font-medium text-gray-700 font-bangla mb-1">শিক্ষাগত যোগ্যতা</label>
-                    <textarea name="education" id="education" rows="4" placeholder="উদাহরণ: BSc in CSE, Dhaka University, 2020"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('education') border-red-500 @enderror">{{ old('education') }}</textarea>
+                @php
+                    $educationOptions = $jobCircular->education_options ?? [];
+                    $experienceOptions = $jobCircular->experience_options ?? [];
+                @endphp
+
+                <input type="hidden" name="education" id="education_json" value="{{ old('education') }}">
+                <div class="space-y-3">
+                    <span class="block text-sm font-medium text-gray-700 font-bangla mb-1">শিক্ষাগত যোগ্যতা</span>
+                    @if(!empty($educationOptions))
+                        <div class="space-y-2">
+                            @foreach($educationOptions as $option)
+                                <label class="flex items-start gap-2">
+                                    <input
+                                        type="checkbox"
+                                        name="education_selected[]"
+                                        value="{{ $option }}"
+                                        class="mt-1 h-4 w-4 text-primary border-gray-300 rounded">
+                                    <span class="text-sm font-bangla">{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+                    <label for="education_custom" class="block text-sm font-medium text-gray-700 font-bangla mt-3">অতিরিক্ত / কাস্টম শিক্ষাগত যোগ্যতা</label>
+                    <textarea
+                        name="education_custom"
+                        id="education_custom"
+                        rows="3"
+                        placeholder="উদাহরণ: BSc in CSE, Dhaka University, 2020"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary">{{ old('education_custom') }}</textarea>
                     @error('education')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
-                    <label for="experience" class="block text-sm font-medium text-gray-700 font-bangla mb-1">অভিজ্ঞতা</label>
-                    <textarea name="experience" id="experience" rows="4" placeholder="উদাহরণ: Software Engineer at XYZ Corp (2019-2022)"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('experience') border-red-500 @enderror">{{ old('experience') }}</textarea>
+                <input type="hidden" name="experience" id="experience_json" value="{{ old('experience') }}">
+                <div class="space-y-3">
+                    <span class="block text-sm font-medium text-gray-700 font-bangla mb-1">অভিজ্ঞতা</span>
+                    @if(!empty($experienceOptions))
+                        <div class="space-y-2">
+                            @foreach($experienceOptions as $option)
+                                <label class="flex items-start gap-2">
+                                    <input
+                                        type="checkbox"
+                                        name="experience_selected[]"
+                                        value="{{ $option }}"
+                                        class="mt-1 h-4 w-4 text-primary border-gray-300 rounded">
+                                    <span class="text-sm font-bangla">{{ $option }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    @endif
+                    <label for="experience_custom" class="block text-sm font-medium text-gray-700 font-bangla mt-3">অতিরিক্ত / কাস্টম অভিজ্ঞতা</label>
+                    <textarea
+                        name="experience_custom"
+                        id="experience_custom"
+                        rows="3"
+                        placeholder="উদাহরণ: কেয়ার গিভার হিসেবে ২ বছরের অভিজ্ঞতা"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary">{{ old('experience_custom') }}</textarea>
                     @error('experience')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                </div>
-
-                <div>
-                    <label for="cover_letter" class="block text-sm font-medium text-gray-700 font-bangla mb-1">কভার লেটার</label>
-                    <textarea name="cover_letter" id="cover_letter" rows="5"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('cover_letter') border-red-500 @enderror">{{ old('cover_letter') }}</textarea>
-                    @error('cover_letter')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
@@ -130,3 +185,47 @@
 </div>
 @endsection
 
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('job-application-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function () {
+        function buildItems(selectedName, customId) {
+            const items = [];
+            const selected = Array.from(form.querySelectorAll('input[name="' + selectedName + '"]:checked'))
+                .map(function (el) { return el.value.trim(); })
+                .filter(function (v) { return v.length > 0; });
+
+            selected.forEach(function (value) {
+                items.push({ details: value, predefined: true });
+            });
+
+            const customEl = document.getElementById(customId);
+            if (customEl) {
+                const customValue = customEl.value.trim();
+                if (customValue.length > 0) {
+                    items.push({ details: customValue, predefined: false });
+                }
+            }
+
+            return items;
+        }
+
+        const educationItems = buildItems('education_selected[]', 'education_custom');
+        const experienceItems = buildItems('experience_selected[]', 'experience_custom');
+
+        const educationJsonInput = document.getElementById('education_json');
+        const experienceJsonInput = document.getElementById('experience_json');
+
+        if (educationJsonInput) {
+            educationJsonInput.value = educationItems.length ? JSON.stringify(educationItems) : '';
+        }
+        if (experienceJsonInput) {
+            experienceJsonInput.value = experienceItems.length ? JSON.stringify(experienceItems) : '';
+        }
+    });
+});
+</script>
+@endpush

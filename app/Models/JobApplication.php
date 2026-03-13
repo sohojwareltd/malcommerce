@@ -18,7 +18,6 @@ class JobApplication extends Model
         'education',
         'experience',
         'resume_path',
-        'cover_letter',
         'status',
     ];
 
@@ -27,7 +26,6 @@ class JobApplication extends Model
         return [
             'education' => 'array',
             'experience' => 'array',
-            'date_of_birth' => 'date',
         ];
     }
 

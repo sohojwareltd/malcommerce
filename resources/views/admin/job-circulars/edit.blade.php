@@ -69,6 +69,36 @@
             @error('requirements')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
 
+        @php
+            $educationOptionsText = old('education_options');
+            if ($educationOptionsText === null && is_array($jobCircular->education_options)) {
+                $educationOptionsText = implode("\n", $jobCircular->education_options);
+            }
+            $experienceOptionsText = old('experience_options');
+            if ($experienceOptionsText === null && is_array($jobCircular->experience_options)) {
+                $experienceOptionsText = implode("\n", $jobCircular->experience_options);
+            }
+        @endphp
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="education_options" class="block text-sm font-medium text-neutral-700 mb-2">Predefined Education Options</label>
+                <textarea name="education_options" id="education_options" rows="4"
+                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary @error('education_options') border-red-500 @enderror"
+                    placeholder="One education item per line&#10;উদাহরণ: এসএসসি পাস, এইচএসসি পাস, ডিপ্লোমা/গ্র্যাজুয়েশন">{{ $educationOptionsText }}</textarea>
+                @error('education_options')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                <p class="mt-1 text-xs text-neutral-500">These will be shown as checkboxes in the application form. Applicants can also add custom education.</p>
+            </div>
+            <div>
+                <label for="experience_options" class="block text-sm font-medium text-neutral-700 mb-2">Predefined Experience Options</label>
+                <textarea name="experience_options" id="experience_options" rows="4"
+                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary @error('experience_options') border-red-500 @enderror"
+                    placeholder="One experience item per line&#10;উদাহরণ: পূর্বে কেয়ার গিভার হিসেবে কাজের অভিজ্ঞতা আছে">{{ $experienceOptionsText }}</textarea>
+                @error('experience_options')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                <p class="mt-1 text-xs text-neutral-500">These will be shown as checkboxes in the application form. Applicants can also add custom experience.</p>
+            </div>
+        </div>
+
         <div>
             <label for="deadline" class="block text-sm font-medium text-neutral-700 mb-2">Application Deadline</label>
             <input type="date" name="deadline" id="deadline" value="{{ old('deadline', $jobCircular->deadline?->format('Y-m-d')) }}"
