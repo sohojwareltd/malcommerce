@@ -221,7 +221,7 @@
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">{{ $order->created_at->format('M d, Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">{{ $order->created_at->format('M d, Y h:i A') }}</td>
                 </tr>
                 @empty
                 <tr>
@@ -269,8 +269,8 @@
                         <p class="text-lg font-bold text-green-600">৳{{ number_format($order->total_price, 2) }}</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-xs text-neutral-500 mb-0.5">Date</p>
-                        <p class="text-sm font-medium text-neutral-700">{{ $order->created_at->format('M d, Y') }}</p>
+                        <p class="text-xs text-neutral-500 mb-0.5">Date &amp; Time</p>
+                        <p class="text-sm font-medium text-neutral-700">{{ $order->created_at->format('M d, Y h:i A') }}</p>
                     </div>
                 </div>
                 

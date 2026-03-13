@@ -27,6 +27,7 @@ class User extends Authenticatable
         'role',
         'affiliate_code',
         'sponsor_id',
+        'created_from_order_id',
         'address',
         'photo',
         'comment',
@@ -71,6 +72,11 @@ class User extends Authenticatable
     public function referrals()
     {
         return $this->hasMany(User::class, 'sponsor_id');
+    }
+
+    public function createdFromOrder()
+    {
+        return $this->belongsTo(Order::class, 'created_from_order_id');
     }
 
     public function orders()

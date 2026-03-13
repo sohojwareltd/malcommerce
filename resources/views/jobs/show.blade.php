@@ -13,7 +13,7 @@
         <div class="mb-6 p-4 bg-red-100 text-red-800 rounded-lg font-bangla">{{ session('error') }}</div>
         @endif
 
-        <div class="mb-8">
+        <div class="mb-10">
             @if($jobCircular->thumbnail)
             <img src="{{ $jobCircular->thumbnail }}" alt="{{ $jobCircular->title }}" class="w-full max-w-2xl aspect-video object-cover rounded-lg mb-6">
             @endif
@@ -25,25 +25,42 @@
 
         @if($jobCircular->description)
         <div class="prose prose-lg max-w-none mb-8">
-            <h2 class="text-xl font-semibold font-bangla mb-2">বিবরণ</h2>
+            <h2 class="text-xl font-semibold font-bangla mb-3 border-b border-gray-200 pb-2">বিবরণ</h2>
             <div class="text-gray-700 rich-text-content font-bangla">{!! $jobCircular->description !!}</div>
         </div>
         @endif
 
         @if($jobCircular->requirements)
         <div class="prose prose-lg max-w-none mb-8">
-            <h2 class="text-xl font-semibold font-bangla mb-2">প্রয়োজনীয় যোগ্যতা</h2>
+            <h2 class="text-xl font-semibold font-bangla mb-3 border-b border-gray-200 pb-2">প্রয়োজনীয় যোগ্যতা</h2>
             <div class="text-gray-700 rich-text-content font-bangla">{!! $jobCircular->requirements !!}</div>
         </div>
         @endif
 
-        <div class="card p-6 mt-8">
-            <h2 class="text-xl font-bold font-bangla mb-6">আবেদন ফর্ম</h2>
+        <div class="card p-6 sm:p-8 mt-10 border border-gray-100 shadow-sm rounded-2xl bg-gradient-to-b from-white to-gray-50/60">
+            <div class="flex items-center justify-between gap-3 mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold font-bangla text-gray-900">আবেদন ফর্ম</h2>
+                    <p class="mt-1 text-sm text-gray-600 font-bangla">নিচের তথ্যগুলো সঠিকভাবে পূরণ করুন। <span class="text-red-500">*</span> চিহ্নিত ঘরগুলো বাধ্যতামূলক।</p>
+                </div>
+                @if($jobCircular->deadline)
+                <div class="hidden sm:flex flex-col items-end text-right text-xs font-bangla bg-amber-50 text-amber-800 px-3 py-2 rounded-lg border border-amber-100">
+                    <span class="font-semibold">শেষ তারিখ</span>
+                    <span>{{ $jobCircular->deadline->format('d M, Y') }}</span>
+                </div>
+                @endif
+            </div>
 
-            <form id="job-application-form" action="{{ route('jobs.apply', $jobCircular) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form id="job-application-form" action="{{ route('jobs.apply', $jobCircular) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Personal information -->
+                <div class="space-y-4">
+                    <h3 class="text-lg font-semibold font-bangla text-gray-900 flex items-center gap-2">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">১</span>
+                        ব্যক্তিগত তথ্য
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="name" class="block text-sm font-medium text-gray-700 font-bangla mb-1">নাম <span class="text-red-500">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" required
@@ -56,23 +73,33 @@
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('email') border-red-500 @enderror">
                         @error('email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 font-bangla mb-1">ফোন নম্বর <span class="text-red-500">*</span></label>
+                            <input type="text" name="phone" id="phone" value="{{ old('phone') }}" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('phone') border-red-500 @enderror"
+                                placeholder="উদাহরণ: ০১৭XXXXXXXX">
+                            @error('phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="address" class="block text-sm font-medium text-gray-700 font-bangla mb-1">ঠিকানা</label>
+                            <textarea name="address" id="address" rows="2"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('address') border-red-500 @enderror"
+                                placeholder="আপনার বর্তমান ঠিকানা লিখুন">{{ old('address') }}</textarea>
+                            @error('address')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700 font-bangla mb-1">ফোন নম্বর <span class="text-red-500">*</span></label>
-                    <input type="text" name="phone" id="phone" value="{{ old('phone') }}" required
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('phone') border-red-500 @enderror">
-                    @error('phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                </div>
-
-                <div>
-                    <label for="address" class="block text-sm font-medium text-gray-700 font-bangla mb-1">ঠিকানা</label>
-                    <textarea name="address" id="address" rows="2"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('address') border-red-500 @enderror">{{ old('address') }}</textarea>
-                    @error('address')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Additional details -->
+                <div class="space-y-4 pt-4 border-t border-gray-100">
+                    <h3 class="text-lg font-semibold font-bangla text-gray-900 flex items-center gap-2">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">২</span>
+                        অতিরিক্ত তথ্য
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="date_of_birth" class="block text-sm font-medium text-gray-700 font-bangla mb-1">জন্মতারিখ</label>
                         <input
@@ -112,9 +139,13 @@
                     $experienceOptions = $jobCircular->experience_options ?? [];
                 @endphp
 
-                <input type="hidden" name="education" id="education_json" value="{{ old('education') }}">
-                <div class="space-y-3">
-                    <span class="block text-sm font-medium text-gray-700 font-bangla mb-1">শিক্ষাগত যোগ্যতা</span>
+                <!-- Education -->
+                <div class="space-y-3 pt-4 border-t border-gray-100">
+                    <h3 class="text-lg font-semibold font-bangla text-gray-900 flex items-center gap-2">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">৩</span>
+                        শিক্ষাগত যোগ্যতা
+                    </h3>
+                    <input type="hidden" name="education" id="education_json" value="{{ old('education') }}">
                     @if(!empty($educationOptions))
                         <div class="space-y-2">
                             @foreach($educationOptions as $option)
@@ -139,9 +170,13 @@
                     @error('education')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
-                <input type="hidden" name="experience" id="experience_json" value="{{ old('experience') }}">
-                <div class="space-y-3">
-                    <span class="block text-sm font-medium text-gray-700 font-bangla mb-1">অভিজ্ঞতা</span>
+                <!-- Experience -->
+                <div class="space-y-3 pt-4 border-t border-gray-100">
+                    <h3 class="text-lg font-semibold font-bangla text-gray-900 flex items-center gap-2">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">৪</span>
+                        অভিজ্ঞতা
+                    </h3>
+                    <input type="hidden" name="experience" id="experience_json" value="{{ old('experience') }}">
                     @if(!empty($experienceOptions))
                         <div class="space-y-2">
                             @foreach($experienceOptions as $option)
@@ -166,7 +201,12 @@
                     @error('experience')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
+                <!-- Attachment -->
+                <div class="space-y-2 pt-4 border-t border-gray-100">
+                    <h3 class="text-lg font-semibold font-bangla text-gray-900 flex items-center gap-2">
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">৫</span>
+                        অতিরিক্ত ডকুমেন্ট
+                    </h3>
                     <label for="resume" class="block text-sm font-medium text-gray-700 font-bangla mb-1">সিভি / রিজিউমি (PDF, DOC)</label>
                     <input type="file" name="resume" id="resume" accept=".pdf,.doc,.docx"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('resume') border-red-500 @enderror">
@@ -174,8 +214,11 @@
                     @error('resume')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
-                <div class="flex justify-center">
-                    <button type="submit" class="btn-primary font-bangla w-full md:w-auto md:min-w-[240px] px-8 py-4 text-base md:text-lg rounded-lg">
+                <div class="flex flex-col sm:flex-row items-center sm:justify-between gap-4 pt-4 border-t border-gray-100">
+                    <p class="text-xs text-gray-500 font-bangla text-center sm:text-left">
+                        জমা দেওয়ার আগে তথ্যগুলো আরেকবার ভালোভাবে দেখে নিন।
+                    </p>
+                    <button type="submit" class="btn-primary font-bangla w-full sm:w-auto sm:min-w-[240px] px-8 py-3.5 text-base md:text-lg rounded-lg shadow-sm">
                         আবেদন জমা দিন
                     </button>
                 </div>

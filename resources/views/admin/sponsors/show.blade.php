@@ -228,6 +228,21 @@ use Illuminate\Support\Facades\Storage;
                     <dt class="text-sm font-medium text-neutral-500">Joined</dt>
                     <dd class="mt-1 text-sm">{{ $sponsor->created_at->format('M d, Y h:i A') }}</dd>
                 </div>
+
+                @if($sponsor->createdFromOrder)
+                <div>
+                    <dt class="text-sm font-medium text-neutral-500">Created From Order</dt>
+                    <dd class="mt-1 text-sm">
+                        <a href="{{ route('admin.orders.show', $sponsor->createdFromOrder) }}" class="text-primary hover:underline font-medium">
+                            Order #{{ $sponsor->createdFromOrder->order_number }}
+                        </a>
+                        @if($sponsor->createdFromOrder->product)
+                            <span class="text-neutral-500 mx-1">•</span>
+                            <span class="text-neutral-800">Product: {{ $sponsor->createdFromOrder->product->name }}</span>
+                        @endif
+                    </dd>
+                </div>
+                @endif
             </dl>
         </div>
 

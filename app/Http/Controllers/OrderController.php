@@ -83,6 +83,7 @@ class OrderController extends Controller
         
         // Find or create user by phone number
         $user = User::where('phone', $normalizedPhone)->first();
+        $userWasCreatedFromThisOrder = false;
         
         if (!$user) {
             // Create new user with sponsor role (orders create sponsors by default)
@@ -93,6 +94,7 @@ class OrderController extends Controller
                 'password' => null, // OTP-based auth, password not required
                 'address' => $request->address,
             ]);
+            $userWasCreatedFromThisOrder = true;
         } 
         
         // Get referral code from session (set by middleware)
@@ -127,6 +129,12 @@ class OrderController extends Controller
             'payment_method' => $paymentMethod,
             'payment_status' => $paymentStatus,
         ]);
+
+        // If this user was created from this order, remember the originating order
+        if ($userWasCreatedFromThisOrder && !$user->created_from_order_id) {
+            $user->created_from_order_id = $order->id;
+            $user->save();
+        }
 
         // Update stock (digital products have unlimited quantity - do not decrement)
         if (!$product->is_digital) {

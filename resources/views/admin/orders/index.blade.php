@@ -204,7 +204,7 @@
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-800">{{ $order->created_at->format('M d, Y') }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-800">{{ $order->created_at->format('M d, Y h:i A') }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                         @if(request('trashed') && $order->trashed())
                             @can('orders.restore')
@@ -248,7 +248,7 @@
             <div class="flex items-start justify-between mb-3">
                 <div class="flex-1 min-w-0">
                     <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:underline font-semibold text-sm mb-1 block">#{{ $order->order_number }}</a>
-                    <p class="text-xs text-neutral-600">{{ $order->created_at->format('M d, Y') }}</p>
+                    <p class="text-xs text-neutral-600">{{ $order->created_at->format('M d, Y h:i A') }}</p>
                 </div>
                 <div class="flex flex-col items-end gap-2 ml-2">
                     <span class="text-sm font-bold text-neutral-900">৳{{ number_format($order->total_price, 2) }}</span>
