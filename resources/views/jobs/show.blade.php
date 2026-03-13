@@ -1,7 +1,9 @@
 @extends('layouts.app')
 
 @section('title', $jobCircular->title)
-@section('description', Str::limit(strip_tags($jobCircular->description ?? ''), 160))
+@php(
+    $metaDescOverride = Str::limit(strip_tags($jobCircular->description ?? ''), 160)
+)
 @php($hideFooter = true)
 
 @section('content')
