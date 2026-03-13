@@ -67,12 +67,14 @@
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('name') border-red-500 @enderror">
                         @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
+                    @if($jobCircular->show_email)
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700 font-bangla mb-1">ইমেইল</label>
                         <input type="email" name="email" id="email" value="{{ old('email') }}"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('email') border-red-500 @enderror">
                         @error('email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                     </div>
+                    @endif
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -83,6 +85,7 @@
                                 placeholder="উদাহরণ: ০১৭XXXXXXXX">
                             @error('phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
+                        @if($jobCircular->show_address)
                         <div>
                             <label for="address" class="block text-sm font-medium text-gray-700 font-bangla mb-1">ঠিকানা</label>
                             <textarea name="address" id="address" rows="2"
@@ -90,6 +93,7 @@
                                 placeholder="আপনার বর্তমান ঠিকানা লিখুন">{{ old('address') }}</textarea>
                             @error('address')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
+                        @endif
                     </div>
                 </div>
 
@@ -99,8 +103,10 @@
                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">২</span>
                         অতিরিক্ত তথ্য
                     </h3>
+                    @if($jobCircular->show_date_of_birth || $jobCircular->show_gender)
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
+                        @if($jobCircular->show_date_of_birth)
                         <label for="date_of_birth" class="block text-sm font-medium text-gray-700 font-bangla mb-1">জন্মতারিখ</label>
                         <input
                             type="text"
@@ -111,8 +117,10 @@
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('date_of_birth') border-red-500 @enderror">
                         <p class="mt-1 text-xs text-gray-500 font-bangla">দয়া করে এই ফরম্যাটে লিখুন: DD-MM-YYYY (যেমন: 15-03-2000)</p>
                         @error('date_of_birth')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                        @endif
                     </div>
                     <div>
+                        @if($jobCircular->show_gender)
                         <span class="block text-sm font-medium text-gray-700 font-bangla mb-1">লিঙ্গ</span>
                         <div class="flex items-center gap-4 mt-1">
                             <label class="inline-flex items-center gap-2">
@@ -131,8 +139,10 @@
                                 <span class="text-sm font-bangla">অন্যান্য</span>
                             </label>
                         </div>
+                        @endif
                     </div>
                 </div>
+                @endif
 
                 @php
                     $educationOptions = $jobCircular->education_options ?? [];
@@ -140,6 +150,7 @@
                 @endphp
 
                 <!-- Education -->
+                @if($jobCircular->show_education)
                 <div class="space-y-3 pt-4 border-t border-gray-100">
                     <h3 class="text-lg font-semibold font-bangla text-gray-900 flex items-center gap-2">
                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">৩</span>
@@ -169,8 +180,10 @@
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary">{{ old('education_custom') }}</textarea>
                     @error('education')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
                 <!-- Experience -->
+                @if($jobCircular->show_experience)
                 <div class="space-y-3 pt-4 border-t border-gray-100">
                     <h3 class="text-lg font-semibold font-bangla text-gray-900 flex items-center gap-2">
                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">৪</span>
@@ -200,11 +213,13 @@
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary">{{ old('experience_custom') }}</textarea>
                     @error('experience')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
                 <!-- Attachment -->
+                @if($jobCircular->show_resume)
                 <div class="space-y-2 pt-4 border-t border-gray-100">
                     <h3 class="text-lg font-semibold font-bangla text-gray-900 flex items-center gap-2">
-                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">৫</span>
+                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">{{ $jobCircular->show_education || $jobCircular->show_experience ? '৫' : '৩' }}</span>
                         অতিরিক্ত ডকুমেন্ট
                     </h3>
                     <label for="resume" class="block text-sm font-medium text-gray-700 font-bangla mb-1">সিভি / রিজিউমি (PDF, DOC)</label>
@@ -213,6 +228,7 @@
                     <p class="mt-1 text-xs text-gray-500">সর্বোচ্চ 5MB</p>
                     @error('resume')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
                 <div class="flex flex-col sm:flex-row items-center sm:justify-between gap-4 pt-4 border-t border-gray-100">
                     <p class="text-xs text-gray-500 font-bangla text-center sm:text-left">

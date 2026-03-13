@@ -82,6 +82,41 @@
             </div>
         </div>
 
+        <div class="space-y-3 pt-4 border-t border-neutral-200">
+            <h3 class="text-sm font-semibold text-neutral-800">Application Fields</h3>
+            <p class="text-xs text-neutral-500">Choose which optional fields should appear in the public application form for this job.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="show_email" value="1" {{ old('show_email', true) ? 'checked' : '' }} class="rounded">
+                    <span>Email</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="show_address" value="1" {{ old('show_address', true) ? 'checked' : '' }} class="rounded">
+                    <span>Address</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="show_date_of_birth" value="1" {{ old('show_date_of_birth', true) ? 'checked' : '' }} class="rounded">
+                    <span>Date of birth</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="show_gender" value="1" {{ old('show_gender', true) ? 'checked' : '' }} class="rounded">
+                    <span>Gender</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="show_education" value="1" {{ old('show_education', true) ? 'checked' : '' }} class="rounded">
+                    <span>Education section</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="show_experience" value="1" {{ old('show_experience', true) ? 'checked' : '' }} class="rounded">
+                    <span>Experience section</span>
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="show_resume" value="1" {{ old('show_resume', true) ? 'checked' : '' }} class="rounded">
+                    <span>Resume upload</span>
+                </label>
+            </div>
+        </div>
+
         <div>
             <label for="deadline" class="block text-sm font-medium text-neutral-700 mb-2">Application Deadline</label>
             <input type="date" name="deadline" id="deadline" value="{{ old('deadline') }}"

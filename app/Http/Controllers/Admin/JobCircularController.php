@@ -57,6 +57,13 @@ class JobCircularController extends Controller
             'sms_templates.shortlisted' => 'nullable|string|max:1000',
             'sms_templates.rejected' => 'nullable|string|max:1000',
             'sms_templates.hired' => 'nullable|string|max:1000',
+            'show_email' => 'boolean',
+            'show_address' => 'boolean',
+            'show_date_of_birth' => 'boolean',
+            'show_gender' => 'boolean',
+            'show_education' => 'boolean',
+            'show_experience' => 'boolean',
+            'show_resume' => 'boolean',
         ]);
         $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
         $data['is_active'] = $request->has('is_active');
@@ -65,6 +72,13 @@ class JobCircularController extends Controller
         $data['sms_templates'] = $request->input('sms_templates');
         $data['education_options'] = $this->parseOptionLines($request->input('education_options'));
         $data['experience_options'] = $this->parseOptionLines($request->input('experience_options'));
+        $data['show_email'] = $request->has('show_email');
+        $data['show_address'] = $request->has('show_address');
+        $data['show_date_of_birth'] = $request->has('show_date_of_birth');
+        $data['show_gender'] = $request->has('show_gender');
+        $data['show_education'] = $request->has('show_education');
+        $data['show_experience'] = $request->has('show_experience');
+        $data['show_resume'] = $request->has('show_resume');
 
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');
@@ -112,6 +126,13 @@ class JobCircularController extends Controller
             'sms_templates.shortlisted' => 'nullable|string|max:1000',
             'sms_templates.rejected' => 'nullable|string|max:1000',
             'sms_templates.hired' => 'nullable|string|max:1000',
+            'show_email' => 'boolean',
+            'show_address' => 'boolean',
+            'show_date_of_birth' => 'boolean',
+            'show_gender' => 'boolean',
+            'show_education' => 'boolean',
+            'show_experience' => 'boolean',
+            'show_resume' => 'boolean',
         ]);
         $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
         $data['is_active'] = $request->has('is_active');
@@ -120,6 +141,13 @@ class JobCircularController extends Controller
         $data['sms_templates'] = $request->input('sms_templates');
         $data['education_options'] = $this->parseOptionLines($request->input('education_options'));
         $data['experience_options'] = $this->parseOptionLines($request->input('experience_options'));
+        $data['show_email'] = $request->has('show_email');
+        $data['show_address'] = $request->has('show_address');
+        $data['show_date_of_birth'] = $request->has('show_date_of_birth');
+        $data['show_gender'] = $request->has('show_gender');
+        $data['show_education'] = $request->has('show_education');
+        $data['show_experience'] = $request->has('show_experience');
+        $data['show_resume'] = $request->has('show_resume');
 
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');

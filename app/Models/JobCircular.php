@@ -20,6 +20,13 @@ class JobCircular extends Model
         'is_featured',
         'sort_order',
         'sms_templates',
+        'show_email',
+        'show_address',
+        'show_date_of_birth',
+        'show_gender',
+        'show_education',
+        'show_experience',
+        'show_resume',
     ];
 
     protected function casts(): array
@@ -31,6 +38,13 @@ class JobCircular extends Model
             'is_featured' => 'boolean',
             'education_options' => 'array',
             'experience_options' => 'array',
+            'show_email' => 'boolean',
+            'show_address' => 'boolean',
+            'show_date_of_birth' => 'boolean',
+            'show_gender' => 'boolean',
+            'show_education' => 'boolean',
+            'show_experience' => 'boolean',
+            'show_resume' => 'boolean',
         ];
     }
 
