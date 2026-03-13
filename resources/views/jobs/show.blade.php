@@ -1,10 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $jobCircular->title)
-@php(
-    $metaDescOverride = Str::limit(strip_tags($jobCircular->description ?? ''), 160)
-)
-@php($hideFooter = true)
+@section('description', Str::limit(strip_tags($jobCircular->description ?? ''), 160))
 
 @section('content')
 <div class="bg-white py-8">
