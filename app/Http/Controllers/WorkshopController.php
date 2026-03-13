@@ -26,6 +26,7 @@ class WorkshopController extends Controller
         if (!$workshopSeminar->is_active) {
             abort(404);
         }
+        $workshopSeminar->load(['venueRelation', 'trades']);
 
         return view('workshops.show', compact('workshopSeminar'));
     }
@@ -36,12 +37,19 @@ class WorkshopController extends Controller
             return redirect()->route('workshops.index')->with('error', 'This workshop is no longer accepting enrollments.');
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'address' => 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
+        $rules = ['name' => 'required|string|max:255'];
+        if ($workshopSeminar->show_phone ?? true) {
+            $rules['phone'] = 'required|string|max:20';
+        } else {
+            $rules['phone'] = 'nullable|string|max:20';
+        }
+        if ($workshopSeminar->show_address ?? true) {
+            $rules['address'] = 'nullable|string';
+        }
+        if ($workshopSeminar->show_notes ?? true) {
+            $rules['notes'] = 'nullable|string';
+        }
+        $request->validate($rules);
 
         if ($workshopSeminar->max_participants) {
             $current = $workshopSeminar->enrollments()->count();
@@ -53,9 +61,9 @@ class WorkshopController extends Controller
         WorkshopEnrollment::create([
             'workshop_seminar_id' => $workshopSeminar->id,
             'name' => $request->name,
-            'phone' => $request->phone,
-            'address' => $request->address ?? null,
-            'notes' => $request->notes ?? null,
+            'phone' => $request->input('phone'),
+            'address' => ($workshopSeminar->show_address ?? true) ? ($request->address ?? null) : null,
+            'notes' => ($workshopSeminar->show_notes ?? true) ? ($request->notes ?? null) : null,
         ]);
 
         return redirect()->route('workshops.show', $workshopSeminar)

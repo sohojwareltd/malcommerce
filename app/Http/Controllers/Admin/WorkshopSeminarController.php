@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Trade;
+use App\Models\Venue;
 use App\Models\WorkshopSeminar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -34,7 +36,9 @@ class WorkshopSeminarController extends Controller
     public function create()
     {
         $this->authorize('create', WorkshopSeminar::class);
-        return view('admin.workshop-seminars.create');
+        $venues = Venue::with('trades')->orderBy('sort_order')->orderBy('name')->get();
+        $trades = Trade::orderBy('sort_order')->orderBy('name')->get();
+        return view('admin.workshop-seminars.create', compact('venues', 'trades'));
     }
 
     public function store(Request $request)
@@ -46,6 +50,7 @@ class WorkshopSeminarController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'description' => 'nullable|string',
             'venue' => 'nullable|string|max:255',
+            'venue_id' => 'nullable|exists:venues,id',
             'event_date' => 'nullable|date',
             'event_time' => 'nullable|date_format:H:i',
             'max_participants' => 'nullable|integer|min:1',
@@ -56,12 +61,30 @@ class WorkshopSeminarController extends Controller
             'sms_templates.pending' => 'nullable|string|max:1000',
             'sms_templates.confirmed' => 'nullable|string|max:1000',
             'sms_templates.cancelled' => 'nullable|string|max:1000',
+            'trades' => 'nullable|array',
+            'trades.*' => 'exists:trades,id',
+            'show_phone' => 'boolean',
+            'show_address' => 'boolean',
+            'show_notes' => 'boolean',
         ]);
         $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
         $data['is_active'] = $request->has('is_active');
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['sms_templates'] = $request->input('sms_templates');
+        $data['venue_id'] = $request->input('venue_id');
+        $data['show_phone'] = $request->has('show_phone');
+        $data['show_address'] = $request->has('show_address');
+        $data['show_notes'] = $request->has('show_notes');
+        if ($data['venue_id'] && $request->filled('trades')) {
+            $venue = Venue::find($data['venue_id']);
+            $allowedTradeIds = $venue->trades->pluck('id')->toArray();
+            foreach ($request->input('trades') as $tid) {
+                if (!in_array((int) $tid, $allowedTradeIds, true)) {
+                    return redirect()->back()->withInput()->withErrors(['trades' => 'Selected trades must be available at the chosen venue.']);
+                }
+            }
+        }
 
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');
@@ -70,7 +93,8 @@ class WorkshopSeminarController extends Controller
             $data['thumbnail'] = Storage::disk('public')->url($path);
         }
 
-        WorkshopSeminar::create($data);
+        $workshop = WorkshopSeminar::create($data);
+        $workshop->trades()->sync($request->input('trades', []));
 
         return redirect()->route('admin.workshop-seminars.index')
             ->with('success', 'Workshop/Seminar created successfully.');
@@ -79,14 +103,17 @@ class WorkshopSeminarController extends Controller
     public function show(WorkshopSeminar $workshopSeminar)
     {
         $this->authorize('view', $workshopSeminar);
-        $workshopSeminar->load('enrollments');
+        $workshopSeminar->load(['enrollments', 'venueRelation', 'trades']);
         return view('admin.workshop-seminars.show', compact('workshopSeminar'));
     }
 
     public function edit(WorkshopSeminar $workshopSeminar)
     {
         $this->authorize('update', $workshopSeminar);
-        return view('admin.workshop-seminars.edit', compact('workshopSeminar'));
+        $workshopSeminar->load(['venueRelation', 'trades']);
+        $venues = Venue::with('trades')->orderBy('sort_order')->orderBy('name')->get();
+        $trades = Trade::orderBy('sort_order')->orderBy('name')->get();
+        return view('admin.workshop-seminars.edit', compact('workshopSeminar', 'venues', 'trades'));
     }
 
     public function update(Request $request, WorkshopSeminar $workshopSeminar)
@@ -98,6 +125,7 @@ class WorkshopSeminarController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'description' => 'nullable|string',
             'venue' => 'nullable|string|max:255',
+            'venue_id' => 'nullable|exists:venues,id',
             'event_date' => 'nullable|date',
             'event_time' => 'nullable|date_format:H:i',
             'max_participants' => 'nullable|integer|min:1',
@@ -108,12 +136,30 @@ class WorkshopSeminarController extends Controller
             'sms_templates.pending' => 'nullable|string|max:1000',
             'sms_templates.confirmed' => 'nullable|string|max:1000',
             'sms_templates.cancelled' => 'nullable|string|max:1000',
+            'trades' => 'nullable|array',
+            'trades.*' => 'exists:trades,id',
+            'show_phone' => 'boolean',
+            'show_address' => 'boolean',
+            'show_notes' => 'boolean',
         ]);
         $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
         $data['is_active'] = $request->has('is_active');
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['sms_templates'] = $request->input('sms_templates');
+        $data['venue_id'] = $request->input('venue_id');
+        $data['show_phone'] = $request->has('show_phone');
+        $data['show_address'] = $request->has('show_address');
+        $data['show_notes'] = $request->has('show_notes');
+        if ($data['venue_id'] && $request->filled('trades')) {
+            $venue = Venue::find($data['venue_id']);
+            $allowedTradeIds = $venue->trades->pluck('id')->toArray();
+            foreach ($request->input('trades') as $tid) {
+                if (!in_array((int) $tid, $allowedTradeIds, true)) {
+                    return redirect()->back()->withInput()->withErrors(['trades' => 'Selected trades must be available at the chosen venue.']);
+                }
+            }
+        }
 
         if ($request->hasFile('thumbnail')) {
             $image = $request->file('thumbnail');
@@ -123,6 +169,7 @@ class WorkshopSeminarController extends Controller
         }
 
         $workshopSeminar->update($data);
+        $workshopSeminar->trades()->sync($request->input('trades', []));
 
         return redirect()->route('admin.workshop-seminars.index')
             ->with('success', 'Workshop/Seminar updated successfully.');

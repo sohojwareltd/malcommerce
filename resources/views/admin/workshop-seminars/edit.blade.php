@@ -64,11 +64,29 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label for="venue" class="block text-sm font-medium text-neutral-700 mb-2">Venue</label>
-                <input type="text" name="venue" id="venue" value="{{ old('venue', $workshopSeminar->venue) }}"
+                <label for="venue_id" class="block text-sm font-medium text-neutral-700 mb-2">Venue (from list)</label>
+                <select name="venue_id" id="venue_id"
+                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary @error('venue_id') border-red-500 @enderror">
+                    <option value="">— None / use text below —</option>
+                    @foreach($venues as $v)
+                    <option value="{{ $v->id }}" {{ old('venue_id', $workshopSeminar->venue_id) == $v->id ? 'selected' : '' }}>{{ $v->name }}</option>
+                    @endforeach
+                </select>
+                @error('venue_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="venue" class="block text-sm font-medium text-neutral-700 mb-2">Venue (text override)</label>
+                <input type="text" name="venue" id="venue" value="{{ old('venue', $workshopSeminar->venue) }}" placeholder="Optional if venue selected above"
                     class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary @error('venue') border-red-500 @enderror">
                 @error('venue')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
+        </div>
+        <div id="workshop-trades-wrap" class="hidden">
+            <p class="block text-sm font-medium text-neutral-700 mb-2">Trades at this venue</p>
+            <div id="workshop-trades-list" class="space-y-2 border border-neutral-200 rounded-lg p-3 max-h-40 overflow-y-auto"></div>
+            @error('trades')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label for="event_date" class="block text-sm font-medium text-neutral-700 mb-2">Event Date</label>
                 <input type="date" name="event_date" id="event_date" value="{{ old('event_date', $workshopSeminar->event_date?->format('Y-m-d')) }}"
@@ -113,6 +131,25 @@
             <p class="mt-1 text-xs text-neutral-500">Lower numbers appear first</p>
             @error('sort_order')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
+
+        <div class="border-t border-neutral-200 pt-4">
+            <h3 class="text-sm font-semibold text-neutral-800 mb-2">Enrollment form – optional fields</h3>
+            <p class="text-xs text-neutral-500 mb-3">Choose which fields to show on the public enrollment form.</p>
+            <div class="space-y-2">
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="show_phone" value="1" {{ old('show_phone', $workshopSeminar->show_phone ?? true) ? 'checked' : '' }} class="rounded">
+                    <span class="text-sm font-medium text-neutral-700">Show Phone</span>
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="show_address" value="1" {{ old('show_address', $workshopSeminar->show_address ?? true) ? 'checked' : '' }} class="rounded">
+                    <span class="text-sm font-medium text-neutral-700">Show Address</span>
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="show_notes" value="1" {{ old('show_notes', $workshopSeminar->show_notes ?? true) ? 'checked' : '' }} class="rounded">
+                    <span class="text-sm font-medium text-neutral-700">Show Notes / Comments</span>
+                </label>
+            </div>
+        </div>
         </div><!-- End tab-details -->
 
         @php
@@ -143,6 +180,43 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    var venueTrades = @json($venues->keyBy('id')->map(fn($v) => $v->trades->pluck('id')->toArray()));
+    var allTrades = @json($trades->map(fn($t) => ['id' => $t->id, 'name' => $t->name]));
+    var oldTrades = @json(old('trades', $workshopSeminar->trades->pluck('id')->toArray()));
+
+    var venueSelect = document.getElementById('venue_id');
+    var tradesWrap = document.getElementById('workshop-trades-wrap');
+    var tradesList = document.getElementById('workshop-trades-list');
+
+    function renderTradesForVenue(venueId) {
+        tradesList.innerHTML = '';
+        if (!venueId || !venueTrades[venueId] || venueTrades[venueId].length === 0) {
+            tradesWrap.classList.add('hidden');
+            return;
+        }
+        tradesWrap.classList.remove('hidden');
+        var tradeIds = venueTrades[venueId];
+        allTrades.forEach(function(t) {
+            if (tradeIds.indexOf(t.id) === -1) return;
+            var label = document.createElement('label');
+            label.className = 'flex items-center gap-2';
+            var checked = oldTrades.indexOf(t.id) !== -1 || oldTrades.indexOf(String(t.id)) !== -1 ? ' checked' : '';
+            label.innerHTML = '<input type="checkbox" name="trades[]" value="' + t.id + '" class="rounded"' + checked + '> <span class="text-sm text-neutral-700">' + escapeHtml(t.name) + '</span>';
+            tradesList.appendChild(label);
+        });
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    if (venueSelect) {
+        venueSelect.addEventListener('change', function() { renderTradesForVenue(this.value ? parseInt(this.value, 10) : null); });
+        renderTradesForVenue(venueSelect.value ? parseInt(venueSelect.value, 10) : null);
+    }
+
     var tabButtons = document.querySelectorAll('.tab-button');
     var tabPanels = document.querySelectorAll('.tab-panel');
     function activateTab(target) {

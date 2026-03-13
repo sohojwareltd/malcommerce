@@ -214,6 +214,22 @@
                     </a>
                     @endcan
                     @can('workshopSeminars.viewAny')
+                    <a href="{{ route('admin.venues.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Venues' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.venues.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-fuchsia-500/15' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Venues</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Venues</span>
+                    </a>
+                    <a href="{{ route('admin.trades.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Trades' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.trades.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-fuchsia-500/15' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth >= 1024" class="transition-opacity duration-300">Trades</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Trades</span>
+                    </a>
                     <a href="{{ route('admin.workshop-seminars.index') }}"
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Workshops' : ''"
                        class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.workshop-seminars.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-fuchsia-500/15' }} transition group relative text-sm sm:text-base"

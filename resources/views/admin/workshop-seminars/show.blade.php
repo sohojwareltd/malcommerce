@@ -8,7 +8,8 @@
         <h1 class="text-2xl sm:text-3xl font-bold">{{ $workshopSeminar->title }}</h1>
         <p class="text-neutral-600 mt-1 text-sm">
             {{ $workshopSeminar->event_date?->format('M d, Y') ?? 'Date TBD' }}
-            @if($workshopSeminar->venue) · {{ $workshopSeminar->venue }}@endif
+            @if($workshopSeminar->venue_display) · {{ $workshopSeminar->venue_display }}@endif
+            @if($workshopSeminar->trades->isNotEmpty()) · {{ $workshopSeminar->trades->pluck('name')->join(', ') }}@endif
             · {{ $workshopSeminar->enrollments->count() }} enrollment(s)
         </p>
     </div>

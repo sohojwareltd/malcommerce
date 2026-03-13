@@ -69,13 +69,9 @@ class DashboardController extends Controller
         // Get all active products for affiliate links
         $products = Product::where('is_active', true)->orderBy('name')->get();
         
-        // Recent gallery photos for quick preview (self + referrals)
+        // Recent gallery photos for quick preview (only this user's photos)
         $galleryPreviewPhotos = GalleryPhoto::with(['user', 'uploader'])
-            ->where(function ($q) use ($user) {
-                $q->where('uploaded_by_id', $user->id)
-                  ->orWhere('user_id', $user->id)
-                  ->orWhereIn('user_id', $user->referrals()->pluck('id'));
-            })
+            ->where('user_id', $user->id)
             ->latest()
             ->take(8)
             ->get();

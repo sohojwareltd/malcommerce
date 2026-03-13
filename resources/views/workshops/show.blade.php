@@ -15,7 +15,7 @@
 
         <div class="mb-8">
             @if($workshopSeminar->thumbnail)
-            <img src="{{ $workshopSeminar->thumbnail }}" alt="{{ $workshopSeminar->title }}" class="w-full max-w-2xl aspect-video object-cover rounded-lg mb-6">
+            <img src="{{ $workshopSeminar->thumbnail }}" alt="{{ $workshopSeminar->title }}" class="w-full max-w-2xl h-auto rounded-lg mb-6">
             @endif
             <h1 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-2">{{ $workshopSeminar->title }}</h1>
             <div class="flex flex-wrap gap-4 text-gray-500 text-sm font-bangla">
@@ -25,8 +25,11 @@
                 @if($workshopSeminar->event_time)
                 <span>সময়: {{ \Carbon\Carbon::parse($workshopSeminar->event_time)->format('g:i A') }}</span>
                 @endif
-                @if($workshopSeminar->venue)
-                <span>স্থান: {{ $workshopSeminar->venue }}</span>
+                @if($workshopSeminar->venue_display)
+                <span>স্থান: {{ $workshopSeminar->venue_display }}</span>
+                @endif
+                @if($workshopSeminar->trades->isNotEmpty())
+                <span>বৃত্তি: {{ $workshopSeminar->trades->pluck('name')->join(', ') }}</span>
                 @endif
             </div>
         </div>
@@ -51,26 +54,32 @@
                     @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
 
+                @if($workshopSeminar->show_phone ?? true)
                 <div>
                     <label for="phone" class="block text-sm font-medium text-gray-700 font-bangla mb-1">ফোন নম্বর <span class="text-red-500">*</span></label>
-                    <input type="text" name="phone" id="phone" value="{{ old('phone') }}" required
+                    <input type="text" name="phone" id="phone" value="{{ old('phone') }}" @if($workshopSeminar->show_phone ?? true) required @endif
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('phone') border-red-500 @enderror">
                     @error('phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
+                @if($workshopSeminar->show_address ?? true)
                 <div>
                     <label for="address" class="block text-sm font-medium text-gray-700 font-bangla mb-1">ঠিকানা</label>
                     <textarea name="address" id="address" rows="3"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('address') border-red-500 @enderror">{{ old('address') }}</textarea>
                     @error('address')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
+                @if($workshopSeminar->show_notes ?? true)
                 <div>
                     <label for="notes" class="block text-sm font-medium text-gray-700 font-bangla mb-1">মন্তব্য</label>
                     <textarea name="notes" id="notes" rows="3"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('notes') border-red-500 @enderror">{{ old('notes') }}</textarea>
                     @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
                 <div class="flex justify-center">
                     <button type="submit" class="btn-primary font-bangla w-full md:w-auto md:min-w-[240px] px-8 py-4 text-base md:text-lg rounded-lg">

@@ -239,38 +239,7 @@ use Illuminate\Support\Str;
             </div>
         </div>
 
-        @if(isset($galleryPreviewPhotos) && $galleryPreviewPhotos->count() > 0)
-            <div class="app-card p-3 sm:p-4 mb-4">
-                <div class="flex items-center justify-between mb-3 sm:mb-4">
-                    <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">
-                        Recent Photos
-                    </h2>
-                    <a href="{{ route('sponsor.gallery.index') }}"
-                       class="text-xs sm:text-sm font-semibold"
-                       style="color: var(--color-medium);">
-                        Open Gallery →
-                    </a>
-                </div>
-                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3">
-                    @foreach($galleryPreviewPhotos as $photo)
-                        <div class="relative rounded-xl overflow-hidden border border-[rgba(189,232,245,0.8)] bg-white">
-                            <div class="aspect-square overflow-hidden">
-                                <img
-                                    src="{{ Storage::disk('public')->url($photo->path) }}"
-                                    alt="{{ $photo->caption ?? 'Photo' }}"
-                                    class="w-full h-full object-cover"
-                                >
-                            </div>
-                            <div class="px-1.5 py-1">
-                                <p class="text-[10px] text-[rgba(15,40,84,0.8)] truncate">
-                                    {{ $photo->user_id === Auth::id() ? 'For: Me' : 'For: ' . ($photo->user->name ?? 'User') }}
-                                </p>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endif
+       
     </div>
                                     </td>
                                     <td class="px-4 py-3">
