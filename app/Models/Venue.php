@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Venue extends Model
 {
@@ -20,8 +19,8 @@ class Venue extends Model
         return $this->belongsToMany(Trade::class, 'venue_trade')->withTimestamps();
     }
 
-    public function workshopSeminars(): HasMany
+    public function workshopSeminars(): BelongsToMany
     {
-        return $this->hasMany(WorkshopSeminar::class, 'venue_id');
+        return $this->belongsToMany(WorkshopSeminar::class, 'workshop_seminar_venue')->withTimestamps();
     }
 }

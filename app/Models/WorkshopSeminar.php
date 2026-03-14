@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -15,7 +14,6 @@ class WorkshopSeminar extends Model
         'thumbnail',
         'description',
         'venue',
-        'venue_id',
         'event_date',
         'event_time',
         'max_participants',
@@ -41,9 +39,9 @@ class WorkshopSeminar extends Model
         ];
     }
 
-    public function venueRelation(): BelongsTo
+    public function venues(): BelongsToMany
     {
-        return $this->belongsTo(Venue::class, 'venue_id');
+        return $this->belongsToMany(Venue::class, 'workshop_seminar_venue')->withTimestamps();
     }
 
     public function trades(): BelongsToMany
@@ -56,11 +54,11 @@ class WorkshopSeminar extends Model
         return $this->hasMany(WorkshopEnrollment::class, 'workshop_seminar_id');
     }
 
-    /** Display venue name: from relation if set, else legacy text */
+    /** Display venue names: from venues relation if set, else legacy text */
     public function getVenueDisplayAttribute(): ?string
     {
-        if ($this->venue_id && $this->relationLoaded('venueRelation') && $this->venueRelation) {
-            return $this->venueRelation->name;
+        if ($this->relationLoaded('venues') && $this->venues->isNotEmpty()) {
+            return $this->venues->pluck('name')->join(', ');
         }
         return $this->venue ?: null;
     }

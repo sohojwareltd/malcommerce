@@ -13,7 +13,7 @@ class WorkshopEnrollmentController extends Controller
     public function index(Request $request)
     {
         $this->authorize('viewAny', WorkshopEnrollment::class);
-        $query = WorkshopEnrollment::with('workshopSeminar')->latest();
+        $query = WorkshopEnrollment::with(['workshopSeminar', 'venue', 'trade'])->latest();
 
         if ($request->filled('workshop_seminar_id')) {
             $query->where('workshop_seminar_id', $request->workshop_seminar_id);
@@ -41,7 +41,7 @@ class WorkshopEnrollmentController extends Controller
     public function show(WorkshopEnrollment $workshopEnrollment)
     {
         $this->authorize('view', $workshopEnrollment);
-        $workshopEnrollment->load('workshopSeminar');
+        $workshopEnrollment->load(['workshopSeminar', 'venue', 'trade']);
         return view('admin.workshop-enrollments.show', compact('workshopEnrollment'));
     }
 

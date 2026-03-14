@@ -50,7 +50,8 @@ class WorkshopSeminarController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'description' => 'nullable|string',
             'venue' => 'nullable|string|max:255',
-            'venue_id' => 'nullable|exists:venues,id',
+            'venues' => 'nullable|array',
+            'venues.*' => 'exists:venues,id',
             'event_date' => 'nullable|date',
             'event_time' => 'nullable|date_format:H:i',
             'max_participants' => 'nullable|integer|min:1',
@@ -72,16 +73,15 @@ class WorkshopSeminarController extends Controller
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['sms_templates'] = $request->input('sms_templates');
-        $data['venue_id'] = $request->input('venue_id');
         $data['show_phone'] = $request->has('show_phone');
         $data['show_address'] = $request->has('show_address');
         $data['show_notes'] = $request->has('show_notes');
-        if ($data['venue_id'] && $request->filled('trades')) {
-            $venue = Venue::find($data['venue_id']);
-            $allowedTradeIds = $venue->trades->pluck('id')->toArray();
+        $venueIds = array_filter(array_map('intval', $request->input('venues', [])));
+        if ($venueIds && $request->filled('trades')) {
+            $allowedTradeIds = Trade::whereHas('venues', fn ($q) => $q->whereIn('venues.id', $venueIds))->pluck('id')->toArray();
             foreach ($request->input('trades') as $tid) {
                 if (!in_array((int) $tid, $allowedTradeIds, true)) {
-                    return redirect()->back()->withInput()->withErrors(['trades' => 'Selected trades must be available at the chosen venue.']);
+                    return redirect()->back()->withInput()->withErrors(['trades' => 'Selected trades must be available at one of the chosen venues.']);
                 }
             }
         }
@@ -94,6 +94,7 @@ class WorkshopSeminarController extends Controller
         }
 
         $workshop = WorkshopSeminar::create($data);
+        $workshop->venues()->sync($venueIds);
         $workshop->trades()->sync($request->input('trades', []));
 
         return redirect()->route('admin.workshop-seminars.index')
@@ -103,14 +104,14 @@ class WorkshopSeminarController extends Controller
     public function show(WorkshopSeminar $workshopSeminar)
     {
         $this->authorize('view', $workshopSeminar);
-        $workshopSeminar->load(['enrollments', 'venueRelation', 'trades']);
+        $workshopSeminar->load(['enrollments', 'venues', 'trades']);
         return view('admin.workshop-seminars.show', compact('workshopSeminar'));
     }
 
     public function edit(WorkshopSeminar $workshopSeminar)
     {
         $this->authorize('update', $workshopSeminar);
-        $workshopSeminar->load(['venueRelation', 'trades']);
+        $workshopSeminar->load(['venues', 'trades']);
         $venues = Venue::with('trades')->orderBy('sort_order')->orderBy('name')->get();
         $trades = Trade::orderBy('sort_order')->orderBy('name')->get();
         return view('admin.workshop-seminars.edit', compact('workshopSeminar', 'venues', 'trades'));
@@ -125,7 +126,8 @@ class WorkshopSeminarController extends Controller
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'description' => 'nullable|string',
             'venue' => 'nullable|string|max:255',
-            'venue_id' => 'nullable|exists:venues,id',
+            'venues' => 'nullable|array',
+            'venues.*' => 'exists:venues,id',
             'event_date' => 'nullable|date',
             'event_time' => 'nullable|date_format:H:i',
             'max_participants' => 'nullable|integer|min:1',
@@ -147,16 +149,15 @@ class WorkshopSeminarController extends Controller
         $data['is_featured'] = $request->has('is_featured');
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['sms_templates'] = $request->input('sms_templates');
-        $data['venue_id'] = $request->input('venue_id');
         $data['show_phone'] = $request->has('show_phone');
         $data['show_address'] = $request->has('show_address');
         $data['show_notes'] = $request->has('show_notes');
-        if ($data['venue_id'] && $request->filled('trades')) {
-            $venue = Venue::find($data['venue_id']);
-            $allowedTradeIds = $venue->trades->pluck('id')->toArray();
+        $venueIds = array_filter(array_map('intval', $request->input('venues', [])));
+        if ($venueIds && $request->filled('trades')) {
+            $allowedTradeIds = Trade::whereHas('venues', fn ($q) => $q->whereIn('venues.id', $venueIds))->pluck('id')->toArray();
             foreach ($request->input('trades') as $tid) {
                 if (!in_array((int) $tid, $allowedTradeIds, true)) {
-                    return redirect()->back()->withInput()->withErrors(['trades' => 'Selected trades must be available at the chosen venue.']);
+                    return redirect()->back()->withInput()->withErrors(['trades' => 'Selected trades must be available at one of the chosen venues.']);
                 }
             }
         }
@@ -169,6 +170,7 @@ class WorkshopSeminarController extends Controller
         }
 
         $workshopSeminar->update($data);
+        $workshopSeminar->venues()->sync($venueIds);
         $workshopSeminar->trades()->sync($request->input('trades', []));
 
         return redirect()->route('admin.workshop-seminars.index')

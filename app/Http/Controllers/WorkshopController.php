@@ -26,7 +26,7 @@ class WorkshopController extends Controller
         if (!$workshopSeminar->is_active) {
             abort(404);
         }
-        $workshopSeminar->load(['venueRelation', 'trades']);
+        $workshopSeminar->load(['venues', 'trades']);
 
         return view('workshops.show', compact('workshopSeminar'));
     }
@@ -38,6 +38,17 @@ class WorkshopController extends Controller
         }
 
         $rules = ['name' => 'required|string|max:255'];
+        $workshopSeminar->load(['venues', 'trades']);
+        if ($workshopSeminar->venues->isNotEmpty()) {
+            $rules['venue_id'] = 'required|exists:venues,id';
+        } else {
+            $rules['venue_id'] = 'nullable|exists:venues,id';
+        }
+        if ($workshopSeminar->trades->isNotEmpty()) {
+            $rules['trade_id'] = 'required|exists:trades,id';
+        } else {
+            $rules['trade_id'] = 'nullable|exists:trades,id';
+        }
         if ($workshopSeminar->show_phone ?? true) {
             $rules['phone'] = 'required|string|max:20';
         } else {
@@ -49,7 +60,20 @@ class WorkshopController extends Controller
         if ($workshopSeminar->show_notes ?? true) {
             $rules['notes'] = 'nullable|string';
         }
-        $request->validate($rules);
+        $validated = $request->validate($rules);
+
+        if ($workshopSeminar->venues->isNotEmpty() && $request->filled('venue_id')) {
+            $validVenueIds = $workshopSeminar->venues->pluck('id')->toArray();
+            if (!in_array((int) $request->venue_id, $validVenueIds, true)) {
+                return redirect()->back()->withInput()->withErrors(['venue_id' => 'Please select a valid venue for this workshop.']);
+            }
+        }
+        if ($workshopSeminar->trades->isNotEmpty() && $request->filled('trade_id')) {
+            $validTradeIds = $workshopSeminar->trades->pluck('id')->toArray();
+            if (!in_array((int) $request->trade_id, $validTradeIds, true)) {
+                return redirect()->back()->withInput()->withErrors(['trade_id' => 'Please select a valid trade for this workshop.']);
+            }
+        }
 
         if ($workshopSeminar->max_participants) {
             $current = $workshopSeminar->enrollments()->count();
@@ -60,6 +84,8 @@ class WorkshopController extends Controller
 
         WorkshopEnrollment::create([
             'workshop_seminar_id' => $workshopSeminar->id,
+            'venue_id' => $request->filled('venue_id') ? $request->venue_id : null,
+            'trade_id' => $request->filled('trade_id') ? $request->trade_id : null,
             'name' => $request->name,
             'phone' => $request->input('phone'),
             'address' => ($workshopSeminar->show_address ?? true) ? ($request->address ?? null) : null,

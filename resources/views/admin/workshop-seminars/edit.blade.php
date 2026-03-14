@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<div class="bg-white rounded-lg shadow-md p-4 sm:p-6 max-w-3xl">
+<div class="bg-white rounded-lg shadow-md p-4 sm:p-6 w-full lg:max-w-[50%] lg:min-w-[32rem]">
     <form method="POST" action="{{ route('admin.workshop-seminars.update', $workshopSeminar) }}" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
@@ -62,27 +62,28 @@
             @error('description')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label for="venue_id" class="block text-sm font-medium text-neutral-700 mb-2">Venue (from list)</label>
-                <select name="venue_id" id="venue_id"
-                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary @error('venue_id') border-red-500 @enderror">
-                    <option value="">— None / use text below —</option>
-                    @foreach($venues as $v)
-                    <option value="{{ $v->id }}" {{ old('venue_id', $workshopSeminar->venue_id) == $v->id ? 'selected' : '' }}>{{ $v->name }}</option>
-                    @endforeach
-                </select>
-                @error('venue_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        <div>
+            <p class="block text-sm font-medium text-neutral-700 mb-2">Venues</p>
+            <p class="text-xs text-neutral-500 mb-2">Select one or more venues for this workshop.</p>
+            <div class="space-y-2 border border-neutral-200 rounded-lg p-3 max-h-40 overflow-y-auto">
+                @php $selectedVenueIds = old('venues', $workshopSeminar->venues->pluck('id')->toArray()); @endphp
+                @foreach($venues as $v)
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" name="venues[]" value="{{ $v->id }}" class="venue-cb rounded" {{ in_array($v->id, $selectedVenueIds) ? 'checked' : '' }}>
+                    <span class="text-sm text-neutral-700">{{ $v->name }}</span>
+                </label>
+                @endforeach
             </div>
-            <div>
-                <label for="venue" class="block text-sm font-medium text-neutral-700 mb-2">Venue (text override)</label>
-                <input type="text" name="venue" id="venue" value="{{ old('venue', $workshopSeminar->venue) }}" placeholder="Optional if venue selected above"
-                    class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary @error('venue') border-red-500 @enderror">
-                @error('venue')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            </div>
+            @error('venues')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+        </div>
+        <div>
+            <label for="venue" class="block text-sm font-medium text-neutral-700 mb-2">Venue (text override)</label>
+            <input type="text" name="venue" id="venue" value="{{ old('venue', $workshopSeminar->venue) }}" placeholder="Optional extra venue text"
+                class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary @error('venue') border-red-500 @enderror">
+            @error('venue')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
         <div id="workshop-trades-wrap" class="hidden">
-            <p class="block text-sm font-medium text-neutral-700 mb-2">Trades at this venue</p>
+            <p class="block text-sm font-medium text-neutral-700 mb-2">Trades at selected venues</p>
             <div id="workshop-trades-list" class="space-y-2 border border-neutral-200 rounded-lg p-3 max-h-40 overflow-y-auto"></div>
             @error('trades')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
         </div>
@@ -184,18 +185,37 @@ document.addEventListener('DOMContentLoaded', function() {
     var allTrades = @json($trades->map(fn($t) => ['id' => $t->id, 'name' => $t->name]));
     var oldTrades = @json(old('trades', $workshopSeminar->trades->pluck('id')->toArray()));
 
-    var venueSelect = document.getElementById('venue_id');
     var tradesWrap = document.getElementById('workshop-trades-wrap');
     var tradesList = document.getElementById('workshop-trades-list');
 
-    function renderTradesForVenue(venueId) {
+    function getSelectedVenueIds() {
+        var ids = [];
+        document.querySelectorAll('.venue-cb:checked').forEach(function(cb) {
+            ids.push(parseInt(cb.value, 10));
+        });
+        return ids;
+    }
+
+    function renderTradesForVenues() {
+        var venueIds = getSelectedVenueIds();
         tradesList.innerHTML = '';
-        if (!venueId || !venueTrades[venueId] || venueTrades[venueId].length === 0) {
+        if (venueIds.length === 0) {
             tradesWrap.classList.add('hidden');
             return;
         }
+        var tradeIds = [];
+        venueIds.forEach(function(vid) {
+            if (venueTrades[vid]) {
+                venueTrades[vid].forEach(function(tid) {
+                    if (tradeIds.indexOf(tid) === -1) tradeIds.push(tid);
+                });
+            }
+        });
+        if (tradeIds.length === 0) {
+            tradesWrap.classList.remove('hidden');
+            return;
+        }
         tradesWrap.classList.remove('hidden');
-        var tradeIds = venueTrades[venueId];
         allTrades.forEach(function(t) {
             if (tradeIds.indexOf(t.id) === -1) return;
             var label = document.createElement('label');
@@ -212,10 +232,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return div.innerHTML;
     }
 
-    if (venueSelect) {
-        venueSelect.addEventListener('change', function() { renderTradesForVenue(this.value ? parseInt(this.value, 10) : null); });
-        renderTradesForVenue(venueSelect.value ? parseInt(venueSelect.value, 10) : null);
-    }
+    document.querySelectorAll('.venue-cb').forEach(function(cb) {
+        cb.addEventListener('change', renderTradesForVenues);
+    });
+    renderTradesForVenues();
 
     var tabButtons = document.querySelectorAll('.tab-button');
     var tabPanels = document.querySelectorAll('.tab-panel');

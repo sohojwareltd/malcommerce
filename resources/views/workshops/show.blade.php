@@ -47,6 +47,34 @@
             <form action="{{ route('workshops.enroll', $workshopSeminar) }}" method="POST" class="space-y-6">
                 @csrf
 
+                @if($workshopSeminar->venues->isNotEmpty())
+                <div>
+                    <label for="venue_id" class="block text-sm font-medium text-gray-700 font-bangla mb-1">স্থান নির্বাচন করুন <span class="text-red-500">*</span></label>
+                    <select name="venue_id" id="venue_id" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('venue_id') border-red-500 @enderror">
+                        <option value="">— স্থান নির্বাচন করুন —</option>
+                        @foreach($workshopSeminar->venues as $v)
+                        <option value="{{ $v->id }}" {{ old('venue_id') == $v->id ? 'selected' : '' }}>{{ $v->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('venue_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+                @endif
+
+                @if($workshopSeminar->trades->isNotEmpty())
+                <div>
+                    <label for="trade_id" class="block text-sm font-medium text-gray-700 font-bangla mb-1">বৃত্তি নির্বাচন করুন <span class="text-red-500">*</span></label>
+                    <select name="trade_id" id="trade_id" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary @error('trade_id') border-red-500 @enderror">
+                        <option value="">— বৃত্তি নির্বাচন করুন —</option>
+                        @foreach($workshopSeminar->trades as $t)
+                        <option value="{{ $t->id }}" {{ old('trade_id') == $t->id ? 'selected' : '' }}>{{ $t->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('trade_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+                @endif
+
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 font-bangla mb-1">নাম <span class="text-red-500">*</span></label>
                     <input type="text" name="name" id="name" value="{{ old('name') }}" required
