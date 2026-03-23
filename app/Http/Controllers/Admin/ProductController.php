@@ -144,7 +144,7 @@ class ProductController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
         
-        $validated['in_stock'] = $validated['is_digital'] ? true : ($validated['stock_quantity'] > 0);
+        $validated['in_stock'] = $isDigital ? true : (($validated['stock_quantity'] ?? $product->stock_quantity ?? 0) > 0);
 
         // Defaults for earnings settings
         $validated['cashback_amount'] = $validated['cashback_amount'] ?? 0;
