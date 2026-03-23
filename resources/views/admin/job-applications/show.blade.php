@@ -43,6 +43,23 @@
     </div>
 </div>
 
+<div class="no-print grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wider text-neutral-500 font-semibold">Application ID</p>
+        <p class="text-lg font-bold text-neutral-900 mt-1">#{{ $jobApplication->id }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wider text-neutral-500 font-semibold">Applied On</p>
+        <p class="text-sm font-semibold text-neutral-900 mt-1">{{ $jobApplication->created_at->format('M d, Y h:i A') }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wider text-neutral-500 font-semibold">Current Status</p>
+        <p class="mt-1">
+            <span class="inline-flex px-2.5 py-1 text-xs font-semibold rounded-full {{ $jobApplication->status === 'hired' ? 'bg-green-100 text-green-800' : ($jobApplication->status === 'shortlisted' ? 'bg-blue-100 text-blue-800' : ($jobApplication->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')) }}">{{ ucfirst($jobApplication->status) }}</span>
+        </p>
+    </div>
+</div>
+
 @can('jobApplications.update')
 <script>
 document.getElementById('status-form')?.querySelector('select[name="status_select"]')?.addEventListener('change', function() {
@@ -77,6 +94,7 @@ document.getElementById('status-form')?.querySelector('select[name="status_selec
                 <div>
                     <h3 class="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">Job</h3>
                     <p class="font-medium text-neutral-900"><a href="{{ route('admin.job-circulars.show', $jobApplication->jobCircular) }}" class="text-primary hover:underline">{{ $jobApplication->jobCircular->title }}</a></p>
+                    <p class="text-xs text-neutral-500 mt-1">Job ID: #{{ $jobApplication->job_circular_id }}</p>
                 </div>
             </div>
 

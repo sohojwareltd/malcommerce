@@ -5,6 +5,11 @@
 @push('styles')
 <style>
 .print-only { display: none; }
+.status-pill { display:inline-flex; padding:2px 10px; font-size:12px; font-weight:600; border-radius:9999px; }
+.status-pending { background:#fef3c7; color:#92400e; }
+.status-shortlisted { background:#dbeafe; color:#1e40af; }
+.status-rejected { background:#fee2e2; color:#991b1b; }
+.status-hired { background:#dcfce7; color:#166534; }
 @media print {
     body * { visibility: hidden; }
     .print-report, .print-report * { visibility: visible; }
@@ -47,6 +52,33 @@
     </nav>
 </div>
 
+@php
+    $statusCounts = [
+        'total' => $applications->total(),
+        'pending' => $applications->where('status', 'pending')->count(),
+        'shortlisted' => $applications->where('status', 'shortlisted')->count(),
+        'hired' => $applications->where('status', 'hired')->count(),
+    ];
+@endphp
+<div class="no-print grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-neutral-500">Total</p>
+        <p class="text-2xl font-bold text-neutral-900 mt-1">{{ $statusCounts['total'] }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-amber-600">Pending</p>
+        <p class="text-2xl font-bold text-amber-700 mt-1">{{ $statusCounts['pending'] }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Shortlisted</p>
+        <p class="text-2xl font-bold text-blue-700 mt-1">{{ $statusCounts['shortlisted'] }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wider text-green-600">Hired</p>
+        <p class="text-2xl font-bold text-green-700 mt-1">{{ $statusCounts['hired'] }}</p>
+    </div>
+</div>
+
 <div class="no-print bg-white rounded-xl shadow-sm border border-neutral-200 p-4 sm:p-6 mb-4">
     <form method="GET" action="{{ route('admin.job-applications.index') }}" class="flex flex-wrap gap-4 items-end">
         <div class="min-w-[200px]">
@@ -73,7 +105,10 @@
             <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Name, email, phone, address..."
                 class="w-full px-4 py-2 border border-neutral-300 rounded-lg text-sm">
         </div>
-        <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90">Filter</button>
+        <div class="flex items-center gap-2">
+            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90">Filter</button>
+            <a href="{{ route('admin.job-applications.index') }}" class="px-4 py-2 rounded-lg text-sm font-medium bg-neutral-100 text-neutral-700 hover:bg-neutral-200">Reset</a>
+        </div>
     </form>
 </div>
 
@@ -95,24 +130,13 @@
                     <p class="text-sm text-neutral-500 mt-0.5 line-clamp-2">{{ $app->address }}</p>
                     @endif
                 </div>
-                <span class="shrink-0 px-2 py-0.5 text-xs font-semibold rounded-full {{ $app->status === 'hired' ? 'bg-green-100 text-green-800' : ($app->status === 'shortlisted' ? 'bg-blue-100 text-blue-800' : ($app->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')) }}">{{ ucfirst($app->status) }}</span>
+                <span class="shrink-0 status-pill {{ $app->status === 'hired' ? 'status-hired' : ($app->status === 'shortlisted' ? 'status-shortlisted' : ($app->status === 'rejected' ? 'status-rejected' : 'status-pending')) }}">{{ ucfirst($app->status) }}</span>
             </div>
             <p class="text-xs text-neutral-400 mt-2">{{ $app->created_at->format('M d, Y h:i A') }}</p>
             <div class="mt-3 flex gap-3 items-center">
                 @can('jobApplications.view')
                 <a href="{{ route('admin.job-applications.show', $app) }}" class="text-primary font-medium text-sm">View</a>
                 @endcan
-                <button type="button"
-                        class="text-indigo-600 font-medium text-sm quick-view-btn"
-                        data-name="{{ $app->name }}"
-                        data-job="{{ $app->jobCircular->title }}"
-                        data-email="{{ $app->email }}"
-                        data-phone="{{ $app->phone }}"
-                        data-address="{{ $app->address ?? '—' }}"
-                        data-status="{{ ucfirst($app->status) }}"
-                        data-applied="{{ $app->created_at->format('M d, Y h:i A') }}">
-                    Popup
-                </button>
                 @can('jobApplications.delete')
                 <form method="POST" action="{{ route('admin.job-applications.destroy', $app) }}" onsubmit="return confirm('Delete this application?');">
                     @csrf
@@ -142,30 +166,19 @@
             </thead>
             <tbody class="divide-y divide-neutral-200 bg-white">
                 @forelse($applications as $app)
-                <tr class="hover:bg-neutral-50/50">
+                <tr class="hover:bg-neutral-50/50 odd:bg-white even:bg-neutral-50/30">
                     <td class="px-5 py-4 font-medium text-neutral-900">{{ $app->name }}</td>
                     <td class="px-5 py-4 text-sm text-neutral-600">{{ $app->jobCircular->title }}</td>
                     <td class="px-5 py-4 text-sm"><span class="block truncate max-w-[200px]">{{ $app->email }}</span><span class="text-neutral-500 text-xs">{{ $app->phone }}</span></td>
                     <td class="px-5 py-4 text-sm text-neutral-600 max-w-[220px] truncate">{{ $app->address ?? '—' }}</td>
                     <td class="px-5 py-4">
-                        <span class="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full {{ $app->status === 'hired' ? 'bg-green-100 text-green-800' : ($app->status === 'shortlisted' ? 'bg-blue-100 text-blue-800' : ($app->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')) }}">{{ ucfirst($app->status) }}</span>
+                        <span class="status-pill {{ $app->status === 'hired' ? 'status-hired' : ($app->status === 'shortlisted' ? 'status-shortlisted' : ($app->status === 'rejected' ? 'status-rejected' : 'status-pending')) }}">{{ ucfirst($app->status) }}</span>
                     </td>
                     <td class="px-5 py-4 text-sm text-neutral-500">{{ $app->created_at->format('M d, Y h:i A') }}</td>
                     <td class="px-5 py-4 text-right no-print">
                         @can('jobApplications.view')
                         <a href="{{ route('admin.job-applications.show', $app) }}" class="text-primary hover:underline text-sm font-medium">View</a>
                         @endcan
-                        <button type="button"
-                                class="ml-3 text-indigo-600 hover:underline text-sm font-medium quick-view-btn"
-                                data-name="{{ $app->name }}"
-                                data-job="{{ $app->jobCircular->title }}"
-                                data-email="{{ $app->email }}"
-                                data-phone="{{ $app->phone }}"
-                                data-address="{{ $app->address ?? '—' }}"
-                                data-status="{{ ucfirst($app->status) }}"
-                                data-applied="{{ $app->created_at->format('M d, Y h:i A') }}">
-                            Popup
-                        </button>
                         @can('jobApplications.delete')
                         <form method="POST" action="{{ route('admin.job-applications.destroy', $app) }}" class="inline ml-3" onsubmit="return confirm('Delete this application?');">
                             @csrf
@@ -185,67 +198,4 @@
     </div>
     <div class="no-print px-4 py-3 border-t border-neutral-200 bg-neutral-50/50">{{ $applications->links() }}</div>
 </div>
-
-<div id="quick-view-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
-    <div class="w-full max-w-md rounded-xl bg-white shadow-xl border border-neutral-200">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
-            <h3 class="font-semibold text-neutral-900">Application Quick View</h3>
-            <button type="button" id="quick-view-close" class="text-neutral-500 hover:text-neutral-700">✕</button>
-        </div>
-        <div class="p-4 space-y-2 text-sm">
-            <p><span class="text-neutral-500">Name:</span> <span id="qv-name" class="font-medium text-neutral-900"></span></p>
-            <p><span class="text-neutral-500">Job:</span> <span id="qv-job"></span></p>
-            <p><span class="text-neutral-500">Email:</span> <span id="qv-email"></span></p>
-            <p><span class="text-neutral-500">Phone:</span> <span id="qv-phone"></span></p>
-            <p><span class="text-neutral-500">Address:</span> <span id="qv-address"></span></p>
-            <p><span class="text-neutral-500">Status:</span> <span id="qv-status"></span></p>
-            <p><span class="text-neutral-500">Applied:</span> <span id="qv-applied"></span></p>
-        </div>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('quick-view-modal');
-    const closeBtn = document.getElementById('quick-view-close');
-    const fields = {
-        name: document.getElementById('qv-name'),
-        job: document.getElementById('qv-job'),
-        email: document.getElementById('qv-email'),
-        phone: document.getElementById('qv-phone'),
-        address: document.getElementById('qv-address'),
-        status: document.getElementById('qv-status'),
-        applied: document.getElementById('qv-applied'),
-    };
-
-    document.querySelectorAll('.quick-view-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            fields.name.textContent = btn.dataset.name || '';
-            fields.job.textContent = btn.dataset.job || '';
-            fields.email.textContent = btn.dataset.email || '';
-            fields.phone.textContent = btn.dataset.phone || '';
-            fields.address.textContent = btn.dataset.address || '';
-            fields.status.textContent = btn.dataset.status || '';
-            fields.applied.textContent = btn.dataset.applied || '';
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        });
-    });
-
-    function closeModal() {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-
-    closeBtn?.addEventListener('click', closeModal);
-    modal?.addEventListener('click', function (e) {
-        if (e.target === modal) closeModal();
-    });
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeModal();
-    });
-});
-</script>
-@endpush
 @endsection
