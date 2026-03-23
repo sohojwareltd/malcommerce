@@ -70,7 +70,7 @@
         </div>
         <div class="flex-1 min-w-[200px]">
             <label for="search" class="block text-sm font-medium text-neutral-700 mb-1">Search</label>
-            <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Name, email, phone..."
+            <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Name, email, phone, address..."
                 class="w-full px-4 py-2 border border-neutral-300 rounded-lg text-sm">
         </div>
         <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90">Filter</button>
@@ -91,13 +91,36 @@
                     <p class="text-sm text-neutral-600 mt-0.5">{{ $app->jobCircular->title }}</p>
                     <p class="text-sm text-neutral-500 mt-1 truncate">{{ $app->email }}</p>
                     <p class="text-sm text-neutral-500">{{ $app->phone }}</p>
+                    @if($app->address)
+                    <p class="text-sm text-neutral-500 mt-0.5 line-clamp-2">{{ $app->address }}</p>
+                    @endif
                 </div>
                 <span class="shrink-0 px-2 py-0.5 text-xs font-semibold rounded-full {{ $app->status === 'hired' ? 'bg-green-100 text-green-800' : ($app->status === 'shortlisted' ? 'bg-blue-100 text-blue-800' : ($app->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')) }}">{{ ucfirst($app->status) }}</span>
             </div>
-            <p class="text-xs text-neutral-400 mt-2">{{ $app->created_at->format('M d, Y') }}</p>
-            @can('jobApplications.view')
-            <a href="{{ route('admin.job-applications.show', $app) }}" class="inline-block mt-3 text-primary font-medium text-sm">View →</a>
-            @endcan
+            <p class="text-xs text-neutral-400 mt-2">{{ $app->created_at->format('M d, Y h:i A') }}</p>
+            <div class="mt-3 flex gap-3 items-center">
+                @can('jobApplications.view')
+                <a href="{{ route('admin.job-applications.show', $app) }}" class="text-primary font-medium text-sm">View</a>
+                @endcan
+                <button type="button"
+                        class="text-indigo-600 font-medium text-sm quick-view-btn"
+                        data-name="{{ $app->name }}"
+                        data-job="{{ $app->jobCircular->title }}"
+                        data-email="{{ $app->email }}"
+                        data-phone="{{ $app->phone }}"
+                        data-address="{{ $app->address ?? '—' }}"
+                        data-status="{{ ucfirst($app->status) }}"
+                        data-applied="{{ $app->created_at->format('M d, Y h:i A') }}">
+                    Popup
+                </button>
+                @can('jobApplications.delete')
+                <form method="POST" action="{{ route('admin.job-applications.destroy', $app) }}" onsubmit="return confirm('Delete this application?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="text-red-600 font-medium text-sm">Delete</button>
+                </form>
+                @endcan
+            </div>
         </div>
         @empty
         <div class="px-4 py-12 text-center text-neutral-500">No applications found.</div>
@@ -111,6 +134,7 @@
                     <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Name</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Job</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Email / Phone</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Address</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Status</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Applied</th>
                     <th class="px-5 py-3 text-right text-xs font-semibold text-neutral-600 uppercase tracking-wider no-print">Actions</th>
@@ -122,19 +146,38 @@
                     <td class="px-5 py-4 font-medium text-neutral-900">{{ $app->name }}</td>
                     <td class="px-5 py-4 text-sm text-neutral-600">{{ $app->jobCircular->title }}</td>
                     <td class="px-5 py-4 text-sm"><span class="block truncate max-w-[200px]">{{ $app->email }}</span><span class="text-neutral-500 text-xs">{{ $app->phone }}</span></td>
+                    <td class="px-5 py-4 text-sm text-neutral-600 max-w-[220px] truncate">{{ $app->address ?? '—' }}</td>
                     <td class="px-5 py-4">
                         <span class="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full {{ $app->status === 'hired' ? 'bg-green-100 text-green-800' : ($app->status === 'shortlisted' ? 'bg-blue-100 text-blue-800' : ($app->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')) }}">{{ ucfirst($app->status) }}</span>
                     </td>
-                    <td class="px-5 py-4 text-sm text-neutral-500">{{ $app->created_at->format('M d, Y') }}</td>
+                    <td class="px-5 py-4 text-sm text-neutral-500">{{ $app->created_at->format('M d, Y h:i A') }}</td>
                     <td class="px-5 py-4 text-right no-print">
                         @can('jobApplications.view')
                         <a href="{{ route('admin.job-applications.show', $app) }}" class="text-primary hover:underline text-sm font-medium">View</a>
+                        @endcan
+                        <button type="button"
+                                class="ml-3 text-indigo-600 hover:underline text-sm font-medium quick-view-btn"
+                                data-name="{{ $app->name }}"
+                                data-job="{{ $app->jobCircular->title }}"
+                                data-email="{{ $app->email }}"
+                                data-phone="{{ $app->phone }}"
+                                data-address="{{ $app->address ?? '—' }}"
+                                data-status="{{ ucfirst($app->status) }}"
+                                data-applied="{{ $app->created_at->format('M d, Y h:i A') }}">
+                            Popup
+                        </button>
+                        @can('jobApplications.delete')
+                        <form method="POST" action="{{ route('admin.job-applications.destroy', $app) }}" class="inline ml-3" onsubmit="return confirm('Delete this application?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:underline text-sm font-medium">Delete</button>
+                        </form>
                         @endcan
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-5 py-12 text-center text-neutral-500">No applications found.</td>
+                    <td colspan="7" class="px-5 py-12 text-center text-neutral-500">No applications found.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -142,4 +185,67 @@
     </div>
     <div class="no-print px-4 py-3 border-t border-neutral-200 bg-neutral-50/50">{{ $applications->links() }}</div>
 </div>
+
+<div id="quick-view-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 p-4">
+    <div class="w-full max-w-md rounded-xl bg-white shadow-xl border border-neutral-200">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+            <h3 class="font-semibold text-neutral-900">Application Quick View</h3>
+            <button type="button" id="quick-view-close" class="text-neutral-500 hover:text-neutral-700">✕</button>
+        </div>
+        <div class="p-4 space-y-2 text-sm">
+            <p><span class="text-neutral-500">Name:</span> <span id="qv-name" class="font-medium text-neutral-900"></span></p>
+            <p><span class="text-neutral-500">Job:</span> <span id="qv-job"></span></p>
+            <p><span class="text-neutral-500">Email:</span> <span id="qv-email"></span></p>
+            <p><span class="text-neutral-500">Phone:</span> <span id="qv-phone"></span></p>
+            <p><span class="text-neutral-500">Address:</span> <span id="qv-address"></span></p>
+            <p><span class="text-neutral-500">Status:</span> <span id="qv-status"></span></p>
+            <p><span class="text-neutral-500">Applied:</span> <span id="qv-applied"></span></p>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('quick-view-modal');
+    const closeBtn = document.getElementById('quick-view-close');
+    const fields = {
+        name: document.getElementById('qv-name'),
+        job: document.getElementById('qv-job'),
+        email: document.getElementById('qv-email'),
+        phone: document.getElementById('qv-phone'),
+        address: document.getElementById('qv-address'),
+        status: document.getElementById('qv-status'),
+        applied: document.getElementById('qv-applied'),
+    };
+
+    document.querySelectorAll('.quick-view-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            fields.name.textContent = btn.dataset.name || '';
+            fields.job.textContent = btn.dataset.job || '';
+            fields.email.textContent = btn.dataset.email || '';
+            fields.phone.textContent = btn.dataset.phone || '';
+            fields.address.textContent = btn.dataset.address || '';
+            fields.status.textContent = btn.dataset.status || '';
+            fields.applied.textContent = btn.dataset.applied || '';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        });
+    });
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    closeBtn?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+    });
+});
+</script>
+@endpush
 @endsection

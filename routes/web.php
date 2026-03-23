@@ -156,6 +156,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/job-applications', [\App\Http\Controllers\Admin\JobApplicationController::class, 'index'])->name('job-applications.index')->middleware('can:jobApplications.viewAny');
         Route::get('/job-applications/{jobApplication}', [\App\Http\Controllers\Admin\JobApplicationController::class, 'show'])->name('job-applications.show')->middleware('can:jobApplications.view');
         Route::patch('/job-applications/{jobApplication}/status', [\App\Http\Controllers\Admin\JobApplicationController::class, 'updateStatus'])->name('job-applications.update-status')->middleware('can:jobApplications.update');
+        Route::delete('/job-applications/{jobApplication}', [\App\Http\Controllers\Admin\JobApplicationController::class, 'destroy'])->name('job-applications.destroy')->middleware('can:jobApplications.delete');
         Route::resource('venues', \App\Http\Controllers\Admin\VenueController::class)->names('venues')->middleware('can:workshopSeminars.viewAny');
         Route::resource('trades', \App\Http\Controllers\Admin\TradeController::class)->names('trades')->middleware('can:workshopSeminars.viewAny');
         Route::resource('workshop-seminars', \App\Http\Controllers\Admin\WorkshopSeminarController::class)->names('workshop-seminars');

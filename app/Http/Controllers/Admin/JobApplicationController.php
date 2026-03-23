@@ -71,6 +71,15 @@ class JobApplicationController extends Controller
         return redirect()->back()->with('success', 'Application status updated.');
     }
 
+    public function destroy(JobApplication $jobApplication)
+    {
+        $this->authorize('delete', $jobApplication);
+        $jobApplication->delete();
+
+        return redirect()->route('admin.job-applications.index')
+            ->with('success', 'Application deleted successfully.');
+    }
+
     protected function buildJobApplicationStatusMessage(JobApplication $jobApplication, string $status): ?string
     {
         $jobApplication->loadMissing('jobCircular');
