@@ -7,6 +7,7 @@ use App\Models\WorkshopEnrollment;
 use App\Models\WorkshopSeminar;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class WorkshopEnrollmentController extends Controller
 {
@@ -69,6 +70,54 @@ class WorkshopEnrollmentController extends Controller
         }
 
         return redirect()->back()->with('success', 'Enrollment status updated.');
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', WorkshopEnrollment::class);
+        $query = WorkshopEnrollment::with(['workshopSeminar', 'venue', 'trade'])->latest();
+
+        if ($request->filled('workshop_seminar_id')) {
+            $query->where('workshop_seminar_id', $request->workshop_seminar_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('phone', 'like', "%{$s}%")
+                    ->orWhere('address', 'like', "%{$s}%");
+            });
+        }
+
+        $enrollments = $query->get();
+        $filename = 'workshop-enrollments-' . now()->format('Y-m-d-His') . '.csv';
+
+        return response()->streamDownload(function () use ($enrollments) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Enrolled At', 'Name', 'Workshop', 'Venue', 'Trade', 'Phone', 'Address', 'Status']);
+
+            foreach ($enrollments as $en) {
+                fputcsv($handle, [
+                    $en->created_at?->format('Y-m-d H:i:s'),
+                    $en->name,
+                    $en->workshopSeminar?->title ?? '',
+                    $en->venue?->name ?? '',
+                    $en->trade?->name ?? '',
+                    $en->phone ?? '',
+                    $en->address ?? '',
+                    $en->status ?? 'pending',
+                ]);
+            }
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     protected function buildEnrollmentStatusMessage(WorkshopEnrollment $workshopEnrollment, string $status): ?string

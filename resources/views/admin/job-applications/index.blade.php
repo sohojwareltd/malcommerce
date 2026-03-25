@@ -32,6 +32,10 @@
             <p class="text-neutral-600 mt-1 text-sm">View and manage job applications</p>
         </div>
         <div class="flex flex-wrap gap-2 items-center">
+            <a href="{{ route('admin.job-applications.export', request()->query()) }}" class="inline-flex items-center gap-2 bg-neutral-200 text-neutral-700 hover:bg-neutral-300 px-4 py-2 rounded-lg transition font-semibold text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4M4 20h16"></path></svg>
+                Export CSV
+            </a>
             <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 bg-neutral-100 text-neutral-700 hover:bg-neutral-200 px-4 py-2 rounded-lg transition font-semibold text-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2h-2m-4-1v8"></path></svg>
                 Print report

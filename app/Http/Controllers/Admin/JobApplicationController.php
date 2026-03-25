@@ -7,6 +7,7 @@ use App\Models\JobApplication;
 use App\Models\JobCircular;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class JobApplicationController extends Controller
 {
@@ -126,6 +127,54 @@ class JobApplicationController extends Controller
 
         return redirect()->route('admin.job-applications.index')
             ->with('success', 'Application deleted successfully.');
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $this->authorize('viewAny', JobApplication::class);
+        $query = JobApplication::with('jobCircular')->latest();
+
+        if ($request->filled('job_circular_id')) {
+            $query->where('job_circular_id', $request->job_circular_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                    ->orWhere('email', 'like', "%{$s}%")
+                    ->orWhere('phone', 'like', "%{$s}%")
+                    ->orWhere('address', 'like', "%{$s}%");
+            });
+        }
+
+        $applications = $query->get();
+        $filename = 'job-applications-' . now()->format('Y-m-d-His') . '.csv';
+
+        return response()->streamDownload(function () use ($applications) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Applied At', 'Name', 'Job Title', 'Email', 'Phone', 'Address', 'Status']);
+
+            foreach ($applications as $app) {
+                fputcsv($handle, [
+                    $app->created_at?->format('Y-m-d H:i:s'),
+                    $app->name,
+                    $app->jobCircular?->title ?? '',
+                    $app->email ?? '',
+                    $app->phone ?? '',
+                    $app->address ?? '',
+                    $app->status ?? 'pending',
+                ]);
+            }
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     protected function buildJobApplicationStatusMessage(JobApplication $jobApplication, string $status): ?string

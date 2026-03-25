@@ -154,6 +154,7 @@ Route::middleware('auth')->group(function () {
         
         Route::resource('job-circulars', \App\Http\Controllers\Admin\JobCircularController::class)->names('job-circulars');
         Route::get('/job-applications', [\App\Http\Controllers\Admin\JobApplicationController::class, 'index'])->name('job-applications.index')->middleware('can:jobApplications.viewAny');
+        Route::get('/job-applications/export', [\App\Http\Controllers\Admin\JobApplicationController::class, 'export'])->name('job-applications.export')->middleware('can:jobApplications.viewAny');
         Route::get('/job-applications/{jobApplication}', [\App\Http\Controllers\Admin\JobApplicationController::class, 'show'])->name('job-applications.show')->middleware('can:jobApplications.view');
         Route::patch('/job-applications/{jobApplication}/status', [\App\Http\Controllers\Admin\JobApplicationController::class, 'updateStatus'])->name('job-applications.update-status')->middleware('can:jobApplications.update');
         Route::patch('/job-applications/bulk-status', [\App\Http\Controllers\Admin\JobApplicationController::class, 'bulkUpdateStatus'])->name('job-applications.bulk-update-status')->middleware('can:jobApplications.update');
@@ -162,6 +163,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('trades', \App\Http\Controllers\Admin\TradeController::class)->names('trades')->middleware('can:workshopSeminars.viewAny');
         Route::resource('workshop-seminars', \App\Http\Controllers\Admin\WorkshopSeminarController::class)->names('workshop-seminars');
         Route::get('/workshop-enrollments', [\App\Http\Controllers\Admin\WorkshopEnrollmentController::class, 'index'])->name('workshop-enrollments.index')->middleware('can:workshopEnrollments.viewAny');
+        Route::get('/workshop-enrollments/export', [\App\Http\Controllers\Admin\WorkshopEnrollmentController::class, 'export'])->name('workshop-enrollments.export')->middleware('can:workshopEnrollments.viewAny');
         Route::get('/workshop-enrollments/{workshopEnrollment}', [\App\Http\Controllers\Admin\WorkshopEnrollmentController::class, 'show'])->name('workshop-enrollments.show')->middleware('can:workshopEnrollments.view');
         Route::patch('/workshop-enrollments/{workshopEnrollment}/status', [\App\Http\Controllers\Admin\WorkshopEnrollmentController::class, 'updateStatus'])->name('workshop-enrollments.update-status')->middleware('can:workshopEnrollments.update');
         Route::get('/expenses', [\App\Http\Controllers\Admin\ExpenseController::class, 'index'])->name('expenses.index')->middleware('can:expenses.viewAny');
