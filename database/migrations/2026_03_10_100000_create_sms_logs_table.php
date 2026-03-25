@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('source', 30); // manual, orders, enrollments, applications
             $table->json('filters')->nullable();
             $table->unsignedInteger('recipient_count');
-            $table->string('message_preview', 200)->nullable();
+            $table->text('message_preview')->nullable();
             $table->timestamps();
         });
     }

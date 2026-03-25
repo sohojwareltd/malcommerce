@@ -107,8 +107,96 @@ class Product extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function activeVariants(): HasMany
+    {
+        return $this->variants()->where('is_active', true);
+    }
+
+    public function hasVariants(): bool
+    {
+        if ($this->relationLoaded('variants')) {
+            return $this->variants->where('is_active', true)->isNotEmpty();
+        }
+
+        return $this->activeVariants()->exists();
+    }
+
+    public function defaultVariant(): ?ProductVariant
+    {
+        if ($this->relationLoaded('variants')) {
+            return $this->variants->where('is_active', true)->sortBy('sort_order')->first();
+        }
+
+        return $this->activeVariants()->first();
+    }
+
+    public function effectivePrice(): float
+    {
+        $variant = $this->defaultVariant();
+        if ($variant) {
+            return (float) $variant->price;
+        }
+
+        return (float) ($this->price ?? 0);
+    }
+
+    public function effectiveCompareAtPrice(): ?float
+    {
+        $variant = $this->defaultVariant();
+        if ($variant) {
+            return $variant->compare_at_price !== null ? (float) $variant->compare_at_price : null;
+        }
+
+        return $this->compare_at_price !== null ? (float) $this->compare_at_price : null;
+    }
+
+    public function effectiveStockQuantity(): int
+    {
+        if ($this->is_digital) {
+            return PHP_INT_MAX;
+        }
+
+        if ($this->hasVariants()) {
+            if ($this->relationLoaded('variants')) {
+                return (int) $this->variants->where('is_active', true)->sum('stock_quantity');
+            }
+            return (int) $this->activeVariants()->sum('stock_quantity');
+        }
+
+        return (int) ($this->stock_quantity ?? 0);
+    }
+
+    public function effectiveInStock(): bool
+    {
+        if ($this->is_digital) {
+            return true;
+        }
+
+        if ($this->hasVariants()) {
+            if ($this->relationLoaded('variants')) {
+                return $this->variants->where('is_active', true)->contains(fn ($variant) => $variant->in_stock && $variant->stock_quantity > 0);
+            }
+            return $this->activeVariants()
+                ->where('in_stock', true)
+                ->where('stock_quantity', '>', 0)
+                ->exists();
+        }
+
+        return (bool) $this->in_stock && (int) ($this->stock_quantity ?? 0) > 0;
+    }
+
     public function getMainImageAttribute()
     {
+        $variant = $this->defaultVariant();
+        if ($variant && !empty($variant->image)) {
+            return $variant->image;
+        }
+
         $images = $this->images ?? [];
         return !empty($images) ? $images[0] : null;
     }

@@ -59,6 +59,7 @@
         'shortlisted' => $applications->where('status', 'shortlisted')->count(),
         'hired' => $applications->where('status', 'hired')->count(),
     ];
+    $canUpdateApplications = auth()->user()?->can('jobApplications.update') ?? false;
 @endphp
 <div class="no-print grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
     <div class="bg-white rounded-xl border border-neutral-200 p-4 shadow-sm">
@@ -113,6 +114,25 @@
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
+    @can('jobApplications.update')
+    <div class="no-print px-4 sm:px-6 py-3 border-b border-neutral-200 bg-neutral-50">
+        <form id="bulk-status-form" method="POST" action="{{ route('admin.job-applications.bulk-update-status') }}" class="flex flex-wrap items-center gap-2 sm:gap-3">
+            @csrf
+            @method('PATCH')
+            <span class="text-sm font-medium text-neutral-700">Bulk status:</span>
+            <select name="status" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                <option value="">Select status</option>
+                <option value="pending">Pending</option>
+                <option value="shortlisted">Shortlisted</option>
+                <option value="rejected">Rejected</option>
+                <option value="hired">Hired</option>
+            </select>
+            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90">Apply to selected</button>
+            <span class="text-xs text-neutral-500">Select rows first</span>
+        </form>
+    </div>
+    @endcan
+
     <div class="print-report p-6">
         <h2 class="text-xl font-bold text-neutral-900">Job Applications Report</h2>
         <p class="text-sm text-neutral-600 print-only mt-1">Printed on {{ now()->format('M d, Y h:i A') }}</p>
@@ -120,6 +140,14 @@
     <div class="md:hidden divide-y divide-neutral-200 no-print">
         @forelse($applications as $app)
         <div class="p-4 hover:bg-neutral-50/50">
+            @can('jobApplications.update')
+            <div class="mb-2">
+                <label class="inline-flex items-center gap-2 text-xs text-neutral-600">
+                    <input type="checkbox" name="application_ids[]" value="{{ $app->id }}" form="bulk-status-form" class="rounded border-neutral-300 text-primary focus:ring-primary">
+                    Select for bulk update
+                </label>
+            </div>
+            @endcan
             <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0 flex-1">
                     <p class="font-semibold text-neutral-900 truncate">{{ $app->name }}</p>
@@ -133,6 +161,19 @@
                 <span class="shrink-0 status-pill {{ $app->status === 'hired' ? 'status-hired' : ($app->status === 'shortlisted' ? 'status-shortlisted' : ($app->status === 'rejected' ? 'status-rejected' : 'status-pending')) }}">{{ ucfirst($app->status) }}</span>
             </div>
             <p class="text-xs text-neutral-400 mt-2">{{ $app->created_at->format('M d, Y h:i A') }}</p>
+            @can('jobApplications.update')
+            <form method="POST" action="{{ route('admin.job-applications.update-status', $app) }}" class="mt-3 flex items-center gap-2">
+                @csrf
+                @method('PATCH')
+                <select name="status" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                    <option value="pending" {{ $app->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="shortlisted" {{ $app->status === 'shortlisted' ? 'selected' : '' }}>Shortlisted</option>
+                    <option value="rejected" {{ $app->status === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                    <option value="hired" {{ $app->status === 'hired' ? 'selected' : '' }}>Hired</option>
+                </select>
+                <button type="submit" class="px-3 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:opacity-90">Update</button>
+            </form>
+            @endcan
             <div class="mt-3 flex gap-3 items-center">
                 @can('jobApplications.view')
                 <a href="{{ route('admin.job-applications.show', $app) }}" class="text-primary font-medium text-sm">View</a>
@@ -155,6 +196,11 @@
         <table class="min-w-full divide-y divide-neutral-200">
             <thead class="bg-neutral-50">
                 <tr>
+                    @can('jobApplications.update')
+                    <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider no-print">
+                        <input type="checkbox" id="select-all-applications" class="rounded border-neutral-300 text-primary focus:ring-primary">
+                    </th>
+                    @endcan
                     <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Name</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Job</th>
                     <th class="px-5 py-3 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Email / Phone</th>
@@ -167,12 +213,32 @@
             <tbody class="divide-y divide-neutral-200 bg-white">
                 @forelse($applications as $app)
                 <tr class="hover:bg-neutral-50/50 odd:bg-white even:bg-neutral-50/30">
+                    @can('jobApplications.update')
+                    <td class="px-5 py-4 no-print">
+                        <input type="checkbox" name="application_ids[]" value="{{ $app->id }}" form="bulk-status-form" class="application-checkbox rounded border-neutral-300 text-primary focus:ring-primary">
+                    </td>
+                    @endcan
                     <td class="px-5 py-4 font-medium text-neutral-900">{{ $app->name }}</td>
                     <td class="px-5 py-4 text-sm text-neutral-600">{{ $app->jobCircular->title }}</td>
                     <td class="px-5 py-4 text-sm"><span class="block truncate max-w-[200px]">{{ $app->email }}</span><span class="text-neutral-500 text-xs">{{ $app->phone }}</span></td>
                     <td class="px-5 py-4 text-sm text-neutral-600 max-w-[220px] truncate">{{ $app->address ?? '—' }}</td>
                     <td class="px-5 py-4">
+                        @can('jobApplications.update')
+                        <form method="POST" action="{{ route('admin.job-applications.update-status', $app) }}" class="flex items-center gap-2 no-print">
+                            @csrf
+                            @method('PATCH')
+                            <select name="status" class="px-3 py-1.5 border border-neutral-300 rounded-lg text-sm">
+                                <option value="pending" {{ $app->status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="shortlisted" {{ $app->status === 'shortlisted' ? 'selected' : '' }}>Shortlisted</option>
+                                <option value="rejected" {{ $app->status === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                <option value="hired" {{ $app->status === 'hired' ? 'selected' : '' }}>Hired</option>
+                            </select>
+                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-medium hover:opacity-90">Update</button>
+                        </form>
+                        <span class="status-pill print-only {{ $app->status === 'hired' ? 'status-hired' : ($app->status === 'shortlisted' ? 'status-shortlisted' : ($app->status === 'rejected' ? 'status-rejected' : 'status-pending')) }}">{{ ucfirst($app->status) }}</span>
+                        @else
                         <span class="status-pill {{ $app->status === 'hired' ? 'status-hired' : ($app->status === 'shortlisted' ? 'status-shortlisted' : ($app->status === 'rejected' ? 'status-rejected' : 'status-pending')) }}">{{ ucfirst($app->status) }}</span>
+                        @endcan
                     </td>
                     <td class="px-5 py-4 text-sm text-neutral-500">{{ $app->created_at->format('M d, Y h:i A') }}</td>
                     <td class="px-5 py-4 text-right no-print">
@@ -190,7 +256,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-5 py-12 text-center text-neutral-500">No applications found.</td>
+                    <td colspan="{{ $canUpdateApplications ? 8 : 7 }}" class="px-5 py-12 text-center text-neutral-500">No applications found.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -198,4 +264,20 @@
     </div>
     <div class="no-print px-4 py-3 border-t border-neutral-200 bg-neutral-50/50">{{ $applications->links() }}</div>
 </div>
+
+@can('jobApplications.update')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const selectAll = document.getElementById('select-all-applications');
+    const checkboxes = document.querySelectorAll('.application-checkbox');
+    if (!selectAll || checkboxes.length === 0) return;
+
+    selectAll.addEventListener('change', function () {
+        checkboxes.forEach((checkbox) => {
+            checkbox.checked = selectAll.checked;
+        });
+    });
+});
+</script>
+@endcan
 @endsection

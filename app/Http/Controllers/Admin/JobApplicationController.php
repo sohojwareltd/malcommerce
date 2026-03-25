@@ -28,7 +28,8 @@ class JobApplicationController extends Controller
             $query->where(function ($q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
                     ->orWhere('email', 'like', "%{$s}%")
-                    ->orWhere('phone', 'like', "%{$s}%");
+                    ->orWhere('phone', 'like', "%{$s}%")
+                    ->orWhere('address', 'like', "%{$s}%");
             });
         }
 
@@ -69,6 +70,53 @@ class JobApplicationController extends Controller
         }
 
         return redirect()->back()->with('success', 'Application status updated.');
+    }
+
+    public function bulkUpdateStatus(Request $request, SmsService $smsService)
+    {
+        $validated = $request->validate([
+            'application_ids' => 'required|array|min:1',
+            'application_ids.*' => 'integer|exists:job_applications,id',
+            'status' => 'required|in:pending,shortlisted,rejected,hired',
+        ]);
+
+        $applications = JobApplication::whereIn('id', $validated['application_ids'])
+            ->get();
+
+        if ($applications->isEmpty()) {
+            return redirect()->back()->with('error', 'No applications selected.');
+        }
+
+        $updatedCount = 0;
+        foreach ($applications as $application) {
+            $this->authorize('update', $application);
+
+            $oldStatus = $application->status;
+            $newStatus = $validated['status'];
+
+            if ($oldStatus === $newStatus) {
+                continue;
+            }
+
+            $application->update(['status' => $newStatus]);
+            $updatedCount++;
+
+            if ($application->phone) {
+                $message = $this->buildJobApplicationStatusMessage($application, $newStatus);
+                if ($message) {
+                    try {
+                        $smsService->send($application->phone, $message);
+                    } catch (\Throwable $e) {
+                        \Log::warning('Failed to send bulk job application status SMS', [
+                            'job_application_id' => $application->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', "{$updatedCount} application(s) status updated.");
     }
 
     public function destroy(JobApplication $jobApplication)

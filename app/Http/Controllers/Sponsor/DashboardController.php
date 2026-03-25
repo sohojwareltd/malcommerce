@@ -75,6 +75,22 @@ class DashboardController extends Controller
             ->latest()
             ->take(8)
             ->get();
+
+        $recentDigitalOrders = Order::with('product')
+            ->where('user_id', $user->id)
+            ->whereHas('product', fn ($q) => $q->where('is_digital', true))
+            ->where(function ($q) {
+                $q->where(function ($q) {
+                    $q->where('payment_method', 'bkash')
+                        ->where('payment_status', 'completed');
+                })->orWhere(function ($q) {
+                    $q->where('payment_method', '!=', 'bkash')
+                        ->whereIn('status', ['processing', 'shipped', 'delivered']);
+                });
+            })
+            ->orderByDesc('created_at')
+            ->take(4)
+            ->get();
         
         return view('sponsor.dashboard', [
             'stats' => $stats,
@@ -84,6 +100,7 @@ class DashboardController extends Controller
             'affiliateLink' => $affiliateLink,
             'products' => $products,
             'galleryPreviewPhotos' => $galleryPreviewPhotos,
+            'recentDigitalOrders' => $recentDigitalOrders,
         ]);
     }
     
