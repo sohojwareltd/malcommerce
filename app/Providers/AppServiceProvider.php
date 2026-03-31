@@ -14,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Register SMS Service as singleton
+        // Register SMS Service as singlsaton 
         $this->app->singleton(\App\Services\SmsService::class, function ($app) {
             return new \App\Services\SmsService();
         });
