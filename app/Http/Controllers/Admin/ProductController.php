@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -111,6 +113,15 @@ class ProductController extends Controller
             'digital_content_type' => 'nullable|string|in:file,link',
             'digital_file' => 'nullable|file|max:51200', // 50MB
             'digital_link_text' => 'nullable|string|max:10000',
+            'variants' => 'nullable|array',
+            'variants.*.name' => 'nullable|string|max:255',
+            'variants.*.sku' => 'nullable|string|max:255',
+            'variants.*.price' => 'nullable|numeric|min:0',
+            'variants.*.compare_at_price' => 'nullable|numeric|min:0',
+            'variants.*.stock_quantity' => 'nullable|integer|min:0',
+            'variants.*.image' => 'nullable|string|max:2048',
+            'variants.*.attributes' => 'nullable|string|max:2000',
+            'variants.*.sort_order' => 'nullable|integer|min:0',
         ], [
             'payment_options.required' => 'At least one payment method must be selected.',
             'payment_options.min' => 'At least one payment method must be selected.',
@@ -144,7 +155,7 @@ class ProductController extends Controller
             $validated['slug'] = Str::slug($validated['name']);
         }
         
-        $validated['in_stock'] = $isDigital ? true : (($validated['stock_quantity'] ?? $product->stock_quantity ?? 0) > 0);
+        $validated['in_stock'] = $isDigital ? true : (($validated['stock_quantity'] ?? 0) > 0);
 
         // Defaults for earnings settings
         $validated['cashback_amount'] = $validated['cashback_amount'] ?? 0;
@@ -195,7 +206,14 @@ class ProductController extends Controller
         // Remove file from validated (handled after create)
         unset($validated['digital_file']);
         
-        $product = Product::create($validated);
+        $variantsData = $validated['variants'] ?? [];
+        unset($validated['variants']);
+
+        $product = DB::transaction(function () use ($validated, $variantsData) {
+            $product = Product::create($validated);
+            $this->syncVariants($product, $variantsData);
+            return $product;
+        });
 
         if ($isDigital && $validated['digital_content_type'] === 'file' && $request->hasFile('digital_file')) {
             $path = $request->file('digital_file')->store('digital-products/' . $product->id, 'public');
@@ -208,6 +226,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::orderBy('sort_order')->orderBy('name')->get();
+        $product->load('variants');
         return view('admin.products.edit', compact('product', 'categories'));
     }
     
@@ -258,6 +277,16 @@ class ProductController extends Controller
             'digital_content_type' => 'nullable|string|in:file,link',
             'digital_file' => 'nullable|file|max:51200',
             'digital_link_text' => 'nullable|string|max:10000',
+            'variants' => 'nullable|array',
+            'variants.*.id' => 'nullable|integer',
+            'variants.*.name' => 'nullable|string|max:255',
+            'variants.*.sku' => 'nullable|string|max:255',
+            'variants.*.price' => 'nullable|numeric|min:0',
+            'variants.*.compare_at_price' => 'nullable|numeric|min:0',
+            'variants.*.stock_quantity' => 'nullable|integer|min:0',
+            'variants.*.image' => 'nullable|string|max:2048',
+            'variants.*.attributes' => 'nullable|string|max:2000',
+            'variants.*.sort_order' => 'nullable|integer|min:0',
         ], [
             'payment_options.required' => 'At least one payment method must be selected.',
             'payment_options.min' => 'At least one payment method must be selected.',
@@ -397,7 +426,13 @@ class ProductController extends Controller
         }
 
         unset($validated['digital_file']);
-        $product->update($validated);
+        $variantsData = $validated['variants'] ?? [];
+        unset($validated['variants']);
+
+        DB::transaction(function () use ($product, $validated, $variantsData) {
+            $product->update($validated);
+            $this->syncVariants($product, $variantsData);
+        });
 
         if ($isDigital && $validated['digital_content_type'] === 'file' && $request->hasFile('digital_file')) {
             if ($product->digital_file_path && Storage::disk('public')->exists($product->digital_file_path)) {
@@ -427,5 +462,61 @@ class ProductController extends Controller
         $this->authorize('restore', $product);
         $product->restore();
         return redirect()->route('admin.products.index')->with('success', 'Product restored successfully!');
+    }
+
+    protected function syncVariants(Product $product, array $variantsData): void
+    {
+        $existingVariants = ProductVariant::withTrashed()
+            ->where('product_id', $product->id)
+            ->get()
+            ->keyBy('id');
+
+        $keptIds = [];
+
+        foreach ($variantsData as $row) {
+            $name = trim((string)($row['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $attributes = null;
+            if (!empty($row['attributes'])) {
+                $decoded = json_decode($row['attributes'], true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $attributes = $decoded;
+                }
+            }
+
+            $payload = [
+                'name' => $name,
+                'sku' => !empty($row['sku']) ? trim((string)$row['sku']) : null,
+                'price' => isset($row['price']) && $row['price'] !== '' ? (float)$row['price'] : 0,
+                'compare_at_price' => isset($row['compare_at_price']) && $row['compare_at_price'] !== '' ? (float)$row['compare_at_price'] : null,
+                'stock_quantity' => isset($row['stock_quantity']) && $row['stock_quantity'] !== '' ? (int)$row['stock_quantity'] : 0,
+                'in_stock' => isset($row['in_stock']) ? (bool)$row['in_stock'] : ((int)($row['stock_quantity'] ?? 0) > 0),
+                'image' => !empty($row['image']) ? trim((string)$row['image']) : null,
+                'attributes' => $attributes,
+                'is_active' => isset($row['is_active']) ? (bool)$row['is_active'] : true,
+                'sort_order' => isset($row['sort_order']) && $row['sort_order'] !== '' ? (int)$row['sort_order'] : 0,
+            ];
+
+            $variantId = isset($row['id']) && $row['id'] !== '' ? (int)$row['id'] : null;
+            if ($variantId && $existingVariants->has($variantId)) {
+                $variant = $existingVariants->get($variantId);
+                if ($variant->trashed()) {
+                    $variant->restore();
+                }
+                $variant->update($payload);
+                $keptIds[] = $variant->id;
+                continue;
+            }
+
+            $newVariant = $product->variants()->create($payload);
+            $keptIds[] = $newVariant->id;
+        }
+
+        ProductVariant::where('product_id', $product->id)
+            ->when(!empty($keptIds), fn ($q) => $q->whereNotIn('id', $keptIds))
+            ->delete();
     }
 }

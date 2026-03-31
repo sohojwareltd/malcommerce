@@ -20,6 +20,21 @@
             'delivered' => 'Delivered',
             'cancelled' => 'Cancelled',
         ];
+        $existingVariantsForJs = ($product->variants ?? collect())->map(function ($variant) {
+            return [
+                'id' => $variant->id,
+                'name' => $variant->name,
+                'sku' => $variant->sku,
+                'price' => $variant->price,
+                'compare_at_price' => $variant->compare_at_price,
+                'stock_quantity' => $variant->stock_quantity,
+                'in_stock' => (bool) $variant->in_stock,
+                'is_active' => (bool) $variant->is_active,
+                'image' => $variant->image,
+                'attributes' => $variant->attributes,
+                'sort_order' => $variant->sort_order,
+            ];
+        })->values()->toArray();
     @endphp
 
     <div class="border-b border-neutral-200 mb-6">
@@ -29,6 +44,9 @@
             </button>
             <button type="button" data-tab-target="order" class="tab-button px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100">
                 Order Form
+            </button>
+            <button type="button" data-tab-target="variations" class="tab-button px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100">
+                Variations
             </button>
             <button type="button" data-tab-target="sms" class="tab-button px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100">
                 SMS Settings
@@ -139,6 +157,7 @@
             <label class="block text-sm font-medium text-neutral-700 mb-2">Sort Order</label>
             <input type="number" name="sort_order" value="{{ old('sort_order', $product->sort_order) }}" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
         </div>
+
     </div>
 
     <!-- Earning Settings -->
@@ -205,6 +224,42 @@
     </div>
     
     </div> <!-- End tab-details -->
+
+    <div id="tab-variations" class="tab-panel hidden">
+        <div class="space-y-6">
+            <div class="border border-neutral-200 rounded-lg p-4 bg-white">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                        <h3 class="text-base font-semibold text-neutral-900">Attributes (in advance)</h3>
+                        <p class="text-xs text-neutral-500 mt-1">Define groups like color/text/image, then generate variant rows automatically.</p>
+                    </div>
+                    <button type="button" onclick="addAttributeGroup()" class="px-3 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition text-sm font-medium">
+                        + Add Attribute Group
+                    </button>
+                </div>
+                <div id="attribute-groups-container" class="space-y-3"></div>
+                <div class="mt-4">
+                    <button type="button" onclick="generateVariantsFromAttributes()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition text-sm font-semibold">
+                        Generate Variants
+                    </button>
+                </div>
+            </div>
+
+        <div class="md:col-span-2 border border-neutral-200 rounded-lg p-4 bg-neutral-50/40">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <div>
+                    <h3 class="text-base font-semibold text-neutral-900">Product Variations</h3>
+                    <p class="text-xs text-neutral-500">Add size/color/pack variations. Leave empty if this product has no variants.</p>
+                </div>
+                <button type="button" onclick="addVariantRow()" class="px-3 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition text-sm font-medium">
+                    + Add Variation
+                </button>
+            </div>
+            <div id="variants-container" class="space-y-3"></div>
+            @error('variants')<p class="text-red-600 text-sm mt-2">{{ $message }}</p>@enderror
+        </div>
+        </div>
+    </div>
 
     <div id="tab-order" class="tab-panel hidden">
         <!-- Order Form Settings -->
@@ -367,6 +422,493 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 let imageIndex = 0;
+let variantIndex = 0;
+let attributeGroupIndex = 0;
+
+function addAttributeGroup() {
+    const container = document.getElementById('attribute-groups-container');
+    const index = attributeGroupIndex++;
+
+    const groupCard = document.createElement('div');
+    groupCard.className = 'attr-group-card p-3 sm:p-4 border border-neutral-200 rounded-lg bg-white';
+    groupCard.dataset.attrGroupIndex = index;
+    groupCard.innerHTML = `
+        <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex-1">
+                <label class="block text-xs font-medium text-neutral-700 mb-1">Group Name</label>
+                <input type="text" class="attr-group-name w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm" placeholder="e.g. Color">
+            </div>
+            <button type="button" onclick="removeAttributeGroup(this)" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm whitespace-nowrap">
+                Remove
+            </button>
+        </div>
+
+        <div class="flex flex-wrap gap-3 items-end mb-3">
+            <div>
+                <label class="block text-xs font-medium text-neutral-700 mb-1">Value Type</label>
+                <select class="attr-group-type w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm" onchange="syncAttributeGroupValueVisibility(${index})">
+                    <option value="text">Text</option>
+                    <option value="color">Color</option>
+                    <option value="image">Image</option>
+                </select>
+            </div>
+            <div>
+                <button type="button" onclick="addAttributeValueRow(${index})" class="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition text-sm font-medium">
+                    + Add Value
+                </button>
+            </div>
+        </div>
+
+        <div class="space-y-3 attr-values-container"></div>
+    `;
+
+    container.appendChild(groupCard);
+}
+
+function removeAttributeGroup(button) {
+    button.closest('.attr-group-card').remove();
+}
+
+function addAttributeValueRow(groupIndex) {
+    const groupCard = document.querySelector(`.attr-group-card[data-attr-group-index="${groupIndex}"]`);
+    if (!groupCard) return;
+
+    const valuesContainer = groupCard.querySelector('.attr-values-container');
+    const type = groupCard.querySelector('.attr-group-type').value;
+
+    const valueRow = document.createElement('div');
+    valueRow.className = 'attr-value-row p-3 border border-neutral-200 rounded-lg bg-neutral-50/40';
+    valueRow.innerHTML = `
+        <div class="flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs font-medium text-neutral-700 mb-1">Label</label>
+                <input type="text" class="attr-value-label w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm" placeholder="e.g. Red">
+            </div>
+
+            <div class="attr-value-color-wrap ${type === 'color' ? '' : 'hidden'}">
+                <label class="block text-xs font-medium text-neutral-700 mb-1">Color</label>
+                <div class="flex items-center gap-2">
+                    <input type="color" class="attr-value-color w-10 h-10 rounded border border-neutral-300" value="#000000">
+                    <input type="text" class="attr-value-color-hex w-28 px-3 py-2 border border-neutral-300 rounded-lg text-sm" placeholder="#RRGGBB" value="#000000">
+                </div>
+            </div>
+
+            <div class="attr-value-image-wrap ${type === 'image' ? '' : 'hidden'}">
+                <label class="block text-xs font-medium text-neutral-700 mb-1">Image</label>
+                <div class="flex items-center gap-2">
+                    <div class="attr-value-image-preview w-10 h-10 rounded border border-neutral-200 overflow-hidden" style="background:#f3f4f6;">
+                        <img class="w-full h-full object-cover hidden" alt="Attribute value image">
+                    </div>
+                    <input type="hidden" class="attr-value-image-url">
+                    <button type="button" onclick="uploadAttributeValueImage(this)" class="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition text-xs">
+                        Upload
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" onclick="removeAttributeValueRow(this)" class="px-3 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition text-xs whitespace-nowrap">
+                Remove
+            </button>
+        </div>
+    `;
+
+    valuesContainer.appendChild(valueRow);
+
+    const colorPicker = valueRow.querySelector('.attr-value-color');
+    const hexInput = valueRow.querySelector('.attr-value-color-hex');
+    if (colorPicker && hexInput) {
+        colorPicker.addEventListener('input', () => {
+            hexInput.value = colorPicker.value;
+        });
+    }
+}
+
+function removeAttributeValueRow(button) {
+    button.closest('.attr-value-row').remove();
+}
+
+function syncAttributeGroupValueVisibility(groupIndex) {
+    const groupCard = document.querySelector(`.attr-group-card[data-attr-group-index="${groupIndex}"]`);
+    if (!groupCard) return;
+
+    const type = groupCard.querySelector('.attr-group-type').value;
+    groupCard.querySelectorAll('.attr-value-color-wrap').forEach(el => el.classList.toggle('hidden', type !== 'color'));
+    groupCard.querySelectorAll('.attr-value-image-wrap').forEach(el => el.classList.toggle('hidden', type !== 'image'));
+}
+
+async function uploadAttributeValueImage(button) {
+    const valueRow = button.closest('.attr-value-row');
+    const hiddenInput = valueRow.querySelector('.attr-value-image-url');
+    const previewWrap = valueRow.querySelector('.attr-value-image-preview');
+    const previewImg = previewWrap.querySelector('img');
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('type', 'products');
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        button.disabled = true;
+        const originalText = button.textContent;
+        button.textContent = 'Uploading...';
+
+        try {
+            const response = await fetch('{{ route("admin.upload.image") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (!data.success || !data.url) {
+                alert('Failed to upload image');
+                return;
+            }
+
+            hiddenInput.value = data.url;
+            previewImg.src = data.url;
+            previewImg.classList.remove('hidden');
+            button.textContent = 'Change';
+        } catch (err) {
+            console.error('Attribute value image upload failed:', err);
+            alert('Error uploading image');
+        } finally {
+            button.disabled = false;
+            if (button.textContent === 'Uploading...') button.textContent = originalText;
+        }
+    };
+
+    input.click();
+}
+
+function canonicalizeAttributes(attributes) {
+    const out = {};
+    Object.keys(attributes || {}).sort().forEach((k) => {
+        out[k] = attributes[k];
+    });
+    return JSON.stringify(out);
+}
+
+function getDefaultVariantDefaults() {
+    const priceInput = document.getElementById('product-price');
+    const compareInput = document.querySelector('input[name="compare_at_price"]');
+    const stockInput = document.querySelector('input[name="stock_quantity"]');
+    const isDigital = (document.getElementById('is_digital')?.value || '0') === '1';
+    const isFree = !!document.getElementById('product-is-free')?.checked;
+
+    let price = priceInput ? parseFloat(priceInput.value) : 0;
+    if (!Number.isFinite(price)) price = 0;
+    if (isFree) price = 0;
+
+    let compareAt = compareInput ? parseFloat(compareInput.value) : NaN;
+    if (!Number.isFinite(compareAt) || compareAt < 0) compareAt = null;
+
+    let stock = stockInput ? parseInt(stockInput.value, 10) : 0;
+    if (!Number.isFinite(stock) || stock < 0) stock = 0;
+
+    const inStock = isDigital ? true : stock > 0;
+
+    return {
+        price,
+        compareAt,
+        stock,
+        inStock,
+    };
+}
+
+function generateVariantsFromAttributes() {
+    const groupsContainer = document.getElementById('attribute-groups-container');
+    if (!groupsContainer) return;
+
+    const groupCards = groupsContainer.querySelectorAll('.attr-group-card');
+    const groups = [];
+
+    groupCards.forEach((card) => {
+        const groupName = (card.querySelector('.attr-group-name')?.value || '').trim();
+        const type = card.querySelector('.attr-group-type')?.value || 'text';
+
+        const items = [];
+        card.querySelectorAll('.attr-value-row').forEach((valueRow) => {
+            const label = (valueRow.querySelector('.attr-value-label')?.value || '').trim();
+            if (!label) return;
+
+            const item = { label };
+            if (type === 'color') {
+                const hex = (valueRow.querySelector('.attr-value-color-hex')?.value || '').trim();
+                item.label = label || hex || label;
+            }
+            if (type === 'image') {
+                const imageUrl = (valueRow.querySelector('.attr-value-image-url')?.value || '').trim();
+                item.imageUrl = imageUrl || null;
+            }
+
+            items.push(item);
+        });
+
+        if (groupName && items.length > 0) {
+            groups.push({ groupName, type, items });
+        }
+    });
+
+    if (groups.length === 0) {
+        alert('Add at least one attribute group with values.');
+        return;
+    }
+
+    const existingSet = new Set();
+    document.querySelectorAll('.variant-attributes-json').forEach((input) => {
+        const raw = (input.value || '').trim();
+        if (!raw) return;
+        try {
+            const parsed = JSON.parse(raw);
+            existingSet.add(canonicalizeAttributes(parsed));
+        } catch (e) {
+            // ignore invalid entries
+        }
+    });
+
+    const defaults = getDefaultVariantDefaults();
+
+    let combinations = [{ attributes: {}, image: null, nameParts: [] }];
+    groups.forEach((group) => {
+        const next = [];
+        combinations.forEach((comb) => {
+            group.items.forEach((item) => {
+                const attrs = { ...comb.attributes, [group.groupName]: item.label };
+                const image = comb.image || (group.type === 'image' ? (item.imageUrl || null) : null);
+                const nameParts = [...comb.nameParts, item.label];
+                next.push({ attributes: attrs, image, nameParts });
+            });
+        });
+        combinations = next;
+    });
+
+    let added = 0;
+    combinations.forEach((comb) => {
+        const canonical = canonicalizeAttributes(comb.attributes);
+        if (existingSet.has(canonical)) return;
+
+        const variantName = comb.nameParts.join(' / ');
+        addVariantRow({
+            name: variantName,
+            sku: null,
+            price: defaults.price,
+            compare_at_price: defaults.compareAt,
+            stock_quantity: defaults.stock,
+            in_stock: defaults.inStock,
+            image: comb.image,
+            attributes: comb.attributes,
+            is_active: true,
+            sort_order: 0,
+        });
+
+        existingSet.add(canonical);
+        added++;
+    });
+
+    alert(added ? `Generated ${added} variant(s).` : 'No new variants to add (already up to date).');
+}
+
+function addVariantRow(variant = {}) {
+    const container = document.getElementById('variants-container');
+    const index = variantIndex++;
+    const attributesRaw = variant.attributes ?? null;
+    let attributesObj = null;
+    if (attributesRaw && typeof attributesRaw === 'object') {
+        attributesObj = attributesRaw;
+    } else if (typeof attributesRaw === 'string' && attributesRaw.trim() !== '') {
+        try { attributesObj = JSON.parse(attributesRaw); } catch (e) { attributesObj = null; }
+    }
+    const attributesJson = attributesObj ? JSON.stringify(attributesObj) : (typeof attributesRaw === 'string' ? attributesRaw : '');
+    const attributesText = attributesObj
+        ? Object.entries(attributesObj).map(([k, v]) => `${k}=${v}`).join('\n')
+        : '';
+    const variantImage = variant.image ?? '';
+    const row = document.createElement('div');
+    row.className = 'variant-row p-3 border border-neutral-200 rounded-lg bg-white';
+    row.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <input type="hidden" name="variants[${index}][id]" value="${variant.id ?? ''}">
+            <div>
+                <label class="block text-xs font-medium text-neutral-600 mb-1">Variation Name</label>
+                <input type="text" name="variants[${index}][name]" value="${variant.name ?? ''}" placeholder="e.g. Red / XL" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-neutral-600 mb-1">SKU</label>
+                <input type="text" name="variants[${index}][sku]" value="${variant.sku ?? ''}" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-neutral-600 mb-1">Price</label>
+                <input type="number" step="0.01" min="0" name="variants[${index}][price]" value="${variant.price ?? ''}" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-neutral-600 mb-1">Stock</label>
+                <input type="number" min="0" name="variants[${index}][stock_quantity]" value="${variant.stock_quantity ?? 0}" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-neutral-600 mb-1">Compare At Price</label>
+                <input type="number" step="0.01" min="0" name="variants[${index}][compare_at_price]" value="${variant.compare_at_price ?? ''}" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-neutral-600 mb-1">Variant Image</label>
+                <input type="hidden" name="variants[${index}][image]" value="${variantImage}" class="variant-image-input">
+                <div class="flex items-center gap-2">
+                    <div class="variant-image-preview w-10 h-10 rounded border border-neutral-200 overflow-hidden ${variantImage ? '' : 'hidden'}">
+                        <img src="${variantImage}" alt="Variant image" class="w-full h-full object-cover">
+                    </div>
+                    <button type="button" onclick="uploadVariantImage(this)" class="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-light transition text-xs">
+                        ${variantImage ? 'Change' : 'Upload'}
+                    </button>
+                    <button type="button" onclick="clearVariantImage(this)" class="px-3 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition text-xs ${variantImage ? '' : 'hidden'}">
+                        Remove
+                    </button>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-neutral-600 mb-1">Attributes (key=value)</label>
+                <input type="hidden" name="variants[${index}][attributes]" id="variant-attributes-json-${index}" class="variant-attributes-json">
+                <textarea id="variant-attributes-text-${index}" rows="2"
+                          oninput="updateVariantAttributesJson(${index})"
+                          placeholder="color=Red&#10;size=XL"
+                          class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">${attributesText}</textarea>
+                <p class="text-[11px] text-neutral-500 mt-1">One per line. Example: <span class="font-mono">color=Red</span></p>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-neutral-600 mb-1">Sort Order</label>
+                <input type="number" min="0" name="variants[${index}][sort_order]" value="${variant.sort_order ?? 0}" class="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+            </div>
+        </div>
+        <div class="mt-3 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <label class="flex items-center gap-2 text-sm text-neutral-700">
+                    <input type="checkbox" name="variants[${index}][in_stock]" value="1" ${(variant.in_stock ?? true) ? 'checked' : ''} class="rounded border-neutral-300 text-primary focus:ring-primary">
+                    In stock
+                </label>
+                <label class="flex items-center gap-2 text-sm text-neutral-700">
+                    <input type="checkbox" name="variants[${index}][is_active]" value="1" ${(variant.is_active ?? true) ? 'checked' : ''} class="rounded border-neutral-300 text-primary focus:ring-primary">
+                    Active
+                </label>
+            </div>
+            <button type="button" onclick="removeVariantRow(this)" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm">Remove</button>
+        </div>
+    `;
+    container.appendChild(row);
+
+    const hiddenInput = row.querySelector(`#variant-attributes-json-${index}`);
+    if (hiddenInput) hiddenInput.value = attributesJson || '';
+}
+
+function removeVariantRow(button) {
+    button.closest('.variant-row').remove();
+}
+
+function uploadVariantImage(button) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('type', 'products');
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        button.disabled = true;
+        const originalText = button.textContent;
+        button.textContent = 'Uploading...';
+
+        try {
+            const response = await fetch('{{ route("admin.upload.image") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: formData,
+            });
+            const data = await response.json();
+            if (!data.success || !data.url) {
+                alert('Failed to upload variant image');
+                return;
+            }
+
+            const row = button.closest('.variant-row');
+            const hiddenInput = row.querySelector('.variant-image-input');
+            const previewWrap = row.querySelector('.variant-image-preview');
+            const previewImg = previewWrap.querySelector('img');
+            const removeBtn = button.nextElementSibling;
+
+            hiddenInput.value = data.url;
+            previewImg.src = data.url;
+            previewWrap.classList.remove('hidden');
+            button.textContent = 'Change';
+            if (removeBtn) removeBtn.classList.remove('hidden');
+        } catch (error) {
+            console.error('Variant image upload failed:', error);
+            alert('Error uploading variant image');
+        } finally {
+            button.disabled = false;
+            if (button.textContent === 'Uploading...') {
+                button.textContent = originalText;
+            }
+        }
+    };
+    input.click();
+}
+
+function clearVariantImage(button) {
+    const row = button.closest('.variant-row');
+    const hiddenInput = row.querySelector('.variant-image-input');
+    const previewWrap = row.querySelector('.variant-image-preview');
+    const previewImg = previewWrap.querySelector('img');
+    const uploadBtn = previewWrap.parentElement.querySelector('button[onclick="uploadVariantImage(this)"]');
+
+    hiddenInput.value = '';
+    previewImg.src = '';
+    previewWrap.classList.add('hidden');
+    button.classList.add('hidden');
+    if (uploadBtn) uploadBtn.textContent = 'Upload';
+}
+
+function keyValueLinesToJson(text) {
+    const lines = (text || '')
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(l => l.length > 0 && !l.startsWith('#'));
+
+    const obj = {};
+    lines.forEach(line => {
+        let sep = line.includes('=') ? '=' : (line.includes(':') ? ':' : null);
+        if (!sep) return;
+        const idx = line.indexOf(sep);
+        const key = line.slice(0, idx).trim();
+        const value = line.slice(idx + 1).trim();
+        if (!key) return;
+        obj[key] = value;
+    });
+
+    return obj;
+}
+
+function updateVariantAttributesJson(index) {
+    const textarea = document.getElementById(`variant-attributes-text-${index}`);
+    const hiddenInput = document.getElementById(`variant-attributes-json-${index}`);
+    if (!textarea || !hiddenInput) return;
+
+    const parsed = keyValueLinesToJson(textarea.value);
+    hiddenInput.value = Object.keys(parsed).length ? JSON.stringify(parsed) : '';
+}
 
 function addImageUpload(imageUrl = '') {
     const container = document.getElementById('images-container');
@@ -491,6 +1033,13 @@ document.addEventListener('DOMContentLoaded', function() {
         deliveryOptionsJson.forEach(option => {
             addDeliveryOption(option.name || '', option.charge || 0, option.days || '');
         });
+    }
+
+    const oldVariants = @json(old('variants'));
+    const existingVariants = @json($existingVariantsForJs);
+    const variantsToRender = Array.isArray(oldVariants) ? oldVariants : existingVariants;
+    if (Array.isArray(variantsToRender) && variantsToRender.length > 0) {
+        variantsToRender.forEach((variant) => addVariantRow(variant));
     }
 });
 </script>
