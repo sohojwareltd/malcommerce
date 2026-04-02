@@ -54,7 +54,7 @@ use Illuminate\Support\Facades\Storage;
                                 src="{{ Storage::disk('public')->url($referral->photo) }}"
                                 alt="{{ $referral->name }}"
                                 data-lightbox-src="{{ Storage::disk('public')->url($referral->photo) }}"
-                                class="w-10 h-10 rounded-full object-cover border-2 shadow-sm cursor-zoom-in"
+                                class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 shadow-sm cursor-zoom-in"
                                 style="border-color: var(--color-accent);"
                             >
                             <div class="min-w-0">
@@ -64,7 +64,7 @@ use Illuminate\Support\Facades\Storage;
                         </button>
                     @else
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-sm" style="background: var(--color-light); border-color: var(--color-accent);">
+                            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center border-2 shadow-sm" style="background: var(--color-light); border-color: var(--color-accent);">
                                 <span class="text-white font-bold text-sm">{{ substr($referral->name, 0, 1) }}</span>
                             </div>
                             <div class="min-w-0">
