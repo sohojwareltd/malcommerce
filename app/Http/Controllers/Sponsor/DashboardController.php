@@ -386,13 +386,18 @@ class DashboardController extends Controller
             abort(403, 'Unauthorized action.');
         }
         
-        // Load referral's customer orders and their products
+        // Load referral's customer orders, gallery, and their own referrals
         $referral->load([
             'customerOrders.product' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             },
             'galleryPhotos' => function ($query) {
                 $query->with('uploader')->latest()->take(12);
+            },
+            'referrals' => function ($query) {
+                $query->withCount('customerOrders')
+                    ->orderByDesc('created_at')
+                    ->take(50);
             },
         ]);
         
