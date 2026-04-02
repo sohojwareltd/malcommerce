@@ -223,6 +223,17 @@ use Illuminate\Support\Facades\Storage;
                             </svg>
                             <span class="text-xs sm:text-sm font-semibold text-white">৳{{ number_format($income, 2) }}</span>
                         </div>
+                        <a 
+                            href="/" 
+                            class="flex sm:hidden items-center justify-center rounded-full p-2 hover:bg-neutral-200 transition"
+                            title="Visit Site"
+                        >
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3.6 9h16.8M3.6 15h16.8"></path>
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3c3 3.5 3 14.5 0 18-3-3.5-3-14.5 0-18z"></path>
+                            </svg>
+                        </a>
                         <div class="relative" x-data="{ open: false }">
                             <button 
                                 @click="open = !open"

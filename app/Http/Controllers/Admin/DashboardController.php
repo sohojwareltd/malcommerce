@@ -669,15 +669,7 @@ class DashboardController extends Controller
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {
             try {
-                // Resize and store photo (400x400 pixels, 85% quality)
-                $photoPath = \App\Services\ImageResizeService::resizeAndStore(
-                    $request->file('photo'),
-                    'photos',
-                    400,
-                    400,
-                    85
-                );
-                $data['photo'] = $photoPath;
+                $this->resizeAndReplaceUserPhoto($request, null, $data);
             } catch (\Exception $e) {
                 \Log::error('Photo upload failed: ' . $e->getMessage());
                 return redirect()->back()
@@ -740,6 +732,31 @@ class DashboardController extends Controller
         }
         
         throw new \Exception('Invalid Bangladesh phone number format. Please enter a valid 11-digit mobile number.');
+    }
+
+    /**
+     * Resize and replace a user's profile photo before saving.
+     */
+    protected function resizeAndReplaceUserPhoto(Request $request, ?User $user, array &$data): void
+    {
+        if (!$request->hasFile('photo')) {
+            return;
+        }
+
+        // Delete old photo if exists (prevents leaving unreferenced originals).
+        if ($user && $user->photo && Storage::disk('public')->exists($user->photo)) {
+            Storage::disk('public')->delete($user->photo);
+        }
+
+        $photoPath = \App\Services\ImageResizeService::resizeAndStore(
+            $request->file('photo'),
+            'photos',
+            400,
+            400,
+            85
+        );
+
+        $data['photo'] = $photoPath;
     }
     
     public function showSponsor(User $sponsor)
@@ -821,20 +838,7 @@ class DashboardController extends Controller
         
         // Handle photo upload
         if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($sponsor->photo && Storage::disk('public')->exists($sponsor->photo)) {
-                Storage::disk('public')->delete($sponsor->photo);
-            }
-            
-            // Resize and store photo (400x400 pixels, 85% quality)
-            $photoPath = \App\Services\ImageResizeService::resizeAndStore(
-                $request->file('photo'),
-                'photos',
-                400,
-                400,
-                85
-            );
-            $data['photo'] = $photoPath;
+            $this->resizeAndReplaceUserPhoto($request, $sponsor, $data);
         }
         
         $sponsor->update($data);
@@ -1495,20 +1499,7 @@ class DashboardController extends Controller
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {
             try {
-            // Delete old photo if exists
-            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
-                Storage::disk('public')->delete($user->photo);
-            }
-            
-                // Resize and store photo (400x400 pixels, 85% quality)
-                $photoPath = \App\Services\ImageResizeService::resizeAndStore(
-                    $request->file('photo'),
-                    'photos',
-                    400,
-                    400,
-                    85
-                );
-            $data['photo'] = $photoPath;
+                $this->resizeAndReplaceUserPhoto($request, $user, $data);
             } catch (\Exception $e) {
                 \Log::error('Photo upload failed: ' . $e->getMessage());
                 return redirect()->back()

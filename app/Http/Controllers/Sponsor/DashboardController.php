@@ -13,6 +13,31 @@ use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
 {
+    /**
+     * Resize and replace a user's profile photo before saving.
+     */
+    protected function resizeAndReplaceUserPhoto(Request $request, ?User $user, array &$data): void
+    {
+        if (!$request->hasFile('photo')) {
+            return;
+        }
+
+        // Delete old photo if exists (prevents leaving unreferenced originals).
+        if ($user && $user->photo && Storage::disk('public')->exists($user->photo)) {
+            Storage::disk('public')->delete($user->photo);
+        }
+
+        $photoPath = \App\Services\ImageResizeService::resizeAndStore(
+            $request->file('photo'),
+            'photos',
+            400,
+            400,
+            85
+        );
+
+        $data['photo'] = $photoPath;
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -195,24 +220,14 @@ class DashboardController extends Controller
         }
         
         // Handle photo upload with auto-resize
-        if ($request->hasFile('photo')) {
-            try {
-                // Resize and store photo (400x400 pixels, 85% quality)
-                $photoPath = \App\Services\ImageResizeService::resizeAndStore(
-                    $request->file('photo'),
-                    'photos',
-                    400,
-                    400,
-                    85
-                );
-                $data['photo'] = $photoPath;
-            } catch (\Exception $e) {
-                \Log::error('Photo upload failed: ' . $e->getMessage());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to upload photo. ' . $e->getMessage()
-                ], 422);
-            }
+        try {
+            $this->resizeAndReplaceUserPhoto($request, null, $data);
+        } catch (\Exception $e) {
+            \Log::error('Photo upload failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload photo. ' . $e->getMessage()
+            ], 422);
         }
         
         // Create user with current sponsor as referrer
@@ -317,22 +332,7 @@ class DashboardController extends Controller
         }
         
         // Handle photo upload with auto-resize
-        if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
-                Storage::disk('public')->delete($user->photo);
-            }
-            
-            // Resize and store photo (400x400 pixels, 85% quality)
-            $photoPath = \App\Services\ImageResizeService::resizeAndStore(
-                $request->file('photo'),
-                'photos',
-                400,
-                400,
-                85
-            );
-            $data['photo'] = $photoPath;
-        }
+        $this->resizeAndReplaceUserPhoto($request, $user, $data);
         
         $user->update($data);
         
@@ -448,22 +448,7 @@ class DashboardController extends Controller
         ];
         
         // Handle photo upload with auto-resize
-        if ($request->hasFile('photo')) {
-            // Delete old photo if exists
-            if ($referral->photo && Storage::disk('public')->exists($referral->photo)) {
-                Storage::disk('public')->delete($referral->photo);
-            }
-            
-            // Resize and store photo (400x400 pixels, 85% quality)
-            $photoPath = \App\Services\ImageResizeService::resizeAndStore(
-                $request->file('photo'),
-                'photos',
-                400,
-                400,
-                85
-            );
-            $data['photo'] = $photoPath;
-        }
+        $this->resizeAndReplaceUserPhoto($request, $referral, $data);
         
         $referral->update($data);
         
