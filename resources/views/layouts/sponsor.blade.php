@@ -204,79 +204,93 @@ use Illuminate\Support\Facades\Storage;
         
         <!-- Main Content -->
         <main :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'lg:ml-20' : 'lg:ml-64'" class="flex-1 transition-all duration-300 min-w-0 overflow-x-hidden">
-            <!-- Top Bar -->
-            <div class="bg-white/95 backdrop-blur-sm shadow-sm border-b sticky top-0 z-30" style="border-color: rgba(189, 232, 245, 0.3);">
-                <div class="px-3 sm:px-4 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
-                    <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 -ml-2 rounded-lg transition" style="color: #0F2854;">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-                    <h1 class="text-sm sm:text-base md:text-lg lg:text-xl font-bold truncate flex-1 ml-2 sm:ml-0" style="color: #0F2854;">@yield('title', 'Dashboard')</h1>
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        @php
-                            $income = Auth::user()->balance;
-                        @endphp
-                        <div class="hidden sm:flex items-center gap-2 rounded-xl px-3 py-2 shadow-sm" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <span class="text-xs sm:text-sm font-semibold text-white">৳{{ number_format($income, 2) }}</span>
-                        </div>
-                        <a 
-                            href="/" 
-                            class="flex sm:hidden items-center justify-center rounded-full p-2 hover:bg-neutral-200 transition"
-                            title="Visit Site"
-                        >
-                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
-                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3.6 9h16.8M3.6 15h16.8"></path>
-                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3c3 3.5 3 14.5 0 18-3-3.5-3-14.5 0-18z"></path>
-                            </svg>
-                        </a>
-                        <div class="relative" x-data="{ open: false }">
-                            <button 
-                                @click="open = !open"
-                                class="flex items-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition"
-                            >
-                                @if(Auth::user()->photo)
-                                    <img src="{{ Storage::disk('public')->url(Auth::user()->photo) }}" alt="{{ Auth::user()->name }}" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 transition-colors" style="border-color: #BDE8F5;">
-                                @else
-                                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2 transition-colors" style="background: #4988C4; border-color: #BDE8F5;">
-                                        <span class="text-white font-semibold text-xs sm:text-sm">{{ substr(Auth::user()->name, 0, 1) }}</span>
-                                    </div>
-                                @endif
-                            </button>
-                            <div 
-                                x-show="open"
-                                @click.away="open = false"
-                                x-transition:enter="transition ease-out duration-100"
-                                x-transition:enter-start="transform opacity-0 scale-95"
-                                x-transition:enter-end="transform opacity-100 scale-100"
-                                x-transition:leave="transition ease-in duration-75"
-                                x-transition:leave-start="transform opacity-100 scale-100"
-                                x-transition:leave-end="transform opacity-0 scale-95"
-                                class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50"
-                                style="display: none;"
-                            >
-                                <div class="px-4 py-3 border-b border-neutral-100">
-                                    <p class="text-sm font-semibold text-neutral-900">{{ Auth::user()->name }}</p>
-                                    <p class="text-xs text-neutral-500 truncate">{{ Auth::user()->affiliate_code }}</p>
+            <!-- Top Bar (match main app header style) -->
+            <header class="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+                <nav class="bg-white">
+                    <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+                        <div class="flex items-center justify-between h-16 gap-4">
+                            <div class="flex items-center gap-2 min-w-0 flex-1">
+                                <h1 class="text-2xl font-bold  truncate" style="color: #0F2854;">
+                                    Care Giver
+                                </h1>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                @php
+                                    $income = Auth::user()->balance;
+                                @endphp
+                                <div class="hidden sm:flex items-center gap-2 rounded-xl px-3 py-2 shadow-sm" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-xs sm:text-sm font-semibold text-white">৳{{ number_format($income, 2) }}</span>
                                 </div>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition text-left">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                        </svg>
-                                        Logout
+                                <a href="{{ route('sponsor.dashboard') }}" class="flex items-center gap-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                </svg>
+                              
+                            </a>
+                                <a href="/" class="flex sm:hidden items-center justify-center rounded-full p-2 hover:bg-gray-50 transition" title="Visit Site">
+                                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
+                                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3.6 9h16.8M3.6 15h16.8"></path>
+                                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 3c3 3.5 3 14.5 0 18-3-3.5-3-14.5 0-18z"></path>
+                                    </svg>
+                                </a>
+
+                                <div class="relative" x-data="{ open: false }">
+                                    <button
+                                        @click="open = !open"
+                                        class="flex items-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition"
+                                    >
+                                        @if(Auth::user()->photo)
+                                            <img src="{{ Storage::disk('public')->url(Auth::user()->photo) }}" alt="{{ Auth::user()->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 hover:border-primary transition-colors">
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-gray-200 hover:border-primary transition-colors" style="background: #4988C4;">
+                                                <span class="text-white font-semibold text-sm">{{ substr(Auth::user()->name, 0, 1) }}</span>
+                                            </div>
+                                        @endif
                                     </button>
-                                </form>
+                                    <div
+                                        x-show="open"
+                                        @click.away="open = false"
+                                        x-transition:enter="transition ease-out duration-100"
+                                        x-transition:enter-start="transform opacity-0 scale-95"
+                                        x-transition:enter-end="transform opacity-100 scale-100"
+                                        x-transition:leave="transition ease-in duration-75"
+                                        x-transition:leave-start="transform opacity-100 scale-100"
+                                        x-transition:leave-end="transform opacity-0 scale-95"
+                                        class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+                                        style="display: none;"
+                                    >
+                                        <div class="px-4 py-3 border-b border-gray-100">
+                                            <p class="text-sm font-semibold text-gray-900">{{ Auth::user()->name }}</p>
+                                            <p class="text-xs text-gray-500 truncate">{{ Auth::user()->affiliate_code }}</p>
+                                        </div>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition text-left">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                                </svg>
+                                                Logout
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+
+                                <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 -mr-2 rounded-lg transition text-gray-700 hover:bg-gray-50" aria-label="Open menu">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </nav>
+            </header>
             
             <div class="p-3 sm:p-4 lg:p-8 max-w-full overflow-x-hidden">
                 @if(session('success'))
