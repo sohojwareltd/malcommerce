@@ -112,7 +112,29 @@ use Illuminate\Support\Str;
                 </a>
             </div>
 
-<div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div x-data="{ showBalances: false }" class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        x-show="!showBalances"
+                        x-cloak
+                        @click="showBalances = true"
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/20 hover:bg-white/30 border border-white/30 transition text-center"
+                    >
+                        Tap to see balance
+                    </button>
+                    <div x-show="showBalances" x-cloak class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        <button
+                            type="button"
+                            @click="showBalances = false"
+                            class="px-4 py-2 rounded-xl text-sm font-semibold text-white/90 bg-white/15 hover:bg-white/25 border border-white/25 transition"
+                        >
+                            Hide balance
+                        </button>
+                    </div>
+                </div>
+
+                <div x-show="showBalances" x-cloak x-transition class="grid grid-cols-2 md:grid-cols-3 gap-2">
             <!-- Income Display -->
             <div class="income-card rounded-xl p-2.5 sm:p-3">
                 <div class="flex items-center justify-between">
@@ -166,6 +188,7 @@ use Illuminate\Support\Str;
                     </div>
                 </div>
             </div>
+                </div>
             </div>
 
         </div>
@@ -188,10 +211,10 @@ use Illuminate\Support\Str;
                 <svg class="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mx-auto text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
                 </svg>
-        </div>
+            </div>
             <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">My Orders</p>
             <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['my_orders'] }}</p>
-</div>
+        </div>
 
         <div class="stat-card text-center" style="padding: 12px 8px;">
             <div class="mb-1 sm:mb-2">
