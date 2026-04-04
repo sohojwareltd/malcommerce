@@ -146,12 +146,21 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         @if(request('trashed') && $product->trashed())
-                            @can('products.restore')
-                            <form action="{{ route('admin.products.restore', $product) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('products.restore')
+                                <form action="{{ route('admin.products.restore', $product) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
+                                </form>
+                                @endcan
+                                @can('products.forceDelete')
+                                <form action="{{ route('admin.products.force-delete', $product) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this product? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800 font-medium">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
                         <div class="flex items-center gap-2">
                             <a href="{{ route('admin.products.edit', $product) }}" class="text-primary hover:text-primary-light">Edit</a>
@@ -205,12 +214,21 @@
             </div>
             <div class="flex flex-wrap gap-2 pt-2 border-t border-neutral-200">
                 @if(request('trashed') && $product->trashed())
-                    @can('products.restore')
-                    <form action="{{ route('admin.products.restore', $product) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium">Restore</button>
-                    </form>
-                    @endcan
+                    <div class="flex flex-wrap items-center gap-2">
+                        @can('products.restore')
+                        <form action="{{ route('admin.products.restore', $product) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="text-emerald-600 hover:text-emerald-700 text-sm font-medium">Restore</button>
+                        </form>
+                        @endcan
+                        @can('products.forceDelete')
+                        <form action="{{ route('admin.products.force-delete', $product) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this product? This cannot be undone.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-700 hover:text-red-800 text-sm font-medium">Delete forever</button>
+                        </form>
+                        @endcan
+                    </div>
                 @else
                 <a href="{{ route('admin.products.edit', $product) }}" class="text-primary hover:text-primary-light text-sm font-medium">Edit</a>
                 <span class="text-neutral-300">|</span>

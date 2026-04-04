@@ -96,12 +96,21 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         @if(request('trashed') && $user->trashed())
-                            @can('users.restore')
-                            <form action="{{ route('admin.users.restore', $user) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 hover:text-emerald-700">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('users.restore')
+                                <form action="{{ route('admin.users.restore', $user) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 hover:text-emerald-700">Restore</button>
+                                </form>
+                                @endcan
+                                @can('users.forceDelete')
+                                <form action="{{ route('admin.users.force-delete', $user) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this admin user? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
                         <div class="flex items-center gap-2">
                             <a href="{{ route('admin.users.edit', $user) }}" class="text-primary hover:text-primary-light">Edit</a>
@@ -151,12 +160,21 @@
             </div>
             <div class="flex gap-3 pt-2 border-t border-neutral-200">
                 @if(request('trashed') && $user->trashed())
-                    @can('users.restore')
-                    <form action="{{ route('admin.users.restore', $user) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="text-emerald-600 font-medium text-sm">Restore</button>
-                    </form>
-                    @endcan
+                    <div class="flex flex-wrap items-center gap-2">
+                        @can('users.restore')
+                        <form action="{{ route('admin.users.restore', $user) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="text-emerald-600 font-medium text-sm">Restore</button>
+                        </form>
+                        @endcan
+                        @can('users.forceDelete')
+                        <form action="{{ route('admin.users.force-delete', $user) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this admin user? This cannot be undone.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-700 hover:text-red-800 font-medium text-sm">Delete forever</button>
+                        </form>
+                        @endcan
+                    </div>
                 @else
                 <a href="{{ route('admin.users.edit', $user) }}" class="text-primary hover:text-primary-light font-medium text-sm">Edit</a>
                 @if($user->id !== Auth::id())

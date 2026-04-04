@@ -27,6 +27,7 @@ class User extends Authenticatable
         'role',
         'affiliate_code',
         'sponsor_id',
+        'sponsor_level_id',
         'created_from_order_id',
         'address',
         'photo',
@@ -66,7 +67,17 @@ class User extends Authenticatable
     // Relationships
     public function sponsor()
     {
-        return $this->belongsTo(User::class, 'sponsor_id');
+        return $this->belongsTo(User::class, 'sponsor_id')->withTrashed();
+    }
+
+    public function sponsorLevel()
+    {
+        return $this->belongsTo(SponsorLevel::class, 'sponsor_level_id');
+    }
+
+    public function sponsorLevelHistories()
+    {
+        return $this->hasMany(SponsorLevelHistory::class)->orderByDesc('created_at');
     }
 
     public function referrals()
@@ -102,6 +113,21 @@ class User extends Authenticatable
     public function galleryPhotos()
     {
         return $this->hasMany(GalleryPhoto::class);
+    }
+
+    public function purchasesSubmitted()
+    {
+        return $this->hasMany(Purchase::class, 'submitted_by_sponsor_id');
+    }
+
+    public function purchasesAsBeneficiary()
+    {
+        return $this->hasMany(Purchase::class, 'beneficiary_user_id');
+    }
+
+    public function sponsorIncomes()
+    {
+        return $this->hasMany(SponsorIncome::class, 'sponsor_id')->orderByDesc('created_at');
     }
 
     public function uploadedGalleryPhotos()

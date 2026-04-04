@@ -92,12 +92,21 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $video->sort_order }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         @if(request('trashed') && $video->trashed())
-                            @can('videos.restore')
-                            <form action="{{ route('admin.videos.restore', $video) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('videos.restore')
+                                <form action="{{ route('admin.videos.restore', $video) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
+                                </form>
+                                @endcan
+                                @can('videos.forceDelete')
+                                <form action="{{ route('admin.videos.force-delete', $video) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this video? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800 font-medium">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
                         <div class="flex gap-2">
                             <a href="{{ route('admin.videos.edit', $video) }}" class="text-primary hover:text-primary-light font-medium">Edit</a>
@@ -134,12 +143,21 @@
                     </div>
                     <div class="flex gap-3 mt-3">
                         @if(request('trashed') && $video->trashed())
-                            @can('videos.restore')
-                            <form action="{{ route('admin.videos.restore', $video) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 font-medium text-sm">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('videos.restore')
+                                <form action="{{ route('admin.videos.restore', $video) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 font-medium text-sm">Restore</button>
+                                </form>
+                                @endcan
+                                @can('videos.forceDelete')
+                                <form action="{{ route('admin.videos.force-delete', $video) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this video? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800 font-medium text-sm">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
                         <a href="{{ route('admin.videos.edit', $video) }}" class="text-primary font-medium text-sm">Edit</a>
                         <form action="{{ route('admin.videos.destroy', $video) }}" method="POST" class="inline" onsubmit="return confirm('Delete this video?');">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Video;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
 
 class VideoController extends Controller
 {
@@ -128,5 +129,25 @@ class VideoController extends Controller
         $this->authorize('restore', $video);
         $video->restore();
         return redirect()->route('admin.videos.index')->with('success', 'Video restored successfully.');
+    }
+
+    public function forceDestroy(Request $request)
+    {
+        $video = Video::withTrashed()->findOrFail($request->route('video'));
+        if (!$video->trashed()) {
+            return redirect()->back()->with('error', 'Only soft-deleted videos can be permanently removed.');
+        }
+        $this->authorize('forceDelete', $video);
+        try {
+            if ($video->thumbnail && !str_starts_with($video->thumbnail, 'http')) {
+                Storage::disk('public')->delete($video->thumbnail);
+            }
+            $video->forceDelete();
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Cannot delete permanently: this video is still referenced elsewhere.');
+        }
+
+        return redirect()->route('admin.videos.index', ['trashed' => 1])
+            ->with('success', 'Video permanently deleted.');
     }
 }

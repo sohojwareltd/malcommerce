@@ -17,6 +17,19 @@ class UserPolicy
 
     public function restore(User $user, Model $model): bool
     {
+        if ($model instanceof User && $model->role === 'sponsor') {
+            return $user->can('sponsors.restore');
+        }
+
         return $this->check($user, 'restore', $model);
+    }
+
+    public function forceDelete(User $user, User $model): bool
+    {
+        if ($model->role === 'sponsor') {
+            return $user->can('sponsors.forceDelete');
+        }
+
+        return $this->check($user, 'forceDelete', $model);
     }
 }

@@ -56,7 +56,7 @@
                                 $parts = explode('.', $perm->name, 2);
                                 $resource = $parts[0] ?? '';
                                 $action = $parts[1] ?? '';
-                                $actionLabels = ['viewAny' => 'View list', 'view' => 'View', 'create' => 'Create', 'update' => 'Update', 'delete' => 'Delete', 'restore' => 'Restore', 'bulkDelete' => 'Bulk delete', 'updateStatus' => 'Update status', 'builder' => 'Page builder', 'changePassword' => 'Change password', 'sales' => 'View sales report'];
+                                $actionLabels = ['viewAny' => 'View list', 'view' => 'View', 'create' => 'Create', 'update' => 'Update', 'delete' => 'Delete', 'restore' => 'Restore', 'forceDelete' => 'Delete permanently', 'bulkDelete' => 'Bulk delete', 'updateStatus' => 'Update status', 'builder' => 'Page builder', 'changePassword' => 'Change password', 'sales' => 'View sales report'];
                                 $actionLabel = $actionLabels[$action] ?? ucfirst($action);
                                 $resourceLabel = ucfirst(Str::singular($resource));
                                 $label = match($perm->name) {

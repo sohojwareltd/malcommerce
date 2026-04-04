@@ -6,28 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('created_from_order_id')
+            $table->foreignId('sponsor_level_id')
                 ->nullable()
                 ->after('sponsor_id')
-                ->constrained('orders')
+                ->constrained('sponsor_levels')
                 ->nullOnDelete();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['created_from_order_id']);
-            $table->dropColumn('created_from_order_id');
+            $table->dropConstrainedForeignId('sponsor_level_id');
         });
     }
 };

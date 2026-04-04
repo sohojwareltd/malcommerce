@@ -62,6 +62,12 @@
                style="color: var(--color-medium); border-color: var(--color-medium);">
                 Edit
             </a>
+            <button type="button"
+                    @click="$dispatch('open-team-purchase', { id: {{ $referral->id }}, name: {{ json_encode($referral->name) }} })"
+                    class="text-xs font-semibold px-3 py-1 rounded-full border border-dashed"
+                    style="color: var(--color-medium); border-color: var(--color-medium);">
+                Add purchase
+            </button>
             <a href="{{ route('sponsor.users.show', $referral) }}"
                class="text-xs font-semibold px-3 py-1 rounded-full border border-dashed"
                style="color: var(--color-medium); border-color: var(--color-medium);">

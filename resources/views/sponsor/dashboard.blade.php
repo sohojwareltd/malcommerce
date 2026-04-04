@@ -78,9 +78,11 @@ use Illuminate\Support\Str;
     }
 </style>
 
-<div class="min-h-screen pb-6" style="">
+<div class="min-h-screen pb-6" style=""
+     x-data="{ teamPurchaseOpen: false, teamReferralId: null, teamReferralName: '' }"
+     @open-team-purchase.window="teamPurchaseOpen = true; teamReferralId = $event.detail.id; teamReferralName = $event.detail.name">
     <!-- Header Profile Section -->
-    <div class="app-card mx-4 mt-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);">
+    <div class="app-card mx-4 mt-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);" x-data="{ ownPurchaseOpen: false }">
         <div class="p-4">
             <div class="flex items-center gap-4 mb-4">
                 <div class="relative">
@@ -105,11 +107,40 @@ use Illuminate\Support\Str;
                         @endif
                     </div>
                 </div>
-                <a href="{{ route('sponsor.profile.edit') }}" class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                </a>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" @click="ownPurchaseOpen = true" class="px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold text-white bg-white/20 hover:bg-white/30 border border-white/30 transition whitespace-nowrap">
+                        Add purchase
+                    </button>
+                    <a href="{{ route('sponsor.profile.edit') }}" class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" title="Edit profile">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Own purchase modal --}}
+            <div x-show="ownPurchaseOpen" x-cloak class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/50" @click="ownPurchaseOpen = false"></div>
+                <div class="relative w-full max-w-md rounded-2xl bg-white shadow-xl p-4 sm:p-5" @click.stop>
+                    <h3 class="text-lg font-bold mb-1" style="color: var(--color-dark);">Add your purchase</h3>
+                    <p class="text-xs mb-4" style="color: var(--color-medium);">Submit amount and note. Admin will review before it is added to your balance.</p>
+                    <form method="POST" action="{{ route('sponsor.purchases.store-own') }}" class="space-y-3">
+                        @csrf
+                        <div>
+                            <label class="block text-xs font-semibold mb-1" style="color: var(--color-medium);">Amount (৳)</label>
+                            <input type="number" name="amount" step="0.01" min="0.01" required class="w-full px-3 py-2 rounded-xl border-2 text-sm" style="border-color: var(--color-accent);" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold mb-1" style="color: var(--color-medium);">Comment (optional)</label>
+                            <textarea name="comment" rows="3" maxlength="2000" class="w-full px-3 py-2 rounded-xl border-2 text-sm" style="border-color: var(--color-accent);" placeholder="Note for admin…"></textarea>
+                        </div>
+                        <div class="flex gap-2 justify-end pt-2">
+                            <button type="button" @click="ownPurchaseOpen = false" class="px-4 py-2 rounded-xl text-sm font-semibold border-2" style="border-color: var(--color-accent); color: var(--color-dark);">Cancel</button>
+                            <button type="submit" class="px-4 py-2 rounded-xl text-sm font-semibold text-white" style="background: var(--color-medium);">Submit</button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <div x-data="{ showBalances: false }" class="space-y-2">
@@ -153,7 +184,8 @@ use Illuminate\Support\Str;
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-white/90 text-[10px] sm:text-xs font-medium mb-0.5">Purchase</p>
-                        <p class="text-base sm:text-lg md:text-xl font-bold text-white leading-tight">৳{{ number_format(Auth::user()->balance ?? 0, 2) }}</p>
+                        <p class="text-[9px] text-white/70 mb-0.5">Pending approval</p>
+                        <p class="text-base sm:text-lg md:text-xl font-bold text-white leading-tight">৳{{ number_format($purchasePendingOwnSum ?? 0, 2) }}</p>
                     </div>
                     <div class="bg-white/20 rounded-lg p-1.5 sm:p-2">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +198,8 @@ use Illuminate\Support\Str;
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-white/90 text-[10px] sm:text-xs font-medium mb-0.5">Team Purchase</p>
-                        <p class="text-base sm:text-lg md:text-xl font-bold text-white leading-tight">৳{{ number_format(Auth::user()->balance ?? 0, 2) }}</p>
+                        <p class="text-[9px] text-white/70 mb-0.5">Pending approval</p>
+                        <p class="text-base sm:text-lg md:text-xl font-bold text-white leading-tight">৳{{ number_format($purchasePendingTeamSum ?? 0, 2) }}</p>
                     </div>
                     <div class="bg-white/20 rounded-lg p-1.5 sm:p-2">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +212,8 @@ use Illuminate\Support\Str;
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-white/90 text-[10px] sm:text-xs font-medium mb-0.5">Performance Bonus</p>
-                        <p class="text-base sm:text-lg md:text-xl font-bold text-white leading-tight">৳{{ number_format(Auth::user()->balance ?? 0, 2) }}</p>
+                        <p class="text-[9px] text-white/70 mb-0.5">Manual income: “Performance bonus”</p>
+                        <p class="text-base sm:text-lg md:text-xl font-bold text-white leading-tight">৳{{ number_format($performanceBonusTotal ?? 0, 2) }}</p>
                     </div>
                     <div class="bg-white/20 rounded-lg p-1.5 sm:p-2">
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,6 +260,71 @@ use Illuminate\Support\Str;
             <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['referral_orders'] }}</p>
         </div>
     </div>
+
+    @if(!empty($sponsorMetrics))
+    <div class="px-4 mb-4">
+        <div class="app-card p-4 sm:p-5">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Your level & metrics</h2>
+                    <p class="text-xs sm:text-sm mt-1" style="color: var(--color-medium);">
+                        @if(Auth::user()->sponsorLevel)
+                            {{ Auth::user()->sponsorLevel->name }}
+                            <span class="opacity-75">· rank {{ Auth::user()->sponsorLevel->rank }}</span>
+                            <span class="opacity-75">· {{ number_format(Auth::user()->sponsorLevel->commission_percent, 2) }}% commission tier</span>
+                        @else
+                            No level assigned — referral orders use the classic single-sponsor commission rule.
+                        @endif
+                    </p>
+                </div>
+                <div class="text-left sm:text-right">
+                    <p class="text-xs font-medium uppercase tracking-wide" style="color: var(--color-medium);">Consistency score</p>
+                    <p class="text-2xl sm:text-3xl font-bold tabular-nums" style="color: var(--color-dark);">
+                        @if($sponsorMetrics['consistency'] !== null)
+                            {{ $sponsorMetrics['consistency'] }}
+                        @else
+                            <span class="text-base font-normal opacity-60">Need 2+ active months</span>
+                        @endif
+                    </p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+                <div class="rounded-xl p-3 border" style="border-color: var(--color-accent); background: rgba(189,232,245,0.25);">
+                    <p class="text-[11px] font-medium opacity-80" style="color: var(--color-dark);">Accepted purchases (30d)</p>
+                    <p class="font-bold tabular-nums mt-1" style="color: var(--color-dark);">৳{{ number_format($sponsorMetrics['purchase_totals']['day_30'], 2) }}</p>
+                </div>
+                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
+                    <p class="text-[11px] font-medium text-neutral-600">This month</p>
+                    <p class="font-bold tabular-nums mt-1 text-neutral-900">৳{{ number_format($sponsorMetrics['purchase_totals']['month_current'], 2) }}</p>
+                </div>
+                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
+                    <p class="text-[11px] font-medium text-neutral-600">Withdrawals (30d)</p>
+                    <p class="font-bold tabular-nums mt-1 text-neutral-900">৳{{ number_format($sponsorMetrics['withdrawal_totals']['day_30'], 2) }}</p>
+                </div>
+                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
+                    <p class="text-[11px] font-medium text-neutral-600">Peer sample avg</p>
+                    <p class="font-bold tabular-nums mt-1 text-neutral-900">
+                        @if($sponsorMetrics['peer_sample_avg_consistency'] !== null)
+                            {{ $sponsorMetrics['peer_sample_avg_consistency'] }}
+                        @else
+                            —
+                        @endif
+                    </p>
+                </div>
+            </div>
+            @if(Auth::user()->sponsor)
+            <p class="text-xs mt-3 opacity-80" style="color: var(--color-medium);">
+                Referrer consistency:
+                @if($sponsorMetrics['referrer_consistency'] !== null)
+                    <span class="font-semibold tabular-nums">{{ $sponsorMetrics['referrer_consistency'] }}</span>
+                @else
+                    <span>n/a</span>
+                @endif
+            </p>
+            @endif
+        </div>
+    </div>
+    @endif
 
     @if(isset($recentDigitalOrders) && $recentDigitalOrders->isNotEmpty())
     <div class="px-4 mb-4">
@@ -319,7 +418,7 @@ use Illuminate\Support\Str;
                                 <th class="px-4 py-2 text-left font-semibold text-gray-700">Address</th>
                                 <th class="px-4 py-2 text-center font-semibold text-gray-700">Orders</th>
                                 <th class="px-4 py-2 text-left font-semibold text-gray-700">Joined</th>
-                                <th class="px-4 py-2 text-right font-semibold text-gray-700">Action</th>
+                                <th class="px-4 py-2 text-right font-semibold text-gray-700">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -340,11 +439,9 @@ use Illuminate\Support\Str;
                                             <div>
                                                 <div class="font-semibold text-sm" style="color: var(--color-dark);">
                                                     {{ $referral->name }}
-            </div>
-        </div>
-
-       
-    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <span class="text-xs font-mono" style="color: var(--color-medium);">
@@ -371,11 +468,19 @@ use Illuminate\Support\Str;
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-right">
-                                        <a href="{{ route('sponsor.users.show', $referral) }}"
-                                           class="inline-flex items-center px-3 py-1 rounded-full border border-dashed text-xs font-semibold"
-                                           style="color: var(--color-medium); border-color: var(--color-medium);">
-                                            View
-                                        </a>
+                                        <div class="flex flex-wrap items-center justify-end gap-2">
+                                            <button type="button"
+                                                    @click="$dispatch('open-team-purchase', { id: {{ $referral->id }}, name: {{ json_encode($referral->name) }} })"
+                                                    class="inline-flex items-center px-3 py-1 rounded-full border border-dashed text-xs font-semibold"
+                                                    style="color: var(--color-medium); border-color: var(--color-medium);">
+                                                Add purchase
+                                            </button>
+                                            <a href="{{ route('sponsor.users.show', $referral) }}"
+                                               class="inline-flex items-center px-3 py-1 rounded-full border border-dashed text-xs font-semibold"
+                                               style="color: var(--color-medium); border-color: var(--color-medium);">
+                                                View
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -575,6 +680,32 @@ use Illuminate\Support\Str;
                 <p class="text-sm" style="color: var(--color-medium);">No active products</p>
             </div>
             @endif
+        </div>
+    </div>
+
+    {{-- Team purchase modal (referral) --}}
+    <div x-show="teamPurchaseOpen" x-cloak class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" @click="teamPurchaseOpen = false"></div>
+        <div class="relative w-full max-w-md rounded-2xl bg-white shadow-xl p-4 sm:p-5" @click.stop>
+            <h3 class="text-lg font-bold mb-1" style="color: var(--color-dark);">Team purchase</h3>
+            <p class="text-xs mb-4" style="color: var(--color-medium);">
+                For <span class="font-semibold" x-text="teamReferralName"></span>. Credits their balance after admin approval.
+            </p>
+            <form method="POST" :action="`{{ url('/sponsor/purchases/team') }}/${teamReferralId}`" class="space-y-3">
+                @csrf
+                <div>
+                    <label class="block text-xs font-semibold mb-1" style="color: var(--color-medium);">Amount (৳)</label>
+                    <input type="number" name="amount" step="0.01" min="0.01" required class="w-full px-3 py-2 rounded-xl border-2 text-sm" style="border-color: var(--color-accent);" placeholder="0.00">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1" style="color: var(--color-medium);">Comment (optional)</label>
+                    <textarea name="comment" rows="3" maxlength="2000" class="w-full px-3 py-2 rounded-xl border-2 text-sm" style="border-color: var(--color-accent);" placeholder="Note for admin…"></textarea>
+                </div>
+                <div class="flex gap-2 justify-end pt-2">
+                    <button type="button" @click="teamPurchaseOpen = false" class="px-4 py-2 rounded-xl text-sm font-semibold border-2" style="border-color: var(--color-accent); color: var(--color-dark);">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl text-sm font-semibold text-white" style="background: var(--color-medium);">Submit</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Sponsor;
 
 use App\Http\Controllers\Controller;
+use App\Models\Earning;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\GalleryPhoto;
+use App\Models\Purchase;
+use App\Models\SponsorLevel;
 use App\Models\User;
+use App\Services\SponsorMetricsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class DashboardController extends Controller
@@ -116,6 +121,32 @@ class DashboardController extends Controller
             ->orderByDesc('created_at')
             ->take(4)
             ->get();
+
+        $purchasePendingOwnSum = (float) Purchase::query()
+            ->where('submitted_by_sponsor_id', $user->id)
+            ->where('kind', Purchase::KIND_OWN)
+            ->where('status', Purchase::STATUS_PENDING)
+            ->sum('amount');
+
+        $purchasePendingTeamSum = (float) Purchase::query()
+            ->where('submitted_by_sponsor_id', $user->id)
+            ->where('kind', Purchase::KIND_TEAM)
+            ->where('status', Purchase::STATUS_PENDING)
+            ->sum('amount');
+
+        $user->loadMissing('sponsorLevel');
+        $sponsorMetrics = app(SponsorMetricsService::class)->dashboardMetrics($user);
+
+        // Sum admin manual income where category is "Performance bonus" (matches admin preset; case-insensitive).
+        $performanceBonusQuery = Earning::query()
+            ->where('sponsor_id', $user->id)
+            ->where('earning_type', 'manual_income');
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            $performanceBonusQuery->whereRaw('LOWER(json_extract(meta, \'$.category\')) = ?', ['performance bonus']);
+        } else {
+            $performanceBonusQuery->whereRaw('LOWER(JSON_UNQUOTE(JSON_EXTRACT(meta, \'$.category\'))) = ?', ['performance bonus']);
+        }
+        $performanceBonusTotal = (float) $performanceBonusQuery->sum('amount');
         
         return view('sponsor.dashboard', [
             'stats' => $stats,
@@ -126,6 +157,10 @@ class DashboardController extends Controller
             'products' => $products,
             'galleryPreviewPhotos' => $galleryPreviewPhotos,
             'recentDigitalOrders' => $recentDigitalOrders,
+            'purchasePendingOwnSum' => $purchasePendingOwnSum,
+            'purchasePendingTeamSum' => $purchasePendingTeamSum,
+            'sponsorMetrics' => $sponsorMetrics,
+            'performanceBonusTotal' => $performanceBonusTotal,
         ]);
     }
     
@@ -213,6 +248,11 @@ class DashboardController extends Controller
             'address' => $request->address,
             'comment' => $request->comment,
         ];
+
+        $defaultLevel = SponsorLevel::defaultForNewSponsors();
+        if ($defaultLevel) {
+            $data['sponsor_level_id'] = $defaultLevel->id;
+        }
 
         // Optional email for referred users
         if ($request->filled('email')) {

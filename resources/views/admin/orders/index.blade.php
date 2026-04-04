@@ -207,12 +207,21 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-neutral-800">{{ $order->created_at->format('M d, Y h:i A') }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                         @if(request('trashed') && $order->trashed())
-                            @can('orders.restore')
-                            <form action="{{ route('admin.orders.restore', $order) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-semibold">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('orders.restore')
+                                <form action="{{ route('admin.orders.restore', $order) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-semibold">Restore</button>
+                                </form>
+                                @endcan
+                                @can('orders.forceDelete')
+                                <form action="{{ route('admin.orders.force-delete', $order) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this order? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800 font-semibold">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
                         <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:text-primary-light font-semibold">View</a>
                         <button type="button" class="text-red-600 hover:text-red-800 text-sm font-semibold" data-delete-url="{{ route('admin.orders.destroy', $order) }}" onclick="deleteSingleOrder(this)">Delete</button>
@@ -286,12 +295,21 @@
             </div>
             <div class="mt-3 pt-3 border-t border-neutral-200 flex items-center justify-between">
                 @if(request('trashed') && $order->trashed())
-                    @can('orders.restore')
-                    <form action="{{ route('admin.orders.restore', $order) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-semibold text-sm">Restore</button>
-                    </form>
-                    @endcan
+                    <div class="flex flex-wrap items-center gap-2">
+                        @can('orders.restore')
+                        <form action="{{ route('admin.orders.restore', $order) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-semibold text-sm">Restore</button>
+                        </form>
+                        @endcan
+                        @can('orders.forceDelete')
+                        <form action="{{ route('admin.orders.force-delete', $order) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this order? This cannot be undone.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-700 hover:text-red-800 font-semibold text-sm">Delete forever</button>
+                        </form>
+                        @endcan
+                    </div>
                 @else
                 <a href="{{ route('admin.orders.show', $order) }}" class="text-primary hover:text-primary-light font-semibold text-sm">View Details →</a>
                 <button type="button" class="text-red-600 hover:text-red-800 text-xs font-semibold" data-delete-url="{{ route('admin.orders.destroy', $order) }}" onclick="deleteSingleOrder(this)">Delete</button>

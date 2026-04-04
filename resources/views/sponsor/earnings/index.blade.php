@@ -45,7 +45,12 @@
                 <div class="flex items-start justify-between gap-3 mb-2">
                     <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-1 flex-wrap">
-                            <span class="text-xs sm:text-sm font-semibold" style="color: var(--color-dark);">{{ ucfirst($earning->earning_type) }}</span>
+                            @if($earning->earning_type === 'manual_income' && is_array($earning->meta) && !empty($earning->meta['category']))
+                                <span class="text-xs sm:text-sm font-semibold" style="color: var(--color-dark);">{{ $earning->meta['category'] }}</span>
+                                <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-medium">Bonus</span>
+                            @else
+                                <span class="text-xs sm:text-sm font-semibold" style="color: var(--color-dark);">{{ ucfirst(str_replace('_', ' ', $earning->earning_type)) }}</span>
+                            @endif
                             <span class="text-xs font-mono" style="color: var(--color-medium);">{{ $earning->created_at->format('M d, Y') }}</span>
                         </div>
                         @if($earning->order)
@@ -54,7 +59,9 @@
                         @if($earning->referral)
                         <p class="text-[10px] sm:text-xs mb-1" style="color: var(--color-medium);">Referral: {{ $earning->referral->name }}</p>
                         @endif
-                        @if($earning->comment)
+                        @if($earning->earning_type === 'manual_income' && is_array($earning->meta) && !empty($earning->meta['notes']))
+                        <p class="text-[10px] sm:text-xs mt-1" style="color: var(--color-medium);">{{ $earning->meta['notes'] }}</p>
+                        @elseif($earning->comment)
                         <p class="text-[10px] sm:text-xs mt-1" style="color: var(--color-medium);">{{ $earning->comment }}</p>
                         @endif
                     </div>

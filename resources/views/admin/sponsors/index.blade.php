@@ -8,6 +8,9 @@ use Illuminate\Support\Str;
 @endphp
 
 @section('content')
+@php
+    $bulkMode = !request('trashed') && auth()->user()->can('sponsors.update');
+@endphp
 <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
     <div class="flex items-center gap-3">
         <div>
@@ -25,6 +28,10 @@ use Illuminate\Support\Str;
     </a>
     @endif
 </div>
+
+@if(session('success'))
+    <div class="mb-4 p-4 rounded-lg bg-emerald-50 text-emerald-800 text-sm">{{ session('success') }}</div>
+@endif
 
 <!-- Search Form -->
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
@@ -66,12 +73,81 @@ use Illuminate\Support\Str;
     </form>
 </div>
 
+{{-- Single bulk form (referrer + level); checkboxes use form="…" so row Delete forms stay separate. Level actions use button formaction. --}}
 <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    @if($bulkMode)
+    <form id="sponsors-bulk-form" method="POST" action="{{ route('admin.sponsors.bulk-set-referrer') }}" class="block border-b border-neutral-200 bg-neutral-50/90">
+        @csrf
+        <div class="flex flex-col gap-4 p-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:gap-4 border-b border-neutral-200/80 pb-4">
+                <div class="flex-1 min-w-0 sm:max-w-xl">
+                    <span class="block text-sm font-medium text-neutral-700 mb-1">Bulk: referrer for checked partners</span>
+                    <x-admin.sponsor-referrer-picker
+                        :referrers="$bulkReferrerOptions"
+                        name="referrer_sponsor_id"
+                        :selected="null"
+                        :show-label="false"
+                    />
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button type="submit" name="bulk_action" value="assign" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-light transition">
+                        Assign referrer
+                    </button>
+                    <button type="submit" name="bulk_action" value="clear" class="px-4 py-2 border border-neutral-300 rounded-lg text-sm font-semibold text-neutral-700 hover:bg-neutral-100 transition" onclick="return confirm('Clear referrer for all checked partners?');">
+                        Clear referrer
+                    </button>
+                </div>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:gap-4">
+                <div class="flex-1 min-w-0 sm:max-w-md">
+                    <label for="bulk_sponsor_level_id" class="block text-sm font-medium text-neutral-700 mb-1">Bulk: sponsor level for checked partners</label>
+                    <select name="bulk_sponsor_level_id" id="bulk_sponsor_level_id" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary text-sm bg-white">
+                        <option value="">— Select level —</option>
+                        @foreach($bulkSponsorLevels as $lvl)
+                            <option value="{{ $lvl->id }}" {{ (string) old('bulk_sponsor_level_id') === (string) $lvl->id ? 'selected' : '' }}>
+                                {{ $lvl->name }} (rank {{ $lvl->rank }}, {{ number_format($lvl->commission_percent, 2) }}%)
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button type="submit" formaction="{{ route('admin.sponsors.bulk-set-level') }}" name="bulk_level_action" value="assign" class="px-4 py-2 bg-sky-700 text-white rounded-lg text-sm font-semibold hover:bg-sky-800 transition">
+                        Assign level
+                    </button>
+                    <button type="submit" formaction="{{ route('admin.sponsors.bulk-set-level') }}" name="bulk_level_action" value="clear" class="px-4 py-2 border border-neutral-300 rounded-lg text-sm font-semibold text-neutral-700 hover:bg-neutral-100 transition" onclick="return confirm('Clear sponsor level for all checked partners? They will use legacy referral commission rules.');">
+                        Clear level
+                    </button>
+                </div>
+            </div>
+            @error('sponsor_ids')
+                <p class="w-full text-sm text-red-600">{{ $message }}</p>
+            @enderror
+            @error('referrer_sponsor_id')
+                <p class="w-full text-sm text-red-600">{{ $message }}</p>
+            @enderror
+            @error('bulk_action')
+                <p class="w-full text-sm text-red-600">{{ $message }}</p>
+            @enderror
+            @error('bulk_level_action')
+                <p class="w-full text-sm text-red-600">{{ $message }}</p>
+            @enderror
+            @error('bulk_sponsor_level_id')
+                <p class="w-full text-sm text-red-600">{{ $message }}</p>
+            @enderror
+            <p class="w-full text-xs text-neutral-500 lg:hidden">Bulk checkboxes appear in the table below; scroll horizontally or use a larger screen to select partners.</p>
+        </div>
+    </form>
+    @endif
     <!-- Desktop Table View -->
     <div class="hidden lg:block overflow-x-auto">
         <table class="min-w-full divide-y divide-neutral-200">
             <thead class="bg-neutral-50">
                 <tr>
+                    @if($bulkMode)
+                    <th scope="col" class="px-4 py-3 text-left w-12">
+                        <input type="checkbox" id="sponsor-select-all" class="rounded border-neutral-300 text-primary focus:ring-primary" title="Select all on this page">
+                    </th>
+                    @endif
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Photo</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Partner Code</th>
@@ -88,6 +164,11 @@ use Illuminate\Support\Str;
             <tbody class="bg-white divide-y divide-neutral-200">
                 @forelse($sponsors as $sponsor)
                 <tr class="hover:bg-neutral-50">
+                    @if($bulkMode)
+                    <td class="px-4 py-4 whitespace-nowrap align-top">
+                        <input type="checkbox" name="sponsor_ids[]" value="{{ $sponsor->id }}" form="sponsors-bulk-form" class="sponsor-bulk-check rounded border-neutral-300 text-primary focus:ring-primary">
+                    </td>
+                    @endif
                     <td class="px-6 py-4 whitespace-nowrap">
                         @if($sponsor->photo)
                             <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-20 h-20 aspect-square object-cover">
@@ -130,16 +211,28 @@ use Illuminate\Support\Str;
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-accent">৳{{ number_format($sponsor->total_revenue, 2) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         @if(request('trashed') && $sponsor->trashed())
-                            @can('sponsors.restore')
-                            <form action="{{ route('admin.sponsors.restore', $sponsor) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('sponsors.restore')
+                                <form action="{{ route('admin.sponsors.restore', $sponsor) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
+                                </form>
+                                @endcan
+                                @can('sponsors.forceDelete')
+                                <form action="{{ route('admin.sponsors.force-delete', $sponsor) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this partner? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800 font-medium">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
-                        <div class="flex gap-2">
+                        <div class="flex flex-wrap gap-2">
                             <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:text-primary-light font-medium">View</a>
                             <a href="{{ route('admin.sponsors.edit', $sponsor) }}" class="text-blue-600 hover:text-blue-700 font-medium">Edit</a>
+                            @can('sponsors.update')
+                            <a href="{{ route('admin.sponsors.edit', $sponsor) }}?promote=level" class="text-amber-700 hover:text-amber-900 font-medium">Promote</a>
+                            @endcan
                             <form action="{{ route('admin.sponsors.destroy', $sponsor) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?');">
                                 @csrf
                                 @method('DELETE')
@@ -151,7 +244,7 @@ use Illuminate\Support\Str;
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="11" class="px-6 py-4 text-center text-neutral-500">
+                    <td colspan="{{ $bulkMode ? 12 : 11 }}" class="px-6 py-4 text-center text-neutral-500">
                         @if(request('search'))
                             No sponsors found matching "{{ request('search') }}"
                         @else
@@ -169,6 +262,11 @@ use Illuminate\Support\Str;
         @forelse($sponsors as $sponsor)
         <div class="p-4 hover:bg-neutral-50 transition-colors">
             <div class="flex items-start gap-4 mb-3">
+                @if($bulkMode)
+                <div class="flex-shrink-0 pt-1">
+                    <input type="checkbox" name="sponsor_ids[]" value="{{ $sponsor->id }}" form="sponsors-bulk-form" class="sponsor-bulk-check rounded border-neutral-300 text-primary focus:ring-primary w-5 h-5" aria-label="Select {{ $sponsor->name }} for bulk actions">
+                </div>
+                @endif
                 <div class="flex-shrink-0">
                     @if($sponsor->photo)
                         <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="{{ $sponsor->name }}" class="w-16 h-16 rounded-full object-cover">
@@ -222,16 +320,29 @@ use Illuminate\Support\Str;
                     @endif
                     <div class="flex flex-wrap gap-2 pt-2 border-t border-neutral-200">
                         @if(request('trashed') && $sponsor->trashed())
-                            @can('sponsors.restore')
-                            <form action="{{ route('admin.sponsors.restore', $sponsor) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 font-medium text-sm">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('sponsors.restore')
+                                <form action="{{ route('admin.sponsors.restore', $sponsor) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 font-medium text-sm">Restore</button>
+                                </form>
+                                @endcan
+                                @can('sponsors.forceDelete')
+                                <form action="{{ route('admin.sponsors.force-delete', $sponsor) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this partner? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800 font-medium text-sm">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:text-primary-light font-medium text-sm">View</a>
                         <span class="text-neutral-300">|</span>
                         <a href="{{ route('admin.sponsors.edit', $sponsor) }}" class="text-blue-600 hover:text-blue-700 font-medium text-sm">Edit</a>
+                        @can('sponsors.update')
+                        <span class="text-neutral-300">|</span>
+                        <a href="{{ route('admin.sponsors.edit', $sponsor) }}?promote=level" class="text-amber-700 hover:text-amber-900 font-medium text-sm">Promote</a>
+                        @endcan
                         <span class="text-neutral-300">|</span>
                         <form action="{{ route('admin.sponsors.destroy', $sponsor) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?');">
                             @csrf
@@ -260,5 +371,28 @@ use Illuminate\Support\Str;
 <div class="mt-4">
     {{ $sponsors->links() }}
 </div>
+@endif
+
+@if($bulkMode)
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var master = document.getElementById('sponsor-select-all');
+    if (!master) return;
+    var boxes = function () { return document.querySelectorAll('.sponsor-bulk-check'); };
+    master.addEventListener('change', function () {
+        boxes().forEach(function (cb) { cb.checked = master.checked; });
+    });
+    boxes().forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            var all = document.querySelectorAll('.sponsor-bulk-check');
+            var on = document.querySelectorAll('.sponsor-bulk-check:checked');
+            master.checked = all.length > 0 && on.length === all.length;
+            master.indeterminate = on.length > 0 && on.length < all.length;
+        });
+    });
+});
+</script>
+@endpush
 @endif
 @endsection

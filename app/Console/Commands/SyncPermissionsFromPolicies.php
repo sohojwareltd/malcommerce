@@ -89,6 +89,7 @@ class SyncPermissionsFromPolicies extends Command
             'OrderPolicy' => 'orders',
             'UserPolicy' => 'users',
             'SponsorPolicy' => 'sponsors',
+            'SponsorLevelPolicy' => 'sponsorLevels',
             'VideoPolicy' => 'videos',
             'WithdrawalPolicy' => 'withdrawals',
             'SettingPolicy' => 'settings',
@@ -126,6 +127,8 @@ class SyncPermissionsFromPolicies extends Command
         return [
             'products.restore', 'categories.restore', 'orders.restore',
             'videos.restore', 'users.restore', 'sponsors.restore',
+            'products.forceDelete', 'categories.forceDelete', 'orders.forceDelete',
+            'videos.forceDelete', 'users.forceDelete', 'sponsors.forceDelete',
             'settings.smsSend',
         ];
     }

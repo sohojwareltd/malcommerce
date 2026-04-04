@@ -80,6 +80,16 @@
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Dashboard</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Dashboard</span>
                     </a>
+                    <a href="{{ route('admin.purchases.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Sponsor purchases' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.purchases.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Sponsor purchases</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Sponsor purchases</span>
+                    </a>
                     @endcan
                 </div>
 
@@ -177,6 +187,30 @@
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Sponsors</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Sponsors</span>
                     </a>
+                    @can('dashboard.view')
+                    <a href="{{ route('admin.purchases.index', ['status' => 'pending']) }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Sponsor purchases' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.purchases.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-sky-500/15' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Sponsor purchases</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Sponsor purchases</span>
+                    </a>
+                    @endcan
+                    @can('viewAny', \App\Models\SponsorLevel::class)
+                    <a href="{{ route('admin.sponsor-levels.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Sponsor levels' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.sponsor-levels.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-sky-500/15' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Sponsor levels</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Sponsor levels</span>
+                    </a>
+                    @endcan
                 </div>
                 @endcan
 

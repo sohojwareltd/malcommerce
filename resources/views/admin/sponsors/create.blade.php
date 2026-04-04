@@ -20,6 +20,13 @@
                 @enderror
             </div>
 
+            <x-admin.sponsor-referrer-picker
+                :referrers="$referrerOptions"
+                name="sponsor_id"
+                :selected="old('sponsor_id')"
+                hint="Optional. Search by name, partner code, or phone. Use Clear if there is no upline."
+            />
+
             <div>
                 <label for="phone" class="block text-sm font-medium text-neutral-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
                 <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" required class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="01XXXXXXXXX">

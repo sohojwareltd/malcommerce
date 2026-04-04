@@ -99,12 +99,21 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $category->sort_order }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         @if(request('trashed') && $category->trashed())
-                            @can('categories.restore')
-                            <form action="{{ route('admin.categories.restore', $category) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('categories.restore')
+                                <form action="{{ route('admin.categories.restore', $category) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium">Restore</button>
+                                </form>
+                                @endcan
+                                @can('categories.forceDelete')
+                                <form action="{{ route('admin.categories.force-delete', $category) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this category? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800 font-medium">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
                         <div class="flex gap-2">
                             <a href="{{ route('admin.categories.edit', $category) }}" class="text-primary hover:text-primary-light font-medium">Edit</a>
@@ -157,12 +166,21 @@
                     </div>
                     <div class="flex gap-3 pt-2 border-t border-neutral-200">
                         @if(request('trashed') && $category->trashed())
-                            @can('categories.restore')
-                            <form action="{{ route('admin.categories.restore', $category) }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium text-sm">Restore</button>
-                            </form>
-                            @endcan
+                            <div class="flex flex-wrap items-center gap-2">
+                                @can('categories.restore')
+                                <form action="{{ route('admin.categories.restore', $category) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="text-emerald-600 hover:text-emerald-700 font-medium text-sm">Restore</button>
+                                </form>
+                                @endcan
+                                @can('categories.forceDelete')
+                                <form action="{{ route('admin.categories.force-delete', $category) }}" method="POST" class="inline" onsubmit="return confirm('Permanently delete this category? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-700 hover:text-red-800 font-medium text-sm">Delete forever</button>
+                                </form>
+                                @endcan
+                            </div>
                         @else
                         <a href="{{ route('admin.categories.edit', $category) }}" class="text-primary hover:text-primary-light font-medium text-sm">Edit</a>
                         <span class="text-neutral-300">|</span>

@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Storage;
     <h1 class="text-3xl font-bold">Edit Sponsor</h1>
 </div>
 
+@if(request('promote') === 'level')
+<div class="mb-4 max-w-2xl p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-950 text-sm">
+    <strong>Promote sponsor</strong> — choose a new sponsor level below. Lower rank is higher in the tree (0 = apex). Changes are recorded in level history.
+</div>
+@endif
+
 <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">
     <form action="{{ route('admin.sponsors.update', $sponsor) }}" method="POST" enctype="multipart/form-data">
         @csrf
@@ -49,6 +55,31 @@ use Illuminate\Support\Facades\Storage;
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
+
+            <x-admin.sponsor-referrer-picker
+                :referrers="$referrerOptions"
+                name="sponsor_id"
+                :selected="old('sponsor_id', $sponsor->sponsor_id)"
+                hint="The sponsor who referred this partner. Search by name, code, or phone. Use Clear for no upline."
+            />
+
+            <section id="promote-level" class="rounded-lg {{ request('promote') === 'level' ? 'ring-2 ring-amber-400 ring-offset-2 p-4 -mx-2 sm:mx-0' : '' }}">
+            <div>
+                <label for="sponsor_level_id" class="block text-sm font-medium text-neutral-700 mb-2">Sponsor level</label>
+                <select name="sponsor_level_id" id="sponsor_level_id" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="">— None (legacy referral payout) —</option>
+                    @foreach($sponsorLevels as $lvl)
+                        <option value="{{ $lvl->id }}" {{ (string) old('sponsor_level_id', $sponsor->sponsor_level_id) === (string) $lvl->id ? 'selected' : '' }}>
+                            {{ $lvl->name }} (rank {{ $lvl->rank }}, {{ number_format($lvl->commission_percent, 2) }}%)
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-xs text-neutral-500">Lower rank is higher in the tree (0 = apex). Changing level is recorded in history.</p>
+                @error('sponsor_level_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            </section>
 
             <div>
                 <label for="phone" class="block text-sm font-medium text-neutral-700 mb-2">Phone Number <span class="text-red-500">*</span></label>
@@ -175,6 +206,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    @if(request('promote') === 'level')
+    var promoteSection = document.getElementById('promote-level');
+    if (promoteSection) {
+        promoteSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    var levelSelect = document.getElementById('sponsor_level_id');
+    if (levelSelect) {
+        levelSelect.focus({ preventScroll: true });
+    }
+    @endif
 });
 </script>
 @endpush

@@ -59,6 +59,15 @@
                 <textarea name="meta_description" rows="3" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">{{ \App\Models\Setting::get('meta_description') }}</textarea>
                 <p class="text-xs text-neutral-500 mt-1">Used for SEO and social media sharing</p>
             </div>
+            <div class="rounded-lg bg-amber-50 border border-amber-200 p-4">
+                <h3 class="text-sm font-semibold text-amber-900 mb-1">Sponsor purchase approvals</h3>
+                <p class="text-xs text-amber-900/80 mb-3">When admin accepts a sponsor purchase request, the beneficiary’s balance is increased by <strong>commission only</strong>: declared amount × their sponsor level’s commission %. If the beneficiary has no level, the fallback below is used.</p>
+                <div>
+                    <label class="block text-sm font-medium text-neutral-800 mb-2">Fallback commission % (no sponsor level)</label>
+                    <input type="number" name="purchase_approval_commission_percent" step="0.01" min="0" max="100" value="{{ \App\Models\Setting::get('purchase_approval_commission_percent', 0) }}" class="w-full max-w-xs px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary">
+                    <p class="text-xs text-neutral-600 mt-1">Default 0 — assign a sponsor level on the beneficiary for a non-zero tier rate.</p>
+                </div>
+            </div>
             <div class="border-t border-neutral-200 pt-6 mt-6">
                 <h3 class="text-lg font-semibold mb-3">Steadfast Courier (Packzy)</h3>
                 <p class="text-sm text-neutral-600 mb-4">API credentials for creating parcels and tracking delivery. Get keys from <a href="https://portal.packzy.com" target="_blank" rel="noopener" class="text-primary hover:underline">portal.packzy.com</a>.</p>

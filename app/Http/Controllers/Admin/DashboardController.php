@@ -3,16 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Earning;
 use App\Models\Expense;
 use App\Models\JobApplication;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Purchase;
 use App\Models\User;
+use App\Models\Withdrawal;
 use App\Models\WorkshopEnrollment;
 use App\Models\Setting;
+use App\Models\SponsorIncome;
+use App\Models\SponsorLevel;
+use App\Models\SponsorLevelHistory;
 use App\Services\EarningService;
+use App\Services\SponsorMetricsService;
 use App\Services\SmsService;
 use App\Services\SteadfastService;
 use Illuminate\Support\Facades\View;
@@ -20,6 +27,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 
 class DashboardController extends Controller
 {
@@ -55,6 +64,7 @@ class DashboardController extends Controller
             'average_order_value' => $deliveredOrders->count() > 0 ? $revenue / $deliveredOrders->count() : 0,
             'total_items_sold' => $orders->sum('quantity'),
             'total_sponsors' => User::where('role', 'sponsor')->count(),
+            'pending_purchases' => Purchase::where('status', Purchase::STATUS_PENDING)->count(),
         ];
 
         $recentOrders = Order::with('product', 'sponsor')
@@ -221,6 +231,29 @@ class DashboardController extends Controller
         $category->restore();
         return redirect()->route('admin.categories.index')->with('success', 'Category restored successfully!');
     }
+
+    public function forceDestroyCategory(Request $request)
+    {
+        $category = Category::withTrashed()->findOrFail($request->route('category'));
+        if (!$category->trashed()) {
+            return redirect()->back()->with('error', 'Only soft-deleted categories can be permanently removed.');
+        }
+        $this->authorize('forceDelete', $category);
+        try {
+            if ($category->image) {
+                $oldPath = str_replace('/storage/', '', parse_url($category->image, PHP_URL_PATH) ?? '');
+                if ($oldPath !== '') {
+                    Storage::disk('public')->delete($oldPath);
+                }
+            }
+            $category->forceDelete();
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Cannot delete permanently: this category is still referenced in a way that blocks removal.');
+        }
+
+        return redirect()->route('admin.categories.index', ['trashed' => 1])
+            ->with('success', 'Category permanently deleted.');
+    }
     
     public function orders(Request $request)
     {
@@ -365,7 +398,7 @@ class DashboardController extends Controller
                         
                         // Create referral commission for sponsor (if present)
                         if ($order->sponsor_id && $order->sponsor) {
-                            $earningService->createReferralEarning($order, $order->product, $order->sponsor, $order->user);
+                            $earningService->createReferralEarningsWithLevels($order, $order->product, $order->sponsor, $order->user);
                         }
                     }
                 } catch (\Throwable $e) {
@@ -595,13 +628,139 @@ class DashboardController extends Controller
             $sponsor->total_revenue = $sponsor->orders->sum('total_price') ?? 0;
                 return $sponsor;
             });
-            
-        return view('admin.sponsors.index', compact('sponsors'));
+
+        $bulkReferrerOptions = collect();
+        $bulkSponsorLevels = collect();
+        if (!$request->boolean('trashed') && $request->user()->can('sponsors.update')) {
+            $bulkReferrerOptions = User::where('role', 'sponsor')
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get(['id', 'name', 'affiliate_code', 'phone']);
+            $bulkSponsorLevels = SponsorLevel::query()->orderBy('rank')->get();
+        }
+
+        return view('admin.sponsors.index', compact('sponsors', 'bulkReferrerOptions', 'bulkSponsorLevels'));
+    }
+
+    public function bulkSetSponsorReferrer(Request $request)
+    {
+        $request->validate([
+            'bulk_action' => 'required|in:assign,clear',
+            'sponsor_ids' => 'required|array|min:1',
+            'sponsor_ids.*' => 'required|integer|exists:users,id',
+            'referrer_sponsor_id' => [
+                'nullable',
+                'required_if:bulk_action,assign',
+                Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', 'sponsor')),
+            ],
+        ]);
+
+        $ids = array_values(array_unique(array_map('intval', $request->sponsor_ids)));
+
+        $validIds = User::where('role', 'sponsor')->whereIn('id', $ids)->pluck('id')->all();
+        if (count($validIds) !== count($ids)) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['sponsor_ids' => 'One or more selected users are not valid partners.']);
+        }
+
+        if ($request->bulk_action === 'clear') {
+            User::whereIn('id', $ids)->update(['sponsor_id' => null]);
+
+            return redirect()->back()->with('success', 'Referrer cleared for '.count($ids).' partner(s).');
+        }
+
+        $referrerId = (int) $request->referrer_sponsor_id;
+        $targetIds = array_values(array_diff($ids, [$referrerId]));
+
+        if (count($targetIds) === 0) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['referrer_sponsor_id' => 'None of the selected partners can have themselves as referrer.']);
+        }
+
+        User::whereIn('id', $targetIds)->update(['sponsor_id' => $referrerId]);
+        $skipped = count($ids) - count($targetIds);
+        $msg = 'Referrer updated for '.count($targetIds).' partner(s).';
+        if ($skipped > 0) {
+            $msg .= ' Skipped '.$skipped.' (cannot refer themselves).';
+        }
+
+        return redirect()->back()->with('success', $msg);
+    }
+
+    public function bulkSetSponsorLevel(Request $request)
+    {
+        $request->validate([
+            'bulk_level_action' => 'required|in:assign,clear',
+            'sponsor_ids' => 'required|array|min:1',
+            'sponsor_ids.*' => 'required|integer|exists:users,id',
+            'bulk_sponsor_level_id' => [
+                'nullable',
+                'required_if:bulk_level_action,assign',
+                'exists:sponsor_levels,id',
+            ],
+        ], [
+            'bulk_sponsor_level_id.required_if' => 'Choose a level to assign.',
+        ]);
+
+        $ids = array_values(array_unique(array_map('intval', $request->sponsor_ids)));
+
+        $validIds = User::where('role', 'sponsor')->whereIn('id', $ids)->pluck('id')->all();
+        if (count($validIds) !== count($ids)) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['sponsor_ids' => 'One or more selected users are not valid partners.']);
+        }
+
+        $toLevelId = $request->bulk_level_action === 'assign'
+            ? (int) $request->bulk_sponsor_level_id
+            : null;
+
+        $updated = 0;
+
+        DB::transaction(function () use ($validIds, $toLevelId, &$updated) {
+            $users = User::whereIn('id', $validIds)->lockForUpdate()->get();
+            foreach ($users as $user) {
+                if ($user->role !== 'sponsor') {
+                    continue;
+                }
+                $from = $user->sponsor_level_id;
+                $normFrom = $from === null ? null : (int) $from;
+                $normTo = $toLevelId === null ? null : (int) $toLevelId;
+                if ($normFrom === $normTo) {
+                    continue;
+                }
+                $user->update(['sponsor_level_id' => $toLevelId]);
+                SponsorLevelHistory::create([
+                    'user_id' => $user->id,
+                    'from_sponsor_level_id' => $from,
+                    'to_sponsor_level_id' => $toLevelId,
+                    'changed_by' => Auth::id(),
+                ]);
+                $updated++;
+            }
+        });
+
+        if ($updated === 0) {
+            return redirect()->back()->with('success', 'No changes: selected partners already had that level.');
+        }
+
+        $msg = $request->bulk_level_action === 'clear'
+            ? "Level cleared for {$updated} partner(s)."
+            : "Level updated for {$updated} partner(s).";
+
+        return redirect()->back()->with('success', $msg);
     }
     
     public function createSponsor()
     {
-        return view('admin.sponsors.create');
+        $referrerOptions = User::where('role', 'sponsor')
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get(['id', 'name', 'affiliate_code', 'phone']);
+
+        return view('admin.sponsors.create', compact('referrerOptions'));
     }
 
     /**
@@ -639,6 +798,10 @@ class DashboardController extends Controller
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'comment' => 'nullable|string|max:2000',
+            'sponsor_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', 'sponsor')),
+            ],
         ]);
         
         try {
@@ -663,8 +826,14 @@ class DashboardController extends Controller
             'password' => null, // OTP-based auth doesn't need password
             'address' => $request->address,
             'comment' => $request->comment,
+            'sponsor_id' => $request->filled('sponsor_id') ? (int) $request->sponsor_id : null,
             // affiliate_code will be auto-generated in User model boot method
         ];
+
+        $defaultLevel = SponsorLevel::defaultForNewSponsors();
+        if ($defaultLevel) {
+            $data['sponsor_level_id'] = $defaultLevel->id;
+        }
         
         // Handle photo upload with auto-resize
         if ($request->hasFile('photo')) {
@@ -767,6 +936,11 @@ class DashboardController extends Controller
         }
         
         $sponsor->load([
+            'sponsor',
+            'sponsorLevel',
+            'sponsorLevelHistories.fromLevel',
+            'sponsorLevelHistories.toLevel',
+            'sponsorLevelHistories.changedBy',
             'orders.product',
             'referrals' => function($query) {
                 $query->withCount('orders');
@@ -785,8 +959,150 @@ class DashboardController extends Controller
             'delivered_orders' => $sponsor->orders()->where('status', 'delivered')->count(),
             'total_referrals' => $sponsor->referrals()->count(),
         ];
-        
-        return view('admin.sponsors.show', compact('sponsor', 'products', 'stats'));
+
+        $sponsor->refresh();
+
+        $lifetimeEarnings = (float) Earning::where('sponsor_id', $sponsor->id)->sum('amount');
+
+        $earningsByType = Earning::query()
+            ->where('sponsor_id', $sponsor->id)
+            ->selectRaw('earning_type, SUM(amount) as total')
+            ->groupBy('earning_type')
+            ->pluck('total', 'earning_type')
+            ->map(fn ($v) => (float) $v);
+
+        $earningTypeLabels = [
+            'referral' => 'Referral commissions',
+            'cashback' => 'Cashback',
+            'purchase' => 'Approved purchase commissions',
+            'manual_income' => 'Admin manual income',
+        ];
+
+        $manualIncomes = SponsorIncome::query()
+            ->where('sponsor_id', $sponsor->id)
+            ->with('creator')
+            ->orderByDesc('created_at')
+            ->limit(40)
+            ->get();
+
+        $sponsorIncomeCategorySuggestions = [
+            'Performance bonus',
+            'Monthly incentive',
+            'Promotion reward',
+            'Correction / adjustment',
+            'Contest or challenge prize',
+            'Referral program bonus',
+            'Welcome bonus',
+            'Training completion bonus',
+            'Other',
+        ];
+
+        $recentEarnings = Earning::query()
+            ->where('sponsor_id', $sponsor->id)
+            ->with(['order', 'referral'])
+            ->orderByDesc('created_at')
+            ->limit(12)
+            ->get();
+
+        $withdrawalSummary = [
+            'approved_total' => (float) Withdrawal::where('sponsor_id', $sponsor->id)
+                ->where('status', Withdrawal::STATUS_APPROVED)
+                ->sum('amount'),
+            'in_queue_total' => (float) Withdrawal::where('sponsor_id', $sponsor->id)
+                ->whereIn('status', Withdrawal::activeStatuses())
+                ->sum('amount'),
+            'in_queue_count' => Withdrawal::where('sponsor_id', $sponsor->id)
+                ->whereIn('status', Withdrawal::activeStatuses())
+                ->count(),
+            'cancelled_total' => (float) Withdrawal::where('sponsor_id', $sponsor->id)
+                ->where('status', Withdrawal::STATUS_CANCELLED)
+                ->sum('amount'),
+        ];
+
+        $purchaseSubmitted = [
+            'pending_count' => $sponsor->purchasesSubmitted()->where('status', Purchase::STATUS_PENDING)->count(),
+            'pending_amount' => (float) $sponsor->purchasesSubmitted()->where('status', Purchase::STATUS_PENDING)->sum('amount'),
+            'accepted_count' => $sponsor->purchasesSubmitted()->where('status', Purchase::STATUS_ACCEPTED)->count(),
+            'canceled_count' => $sponsor->purchasesSubmitted()->where('status', Purchase::STATUS_CANCELED)->count(),
+        ];
+
+        $purchaseAsBeneficiary = [
+            'pending_count' => $sponsor->purchasesAsBeneficiary()->where('status', Purchase::STATUS_PENDING)->count(),
+            'pending_amount' => (float) $sponsor->purchasesAsBeneficiary()->where('status', Purchase::STATUS_PENDING)->sum('amount'),
+            'accepted_count' => $sponsor->purchasesAsBeneficiary()->where('status', Purchase::STATUS_ACCEPTED)->count(),
+            'canceled_count' => $sponsor->purchasesAsBeneficiary()->where('status', Purchase::STATUS_CANCELED)->count(),
+        ];
+
+        $recentPurchases = Purchase::query()
+            ->where(function ($q) use ($sponsor) {
+                $q->where('submitted_by_sponsor_id', $sponsor->id)
+                    ->orWhere('beneficiary_user_id', $sponsor->id);
+            })
+            ->with(['submittedBy', 'beneficiary'])
+            ->orderByDesc('created_at')
+            ->limit(15)
+            ->get();
+
+        $sponsorMetrics = app(SponsorMetricsService::class)->dashboardMetrics($sponsor);
+
+        return view('admin.sponsors.show', compact(
+            'sponsor',
+            'products',
+            'stats',
+            'lifetimeEarnings',
+            'earningsByType',
+            'earningTypeLabels',
+            'recentEarnings',
+            'withdrawalSummary',
+            'purchaseSubmitted',
+            'purchaseAsBeneficiary',
+            'recentPurchases',
+            'sponsorMetrics',
+            'manualIncomes',
+            'sponsorIncomeCategorySuggestions',
+        ));
+    }
+
+    public function storeSponsorIncome(Request $request, User $sponsor, EarningService $earningService)
+    {
+        if ($sponsor->role !== 'sponsor') {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0.01|max:99999999.99',
+            'category_preset' => 'nullable|string|max:255',
+            'category_custom' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $preset = trim((string) ($data['category_preset'] ?? ''));
+        $custom = trim((string) ($data['category_custom'] ?? ''));
+        if ($custom !== '') {
+            $category = $custom;
+        } elseif ($preset !== '') {
+            $category = $preset;
+        } else {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors([
+                    'category_preset' => 'Choose a category from the list or type a custom category below.',
+                ]);
+        }
+
+        try {
+            $earningService->createManualSponsorIncome(
+                $sponsor,
+                (float) $data['amount'],
+                $category,
+                isset($data['notes']) ? trim((string) $data['notes']) : null,
+                Auth::id(),
+            );
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->back()->withInput()->withErrors(['amount' => $e->getMessage()]);
+        }
+
+        return redirect()->back()->with('success', 'Income recorded and sponsor balance updated.');
     }
     
     public function editSponsor(User $sponsor)
@@ -796,7 +1112,20 @@ class DashboardController extends Controller
             abort(404);
         }
         
-        return view('admin.sponsors.edit', compact('sponsor'));
+        $referrerOptions = User::where('role', 'sponsor')
+            ->where('id', '!=', $sponsor->id)
+            ->where(function ($q) use ($sponsor) {
+                $q->whereNull('deleted_at');
+                if ($sponsor->sponsor_id) {
+                    $q->orWhere('id', $sponsor->sponsor_id);
+                }
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'affiliate_code', 'phone', 'deleted_at']);
+
+        $sponsorLevels = SponsorLevel::query()->orderBy('rank')->get();
+
+        return view('admin.sponsors.edit', compact('sponsor', 'referrerOptions', 'sponsorLevels'));
     }
     
     public function updateSponsor(Request $request, User $sponsor)
@@ -812,6 +1141,12 @@ class DashboardController extends Controller
             'address' => 'nullable|string|max:1000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'comment' => 'nullable|string|max:2000',
+            'sponsor_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', 'sponsor')),
+                Rule::notIn([$sponsor->id]),
+            ],
+            'sponsor_level_id' => ['nullable', 'exists:sponsor_levels,id'],
         ]);
         
         try {
@@ -834,14 +1169,27 @@ class DashboardController extends Controller
             'phone' => $phone,
             'address' => $request->address,
             'comment' => $request->comment,
+            'sponsor_id' => $request->filled('sponsor_id') ? (int) $request->sponsor_id : null,
+            'sponsor_level_id' => $request->filled('sponsor_level_id') ? (int) $request->sponsor_level_id : null,
         ];
         
         // Handle photo upload
         if ($request->hasFile('photo')) {
             $this->resizeAndReplaceUserPhoto($request, $sponsor, $data);
         }
-        
+
+        $fromLevelId = $sponsor->sponsor_level_id;
         $sponsor->update($data);
+        $sponsor->refresh();
+
+        if ($fromLevelId !== $sponsor->sponsor_level_id) {
+            SponsorLevelHistory::create([
+                'user_id' => $sponsor->id,
+                'from_sponsor_level_id' => $fromLevelId,
+                'to_sponsor_level_id' => $sponsor->sponsor_level_id,
+                'changed_by' => Auth::id(),
+            ]);
+        }
         
         return redirect()->route('admin.sponsors.show', $sponsor)
             ->with('success', 'Sponsor updated successfully!');
@@ -867,6 +1215,29 @@ class DashboardController extends Controller
         $this->authorize('restore', $sponsor);
         $sponsor->restore();
         return redirect()->route('admin.sponsors.index')->with('success', 'Sponsor restored successfully!');
+    }
+
+    public function forceDestroySponsor(Request $request)
+    {
+        $sponsor = User::withTrashed()->findOrFail($request->route('sponsor'));
+        if ($sponsor->role !== 'sponsor') {
+            abort(404);
+        }
+        if (!$sponsor->trashed()) {
+            return redirect()->back()->with('error', 'Only soft-deleted partners can be permanently removed.');
+        }
+        $this->authorize('forceDelete', $sponsor);
+        try {
+            if ($sponsor->photo && Storage::disk('public')->exists($sponsor->photo)) {
+                Storage::disk('public')->delete($sponsor->photo);
+            }
+            $sponsor->forceDelete();
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Cannot delete permanently: this partner is still referenced (e.g. orders or downline). Remove or reassign those records first.');
+        }
+
+        return redirect()->route('admin.sponsors.index', ['trashed' => 1])
+            ->with('success', 'Partner permanently deleted.');
     }
     
     public function users(Request $request)
@@ -1028,6 +1399,32 @@ class DashboardController extends Controller
         $this->authorize('restore', $user);
         $user->restore();
         return redirect()->route('admin.users.index')->with('success', 'Admin user restored successfully!');
+    }
+
+    public function forceDestroyUser(Request $request)
+    {
+        $user = User::withTrashed()->findOrFail($request->route('user'));
+        if ($user->role !== 'admin') {
+            abort(404);
+        }
+        if (!$user->trashed()) {
+            return redirect()->back()->with('error', 'Only soft-deleted admin users can be permanently removed.');
+        }
+        if ($user->id === Auth::id()) {
+            return redirect()->back()->with('error', 'You cannot permanently delete your own account.');
+        }
+        $this->authorize('forceDelete', $user);
+        try {
+            if ($user->photo && Storage::disk('public')->exists($user->photo)) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            $user->forceDelete();
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Cannot delete permanently: this user is still referenced elsewhere.');
+        }
+
+        return redirect()->route('admin.users.index', ['trashed' => 1])
+            ->with('success', 'Admin user permanently deleted.');
     }
     
     public function salesReport(Request $request)
@@ -1233,6 +1630,23 @@ class DashboardController extends Controller
         $this->authorize('restore', $order);
         $order->restore();
         return redirect()->route('admin.orders.index')->with('success', 'Order restored successfully!');
+    }
+
+    public function forceDestroyOrder(Request $request)
+    {
+        $order = Order::withTrashed()->findOrFail($request->route('order'));
+        if (!$order->trashed()) {
+            return redirect()->back()->with('error', 'Only soft-deleted orders can be permanently removed.');
+        }
+        $this->authorize('forceDelete', $order);
+        try {
+            $order->forceDelete();
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Cannot delete permanently: related records block removal.');
+        }
+
+        return redirect()->route('admin.orders.index', ['trashed' => 1])
+            ->with('success', 'Order permanently deleted.');
     }
 
     /**

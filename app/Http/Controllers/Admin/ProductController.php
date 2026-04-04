@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Database\QueryException;
 
 class ProductController extends Controller
 {
@@ -462,6 +463,28 @@ class ProductController extends Controller
         $this->authorize('restore', $product);
         $product->restore();
         return redirect()->route('admin.products.index')->with('success', 'Product restored successfully!');
+    }
+
+    public function forceDestroy(Request $request)
+    {
+        $product = Product::withTrashed()->findOrFail($request->route('product'));
+        if (!$product->trashed()) {
+            return redirect()->back()->with('error', 'Only soft-deleted products can be permanently removed.');
+        }
+        $this->authorize('forceDelete', $product);
+        try {
+            DB::transaction(function () use ($product) {
+                if ($product->digital_file_path && Storage::disk('public')->exists($product->digital_file_path)) {
+                    Storage::disk('public')->delete($product->digital_file_path);
+                }
+                $product->forceDelete();
+            });
+        } catch (QueryException $e) {
+            return redirect()->back()->with('error', 'Cannot delete permanently: related records still reference this product.');
+        }
+
+        return redirect()->route('admin.products.index', ['trashed' => 1])
+            ->with('success', 'Product permanently deleted.');
     }
 
     protected function syncVariants(Product $product, array $variantsData): void

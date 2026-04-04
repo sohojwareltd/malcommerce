@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\PurchaseController as AdminPurchaseController;
 use App\Http\Controllers\Sponsor\DashboardController as SponsorDashboardController;
 use App\Http\Middleware\TrackReferral;
 use App\Models\User;
@@ -86,6 +87,9 @@ Route::middleware('auth')->group(function () {
     // Admin routes
     Route::middleware(['admin', 'require.password.setup'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard')->middleware('can:dashboard.view');
+        Route::get('/purchases', [AdminPurchaseController::class, 'index'])->name('purchases.index')->middleware('can:dashboard.view');
+        Route::get('/purchases/{purchase}', [AdminPurchaseController::class, 'show'])->name('purchases.show')->middleware('can:dashboard.view');
+        Route::patch('/purchases/{purchase}', [AdminPurchaseController::class, 'updateStatus'])->name('purchases.update-status')->middleware('can:dashboard.view');
         Route::get('/products', [AdminProductController::class, 'index'])->name('products.index')->middleware('can:products.viewAny');
         Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create')->middleware('can:products.create');
         Route::post('/products', [AdminProductController::class, 'store'])->name('products.store')->middleware('can:products.create');
@@ -94,6 +98,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/products/{product}', [AdminProductController::class, 'update'])->name('products.update')->middleware('can:products.update');
         Route::delete('/products/{product}', [AdminProductController::class, 'destroy'])->name('products.destroy')->middleware('can:products.delete');
         Route::post('/products/{product}/restore', [AdminProductController::class, 'restore'])->name('products.restore')->middleware('can:products.restore');
+        Route::delete('/products/{product}/force', [AdminProductController::class, 'forceDestroy'])->name('products.force-delete')->middleware('can:products.forceDelete');
         Route::get('/products/{product}', [AdminProductController::class, 'show'])->name('products.show')->middleware('can:products.view');
         Route::post('/upload-image', [\App\Http\Controllers\Admin\ImageUploadController::class, 'upload'])->name('upload.image')->middleware('can:products.create');
         Route::get('/categories', [AdminDashboardController::class, 'categories'])->name('categories.index')->middleware('can:categories.viewAny');
@@ -103,7 +108,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/categories/{category}', [AdminDashboardController::class, 'updateCategory'])->name('categories.update')->middleware('can:categories.update');
         Route::delete('/categories/{category}', [AdminDashboardController::class, 'destroyCategory'])->name('categories.destroy')->middleware('can:categories.delete');
         Route::post('/categories/{category}/restore', [AdminDashboardController::class, 'restoreCategory'])->name('categories.restore')->middleware('can:categories.restore');
-        
+        Route::delete('/categories/{category}/force', [AdminDashboardController::class, 'forceDestroyCategory'])->name('categories.force-delete')->middleware('can:categories.forceDelete');
+
         Route::get('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'index'])->name('videos.index')->middleware('can:videos.viewAny');
         Route::get('/videos/create', [\App\Http\Controllers\Admin\VideoController::class, 'create'])->name('videos.create')->middleware('can:videos.create');
         Route::post('/videos', [\App\Http\Controllers\Admin\VideoController::class, 'store'])->name('videos.store')->middleware('can:videos.create');
@@ -111,6 +117,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'update'])->name('videos.update')->middleware('can:videos.update');
         Route::delete('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'destroy'])->name('videos.destroy')->middleware('can:videos.delete');
         Route::post('/videos/{video}/restore', [\App\Http\Controllers\Admin\VideoController::class, 'restore'])->name('videos.restore')->middleware('can:videos.restore');
+        Route::delete('/videos/{video}/force', [\App\Http\Controllers\Admin\VideoController::class, 'forceDestroy'])->name('videos.force-delete')->middleware('can:videos.forceDelete');
         Route::get('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'show'])->name('videos.show')->middleware('can:videos.view');
         
         Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index')->middleware('can:orders.viewAny');
@@ -126,17 +133,29 @@ Route::middleware('auth')->group(function () {
         Route::delete('/orders/{order}/steadfast', [AdminDashboardController::class, 'removeSteadfastInfo'])->name('orders.steadfast.remove')->middleware('can:orders.update');
         Route::delete('/orders/{order}', [AdminDashboardController::class, 'destroyOrder'])->name('orders.destroy')->middleware('can:orders.delete');
         Route::post('/orders/{order}/restore', [AdminDashboardController::class, 'restoreOrder'])->name('orders.restore')->middleware('can:orders.restore');
+        Route::delete('/orders/{order}/force', [AdminDashboardController::class, 'forceDestroyOrder'])->name('orders.force-delete')->middleware('can:orders.forceDelete');
         Route::get('/orders/{order}', [AdminDashboardController::class, 'showOrder'])->name('orders.show')->middleware('can:orders.view');
         
+        Route::resource('sponsor-levels', \App\Http\Controllers\Admin\SponsorLevelController::class)
+            ->except(['show'])
+            ->names('sponsor-levels');
+
         Route::get('/sponsors', [AdminDashboardController::class, 'sponsors'])->name('sponsors.index')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/create', [AdminDashboardController::class, 'createSponsor'])->name('sponsors.create')->middleware('can:sponsors.create');
         Route::post('/sponsors', [AdminDashboardController::class, 'storeSponsor'])->name('sponsors.store')->middleware('can:sponsors.create');
-        Route::get('/sponsors/{sponsor}', [AdminDashboardController::class, 'showSponsor'])->name('sponsors.show')->middleware('can:sponsors.view');
-        Route::get('/sponsors/{sponsor}/edit', [AdminDashboardController::class, 'editSponsor'])->name('sponsors.edit')->middleware('can:sponsors.update');
-        Route::put('/sponsors/{sponsor}', [AdminDashboardController::class, 'updateSponsor'])->name('sponsors.update')->middleware('can:sponsors.update');
-        Route::delete('/sponsors/{sponsor}', [AdminDashboardController::class, 'destroySponsor'])->name('sponsors.destroy')->middleware('can:sponsors.delete');
-        Route::post('/sponsors/{sponsor}/restore', [AdminDashboardController::class, 'restoreSponsor'])->name('sponsors.restore')->middleware('can:sponsors.restore');
-        
+        Route::post('/sponsors/bulk-set-referrer', [AdminDashboardController::class, 'bulkSetSponsorReferrer'])->name('sponsors.bulk-set-referrer')->middleware('can:sponsors.update');
+        Route::post('/sponsors/bulk-set-level', [AdminDashboardController::class, 'bulkSetSponsorLevel'])->name('sponsors.bulk-set-level')->middleware('can:sponsors.update');
+        // Avoid GET bulk routes matching {sponsor} = route segment (404); bulk is POST-only from the index form.
+        Route::get('/sponsors/bulk-set-referrer', fn () => redirect()->route('admin.sponsors.index'))->middleware('can:sponsors.viewAny');
+        Route::get('/sponsors/bulk-set-level', fn () => redirect()->route('admin.sponsors.index'))->middleware('can:sponsors.viewAny');
+        Route::get('/sponsors/{sponsor}', [AdminDashboardController::class, 'showSponsor'])->name('sponsors.show')->whereNumber('sponsor')->middleware('can:sponsors.view');
+        Route::get('/sponsors/{sponsor}/edit', [AdminDashboardController::class, 'editSponsor'])->name('sponsors.edit')->whereNumber('sponsor')->middleware('can:sponsors.update');
+        Route::post('/sponsors/{sponsor}/income', [AdminDashboardController::class, 'storeSponsorIncome'])->name('sponsors.income.store')->whereNumber('sponsor')->middleware('can:sponsors.update');
+        Route::put('/sponsors/{sponsor}', [AdminDashboardController::class, 'updateSponsor'])->name('sponsors.update')->whereNumber('sponsor')->middleware('can:sponsors.update');
+        Route::delete('/sponsors/{sponsor}', [AdminDashboardController::class, 'destroySponsor'])->name('sponsors.destroy')->whereNumber('sponsor')->middleware('can:sponsors.delete');
+        Route::post('/sponsors/{sponsor}/restore', [AdminDashboardController::class, 'restoreSponsor'])->name('sponsors.restore')->whereNumber('sponsor')->middleware('can:sponsors.restore');
+        Route::delete('/sponsors/{sponsor}/force', [AdminDashboardController::class, 'forceDestroySponsor'])->name('sponsors.force-delete')->whereNumber('sponsor')->middleware('can:sponsors.forceDelete');
+
         Route::get('/users', [AdminDashboardController::class, 'users'])->name('users.index')->middleware('can:users.viewAny');
         Route::get('/users/create', [AdminDashboardController::class, 'createUser'])->name('users.create')->middleware('can:users.create');
         Route::post('/users', [AdminDashboardController::class, 'storeUser'])->name('users.store')->middleware('can:users.create');
@@ -144,7 +163,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/users/{user}', [AdminDashboardController::class, 'updateUser'])->name('users.update')->middleware('can:users.update');
         Route::delete('/users/{user}', [AdminDashboardController::class, 'destroyUser'])->name('users.destroy')->middleware('can:users.delete');
         Route::post('/users/{user}/restore', [AdminDashboardController::class, 'restoreUser'])->name('users.restore')->middleware('can:users.restore');
-        
+        Route::delete('/users/{user}/force', [AdminDashboardController::class, 'forceDestroyUser'])->name('users.force-delete')->middleware('can:users.forceDelete');
+
         Route::get('/roles', [\App\Http\Controllers\Admin\RoleController::class, 'index'])->name('roles.index')->middleware('can:roles.viewAny');
         Route::get('/roles/create', [\App\Http\Controllers\Admin\RoleController::class, 'create'])->name('roles.create')->middleware('can:roles.create');
         Route::post('/roles', [\App\Http\Controllers\Admin\RoleController::class, 'store'])->name('roles.store')->middleware('can:roles.create');
@@ -202,6 +222,8 @@ Route::middleware('auth')->group(function () {
     // Sponsor/Affiliate routes
     Route::middleware(['sponsor', 'require.password.setup'])->prefix('sponsor')->name('sponsor.')->group(function () {
         Route::get('/dashboard', [SponsorDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/purchases/own', [\App\Http\Controllers\Sponsor\PurchaseController::class, 'storeOwn'])->name('purchases.store-own');
+        Route::post('/purchases/team/{referral}', [\App\Http\Controllers\Sponsor\PurchaseController::class, 'storeTeam'])->name('purchases.store-team');
 
         // Earnings & withdrawals
         Route::get('/earnings', [\App\Http\Controllers\Sponsor\EarningController::class, 'index'])->name('earnings.index');

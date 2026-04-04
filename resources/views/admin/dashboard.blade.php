@@ -4,7 +4,7 @@
 
 @section('content')
 <!-- Stats Grid (Last 30 days, excl. cancelled - matches Sales Report) -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 lg:gap-6 mb-6 sm:mb-8">
     <a href="{{ route('admin.orders.index') }}" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0 block">
         <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
             <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
@@ -53,6 +53,19 @@
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Revenue (Delivered)</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">৳{{ number_format($stats['revenue'], 2) }}</p>
         <p class="text-white/60 text-[9px] sm:text-xs mt-1">Last 30 days</p>
+    </a>
+
+    <a href="{{ route('admin.purchases.index', ['status' => 'pending']) }}" class="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-xl shadow-lg p-2 sm:p-3 lg:p-6 text-white transform hover:scale-105 transition-transform duration-200 min-w-0 block">
+        <div class="flex items-center justify-between mb-2 sm:mb-3 lg:mb-4">
+            <div class="bg-white/20 rounded-lg p-1 sm:p-1.5 lg:p-3 flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Pending purchases</h3>
+        <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['pending_purchases'] }}</p>
+        <p class="text-white/60 text-[9px] sm:text-xs mt-1">Sponsor submissions</p>
     </a>
 </div>
 

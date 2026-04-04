@@ -23,7 +23,9 @@ use Illuminate\Support\Str;
     }
 </style>
 
-<div class="min-h-screen pb-6" style="">
+<div class="min-h-screen pb-6" style=""
+     x-data="{ teamPurchaseOpen: false, teamReferralId: null, teamReferralName: '' }"
+     @open-team-purchase.window="teamPurchaseOpen = true; teamReferralId = $event.detail.id; teamReferralName = $event.detail.name">
     <!-- Header -->
     <div class="app-card mx-4 mt-4 mb-4 p-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
@@ -142,6 +144,12 @@ use Illuminate\Support\Str;
                                    class="font-medium" style="color: var(--color-medium);">
                                     Upload Photo
                                 </a>
+                                <span class="text-neutral-300">|</span>
+                                <button type="button"
+                                        @click="$dispatch('open-team-purchase', { id: {{ $referral->id }}, name: {{ json_encode($referral->name) }} })"
+                                        class="font-medium" style="color: var(--color-medium); background: none; border: none; padding: 0; cursor: pointer;">
+                                    Add purchase
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -181,5 +189,30 @@ use Illuminate\Support\Str;
         {{ $referrals->links() }}
     </div>
     @endif
+
+    <div x-show="teamPurchaseOpen" x-cloak class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50" @click="teamPurchaseOpen = false"></div>
+        <div class="relative w-full max-w-md rounded-2xl bg-white shadow-xl p-4 sm:p-5" @click.stop>
+            <h3 class="text-lg font-bold mb-1" style="color: var(--color-dark);">Team purchase</h3>
+            <p class="text-xs mb-4" style="color: var(--color-medium);">
+                For <span class="font-semibold" x-text="teamReferralName"></span>. Credits their balance after admin approval.
+            </p>
+            <form method="POST" :action="`{{ url('/sponsor/purchases/team') }}/${teamReferralId}`" class="space-y-3">
+                @csrf
+                <div>
+                    <label class="block text-xs font-semibold mb-1" style="color: var(--color-medium);">Amount (৳)</label>
+                    <input type="number" name="amount" step="0.01" min="0.01" required class="w-full px-3 py-2 rounded-xl border-2 text-sm" style="border-color: var(--color-accent);" placeholder="0.00">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1" style="color: var(--color-medium);">Comment (optional)</label>
+                    <textarea name="comment" rows="3" maxlength="2000" class="w-full px-3 py-2 rounded-xl border-2 text-sm" style="border-color: var(--color-accent);" placeholder="Note for admin…"></textarea>
+                </div>
+                <div class="flex gap-2 justify-end pt-2">
+                    <button type="button" @click="teamPurchaseOpen = false" class="px-4 py-2 rounded-xl text-sm font-semibold border-2" style="border-color: var(--color-accent); color: var(--color-dark);">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl text-sm font-semibold text-white" style="background: var(--color-medium);">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection
