@@ -85,15 +85,15 @@ use Illuminate\Support\Facades\Storage;
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">My Orders</span>
                     </a>
                     <a href="{{ route('sponsor.orders.referral-orders') }}" 
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Referral Orders' : ''"
-                       class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('sponsor.orders.referral-orders') ? 'bg-white shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition-all group relative text-sm font-medium"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'User Orders' : ''"
+                       class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('sponsor.orders.User-orders') ? 'bg-white shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition-all group relative text-sm font-medium"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-3' : ''"
-                       style="{{ request()->routeIs('sponsor.orders.referral-orders') ? 'color: #0F2854;' : '' }}">
+                       style="{{ request()->routeIs('sponsor.orders.User-orders') ? 'color: #0F2854;' : '' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Referral Orders</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Referral Orders</span>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">User Orders</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">User Orders</span>
                     </a>
                     <a href="{{ route('sponsor.earnings.index') }}" 
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Earnings' : ''"
@@ -129,15 +129,15 @@ use Illuminate\Support\Facades\Storage;
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Withdrawal Methods</span>
                     </a>
                     <a href="{{ route('sponsor.users.index') }}" 
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'My Referrals' : ''"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'My Users' : ''"
                        class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('sponsor.users.index') || request()->routeIs('sponsor.users.show') || request()->routeIs('sponsor.users.edit') ? 'bg-white shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition-all group relative text-sm font-medium"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-3' : ''"
                        style="{{ request()->routeIs('sponsor.users.index') || request()->routeIs('sponsor.users.show') || request()->routeIs('sponsor.users.edit') ? 'color: #0F2854;' : '' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">My Referrals</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">My Referrals</span>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">My Users</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">My Users</span>
                     </a>
                     <a href="{{ route('sponsor.gallery.index') }}" 
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Gallery' : ''"
@@ -151,15 +151,15 @@ use Illuminate\Support\Facades\Storage;
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Gallery</span>
                     </a>
                     <a href="{{ route('sponsor.users.create') }}" 
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Add Referral' : ''"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Add User' : ''"
                        class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('sponsor.users.create') ? 'bg-white shadow-lg' : 'text-white/90 hover:bg-white/10' }} transition-all group relative text-sm font-medium"
                        :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center px-3' : ''"
                        style="{{ request()->routeIs('sponsor.users.create') ? 'color: #0F2854;' : '' }}">
                         <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Add Referral</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Add Referral</span>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Add User</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">Add User</span>
                     </a>
                     <a href="{{ route('sponsor.profile.edit') }}" 
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Edit Profile' : ''"

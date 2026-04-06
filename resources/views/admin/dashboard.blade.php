@@ -65,6 +65,7 @@
         </div>
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Pending purchases</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate">{{ $stats['pending_purchases'] }}</p>
+        <p class="text-white/70 text-[10px] sm:text-xs mt-1">৳{{ number_format($stats['pending_purchases_amount'], 2) }}</p>
         <p class="text-white/60 text-[9px] sm:text-xs mt-1">Sponsor submissions</p>
     </a>
 </div>

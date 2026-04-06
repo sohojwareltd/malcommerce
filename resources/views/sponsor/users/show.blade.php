@@ -185,6 +185,65 @@ use Illuminate\Support\Facades\Storage;
                     </div>
 
                     <div class="lg:col-span-2 space-y-4">
+                        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                            <div class="stat-card text-center">
+                                <p class="text-[10px] sm:text-xs text-white/80 mb-1">Balance</p>
+                                <p class="text-lg sm:text-xl font-bold text-white">৳{{ number_format($incomeSummary['available_balance'], 2) }}</p>
+                            </div>
+                            <div class="stat-card text-center" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+                                <p class="text-[10px] sm:text-xs text-white/80 mb-1">Lifetime Income</p>
+                                <p class="text-lg sm:text-xl font-bold text-white">৳{{ number_format($incomeSummary['lifetime_earnings'], 2) }}</p>
+                            </div>
+                            <div class="stat-card text-center" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+                                <p class="text-[10px] sm:text-xs text-white/80 mb-1">Pending Requests</p>
+                                <p class="text-lg sm:text-xl font-bold text-white">{{ $purchaseSummary['pending_count'] }}</p>
+                                <p class="text-[10px] text-white/80">৳{{ number_format($purchaseSummary['pending_amount'], 2) }}</p>
+                            </div>
+                            <div class="stat-card text-center" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);">
+                                <p class="text-[10px] sm:text-xs text-white/80 mb-1">Accepted Requests</p>
+                                <p class="text-lg sm:text-xl font-bold text-white">{{ $purchaseSummary['accepted_count'] }}</p>
+                                <p class="text-[10px] text-white/80">৳{{ number_format($purchaseSummary['accepted_amount'], 2) }}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold mb-3" style="color: var(--color-dark);">Purchase Request Details</h2>
+                            @if($recentPurchaseRequests->count() > 0)
+                                <div class="space-y-2 max-h-[24rem] overflow-y-auto">
+                                    @foreach($recentPurchaseRequests as $purchase)
+                                        <div class="p-3 rounded-xl border-2" style="border-color: var(--color-accent); background: rgba(189,232,245,0.2);">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <div class="min-w-0">
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <span class="px-2 py-0.5 text-[10px] rounded-full font-semibold {{ $purchase->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ($purchase->status === 'accepted' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800') }}">
+                                                            {{ ucfirst($purchase->status) }}
+                                                        </span>
+                                                        <span class="text-[11px] font-semibold" style="color: var(--color-medium);">
+                                                            {{ ucfirst($purchase->kind) }} request
+                                                        </span>
+                                                    </div>
+                                                    <p class="text-xs sm:text-sm font-medium" style="color: var(--color-dark);">
+                                                        Submitted by: {{ $purchase->submittedBy?->name ?? 'N/A' }}
+                                                    </p>
+                                                    @if($purchase->comment)
+                                                        <p class="text-xs mt-1 line-clamp-2" style="color: var(--color-medium);">{{ $purchase->comment }}</p>
+                                                    @endif
+                                                </div>
+                                                <div class="text-right shrink-0">
+                                                    <p class="text-sm font-bold text-green-600">৳{{ number_format((float) $purchase->amount, 2) }}</p>
+                                                    <p class="text-[10px] mt-1" style="color: var(--color-medium);">{{ $purchase->created_at->format('M d, Y h:i A') }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-center py-8">
+                                    <p class="text-sm" style="color: var(--color-medium);">No purchase requests found for this user.</p>
+                                </div>
+                            @endif
+                        </div>
+
                         @if($referral->galleryPhotos && $referral->galleryPhotos->count() > 0)
                         <div>
                             <div class="flex items-center justify-between mb-3">

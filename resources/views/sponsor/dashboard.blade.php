@@ -79,8 +79,8 @@ use Illuminate\Support\Str;
 </style>
 
 <div class="min-h-screen pb-6" style=""
-     x-data="{ teamPurchaseOpen: false, teamReferralId: null, teamReferralName: '' }"
-     @open-team-purchase.window="teamPurchaseOpen = true; teamReferralId = $event.detail.id; teamReferralName = $event.detail.name">
+     x-data="{ teamPurchaseOpen: false, teamUserId: null, teamUserName: '' }"
+     @open-team-purchase.window="teamPurchaseOpen = true; teamUserId = $event.detail.id; teamUserName = $event.detail.name">
     <!-- Header Profile Section -->
     <div class="app-card mx-4 mt-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-medium) 100%);" x-data="{ ownPurchaseOpen: false }">
         <div class="p-4">
@@ -143,7 +143,7 @@ use Illuminate\Support\Str;
                 </div>
             </div>
 
-            <div x-data="{ showBalances: false }" class="space-y-2">
+            <div x-data="{ showBalances: false, sponsorMetricsOpen: false }" class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
                     <button
                         type="button"
@@ -154,6 +154,15 @@ use Illuminate\Support\Str;
                     >
                         Tap to see balance
                     </button>
+                    @if(!empty($sponsorMetrics))
+                    <button
+                        type="button"
+                        @click="sponsorMetricsOpen = true"
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/20 hover:bg-white/30 border border-white/30 transition text-center"
+                    >
+                        Matrics
+                    </button>
+                    @endif
                     <div x-show="showBalances" x-cloak class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                         <button
                             type="button"
@@ -179,6 +188,7 @@ use Illuminate\Support\Str;
                                 </svg>
                     </div>
                 </div>
+
             </div>
             <div class="income-card rounded-xl p-2.5 sm:p-3">
                 <div class="flex items-center justify-between">
@@ -223,6 +233,80 @@ use Illuminate\Support\Str;
                 </div>
             </div>
                 </div>
+
+                @if(!empty($sponsorMetrics))
+                <div x-show="sponsorMetricsOpen" x-cloak class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
+                    <div class="absolute inset-0 bg-black/50" @click="sponsorMetricsOpen = false"></div>
+                    <div class="relative w-full max-w-3xl rounded-2xl bg-white shadow-xl p-4 sm:p-5 max-h-[85vh] overflow-y-auto" @click.stop>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Your level & metrics</h3>
+                            <button type="button" @click="sponsorMetricsOpen = false" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border" style="border-color: var(--color-accent); color: var(--color-dark);">
+                                Close
+                            </button>
+                        </div>
+                        <div class="app-card p-4 sm:p-5">
+                            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                                <div>
+                                    <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Your level & metrics</h2>
+                                    <p class="text-xs sm:text-sm mt-1" style="color: var(--color-medium);">
+                                        @if(Auth::user()->sponsorLevel)
+                                            {{ Auth::user()->sponsorLevel->name }}
+                                            <span class="opacity-75">· rank {{ Auth::user()->sponsorLevel->rank }}</span>
+                                            <span class="opacity-75">· {{ number_format(Auth::user()->sponsorLevel->commission_percent, 2) }}% commission tier</span>
+                                        @else
+                                            No level assigned — referral orders use the classic single-sponsor commission rule.
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="text-left sm:text-right">
+                                    <p class="text-xs font-medium uppercase tracking-wide" style="color: var(--color-medium);">Consistency score</p>
+                                    <p class="text-2xl sm:text-3xl font-bold tabular-nums" style="color: var(--color-dark);">
+                                        @if($sponsorMetrics['consistency'] !== null)
+                                            {{ $sponsorMetrics['consistency'] }}
+                                        @else
+                                            <span class="text-base font-normal opacity-60">Need 2+ active months</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+                                <div class="rounded-xl p-3 border" style="border-color: var(--color-accent); background: rgba(189,232,245,0.25);">
+                                    <p class="text-[11px] font-medium opacity-80" style="color: var(--color-dark);">Accepted purchases (30d)</p>
+                                    <p class="font-bold tabular-nums mt-1" style="color: var(--color-dark);">৳{{ number_format($sponsorMetrics['purchase_totals']['day_30'], 2) }}</p>
+                                </div>
+                                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
+                                    <p class="text-[11px] font-medium text-neutral-600">This month</p>
+                                    <p class="font-bold tabular-nums mt-1 text-neutral-900">৳{{ number_format($sponsorMetrics['purchase_totals']['month_current'], 2) }}</p>
+                                </div>
+                                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
+                                    <p class="text-[11px] font-medium text-neutral-600">Withdrawals (30d)</p>
+                                    <p class="font-bold tabular-nums mt-1 text-neutral-900">৳{{ number_format($sponsorMetrics['withdrawal_totals']['day_30'], 2) }}</p>
+                                </div>
+                                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
+                                    <p class="text-[11px] font-medium text-neutral-600">Peer sample avg</p>
+                                    <p class="font-bold tabular-nums mt-1 text-neutral-900">
+                                        @if($sponsorMetrics['peer_sample_avg_consistency'] !== null)
+                                            {{ $sponsorMetrics['peer_sample_avg_consistency'] }}
+                                        @else
+                                            —
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            @if(Auth::user()->sponsor)
+                            <p class="text-xs mt-3 opacity-80" style="color: var(--color-medium);">
+                                Referrer consistency:
+                                @if($sponsorMetrics['referrer_consistency'] !== null)
+                                    <span class="font-semibold tabular-nums">{{ $sponsorMetrics['referrer_consistency'] }}</span>
+                                @else
+                                    <span>n/a</span>
+                                @endif
+                            </p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
 
         </div>
@@ -236,7 +320,7 @@ use Illuminate\Support\Str;
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
             </div>
-            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Referrals</p>
+            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">User</p>
             <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['total_referrals'] }}</p>
         </div>
         
@@ -256,75 +340,10 @@ use Illuminate\Support\Str;
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
-            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">Referral Orders</p>
+            <p class="text-[10px] sm:text-xs text-white/80 mb-0.5 sm:mb-1">User Orders</p>
             <p class="text-base sm:text-lg md:text-xl font-bold text-white">{{ $stats['referral_orders'] }}</p>
         </div>
     </div>
-
-    @if(!empty($sponsorMetrics))
-    <div class="px-4 mb-4">
-        <div class="app-card p-4 sm:p-5">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-                <div>
-                    <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Your level & metrics</h2>
-                    <p class="text-xs sm:text-sm mt-1" style="color: var(--color-medium);">
-                        @if(Auth::user()->sponsorLevel)
-                            {{ Auth::user()->sponsorLevel->name }}
-                            <span class="opacity-75">· rank {{ Auth::user()->sponsorLevel->rank }}</span>
-                            <span class="opacity-75">· {{ number_format(Auth::user()->sponsorLevel->commission_percent, 2) }}% commission tier</span>
-                        @else
-                            No level assigned — referral orders use the classic single-sponsor commission rule.
-                        @endif
-                    </p>
-                </div>
-                <div class="text-left sm:text-right">
-                    <p class="text-xs font-medium uppercase tracking-wide" style="color: var(--color-medium);">Consistency score</p>
-                    <p class="text-2xl sm:text-3xl font-bold tabular-nums" style="color: var(--color-dark);">
-                        @if($sponsorMetrics['consistency'] !== null)
-                            {{ $sponsorMetrics['consistency'] }}
-                        @else
-                            <span class="text-base font-normal opacity-60">Need 2+ active months</span>
-                        @endif
-                    </p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                <div class="rounded-xl p-3 border" style="border-color: var(--color-accent); background: rgba(189,232,245,0.25);">
-                    <p class="text-[11px] font-medium opacity-80" style="color: var(--color-dark);">Accepted purchases (30d)</p>
-                    <p class="font-bold tabular-nums mt-1" style="color: var(--color-dark);">৳{{ number_format($sponsorMetrics['purchase_totals']['day_30'], 2) }}</p>
-                </div>
-                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
-                    <p class="text-[11px] font-medium text-neutral-600">This month</p>
-                    <p class="font-bold tabular-nums mt-1 text-neutral-900">৳{{ number_format($sponsorMetrics['purchase_totals']['month_current'], 2) }}</p>
-                </div>
-                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
-                    <p class="text-[11px] font-medium text-neutral-600">Withdrawals (30d)</p>
-                    <p class="font-bold tabular-nums mt-1 text-neutral-900">৳{{ number_format($sponsorMetrics['withdrawal_totals']['day_30'], 2) }}</p>
-                </div>
-                <div class="rounded-xl p-3 border border-neutral-200 bg-white/80">
-                    <p class="text-[11px] font-medium text-neutral-600">Peer sample avg</p>
-                    <p class="font-bold tabular-nums mt-1 text-neutral-900">
-                        @if($sponsorMetrics['peer_sample_avg_consistency'] !== null)
-                            {{ $sponsorMetrics['peer_sample_avg_consistency'] }}
-                        @else
-                            —
-                        @endif
-                    </p>
-                </div>
-            </div>
-            @if(Auth::user()->sponsor)
-            <p class="text-xs mt-3 opacity-80" style="color: var(--color-medium);">
-                Referrer consistency:
-                @if($sponsorMetrics['referrer_consistency'] !== null)
-                    <span class="font-semibold tabular-nums">{{ $sponsorMetrics['referrer_consistency'] }}</span>
-                @else
-                    <span>n/a</span>
-                @endif
-            </p>
-            @endif
-        </div>
-    </div>
-    @endif
 
     @if(isset($recentDigitalOrders) && $recentDigitalOrders->isNotEmpty())
     <div class="px-4 mb-4">
@@ -368,19 +387,19 @@ use Illuminate\Support\Str;
     <!-- Navigation Tabs -->
     <div class="px-4 mb-4">
         <div class="flex gap-2 overflow-x-auto pb-2" style="scrollbar-width: none;">
-            <button onclick="showSection('referrals')" class="nav-tab active whitespace-nowrap" id="tab-referrals">Referrals</button>
+            <button onclick="showSection('referrals')" class="nav-tab active whitespace-nowrap" id="tab-referrals">User</button>
             <button onclick="showSection('my-orders')" class="nav-tab whitespace-nowrap" id="tab-my-orders">My Orders</button>
-            <button onclick="showSection('referral-orders')" class="nav-tab whitespace-nowrap" id="tab-referral-orders">Referral Orders</button>
-            <button onclick="showSection('links')" class="nav-tab whitespace-nowrap" id="tab-links">Referral Links</button>
+            <button onclick="showSection('referral-orders')" class="nav-tab whitespace-nowrap" id="tab-referral-orders">User Orders</button>
+            <button onclick="showSection('links')" class="nav-tab whitespace-nowrap" id="tab-links">User Links</button>
             <button onclick="showSection('products')" class="nav-tab whitespace-nowrap" id="tab-products">Products</button>
         </div>
     </div>
     
-    <!-- Referrals Section -->
+    <!-- User Section -->
     <div id="section-referrals" class="section-content px-4">
         <div class="app-card p-3 sm:p-4 mb-4">
             <div class="flex items-center justify-between mb-3 sm:mb-4">
-                <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Your Referrals</h2>
+                <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Your User</h2>
                 <a href="{{ route('sponsor.users.create') }}" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-white text-xs sm:text-sm font-semibold" style="background: var(--color-medium);">
                     + Add
                 </a>
@@ -413,7 +432,7 @@ use Illuminate\Support\Str;
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-4 py-2 text-left font-semibold text-gray-700">Referral</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-700">User</th>
                                 <th class="px-4 py-2 text-left font-semibold text-gray-700">Affiliate Code</th>
                                 <th class="px-4 py-2 text-left font-semibold text-gray-700">Address</th>
                                 <th class="px-4 py-2 text-center font-semibold text-gray-700">Orders</th>
@@ -489,7 +508,7 @@ use Illuminate\Support\Str;
                 </div>
             </div>
             <div class="mt-4 text-center">
-                <a href="{{ route('sponsor.users.index') }}" class="text-sm font-semibold" style="color: var(--color-medium);">View All Referrals →</a>
+                <a href="{{ route('sponsor.users.index') }}" class="text-sm font-semibold" style="color: var(--color-medium);">View All User →</a>
             </div>
             @else
             <div class="text-center py-8">
@@ -551,11 +570,11 @@ use Illuminate\Support\Str;
         </div>
     </div>
 
-    <!-- Referral Orders Section -->
+    <!-- User Orders Section -->
     <div id="section-referral-orders" class="section-content px-4 hidden">
         <div class="app-card p-3 sm:p-4 mb-4">
             <div class="flex items-center justify-between mb-3 sm:mb-4">
-                <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">Referral Recent Orders</h2>
+                <h2 class="text-base sm:text-lg font-bold" style="color: var(--color-dark);">User Recent Orders</h2>
                 <a href="{{ route('sponsor.orders.referral-orders') }}" class="text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-white" style="background: var(--color-medium);">
                     View All
                 </a>
@@ -570,7 +589,7 @@ use Illuminate\Support\Str;
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="text-xs font-mono font-semibold" style="color: var(--color-dark);">#{{ $order->order_number }}</span>
                                         <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                                            Referral
+                                            User
                                         </span>
                                     </div>
                                     <p class="text-xs sm:text-sm font-medium" style="color: var(--color-dark);">{{ $order->product->name }}</p>
@@ -600,10 +619,10 @@ use Illuminate\Support\Str;
         </div>
     </div>
 
-    <!-- Referral Links Section -->
+    <!-- User Links Section -->
     <div id="section-links" class="section-content px-4 hidden">
         <div class="app-card p-3 sm:p-4 mb-4">
-            <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">General Referral Link</h2>
+            <h2 class="text-base sm:text-lg font-bold mb-3 sm:mb-4" style="color: var(--color-dark);">General User Link</h2>
             
             <div class="mb-4">
                 <div class="bg-white rounded-xl p-4 border-2 mb-3 inline-block" style="border-color: var(--color-accent);">
@@ -689,9 +708,9 @@ use Illuminate\Support\Str;
         <div class="relative w-full max-w-md rounded-2xl bg-white shadow-xl p-4 sm:p-5" @click.stop>
             <h3 class="text-lg font-bold mb-1" style="color: var(--color-dark);">Team purchase</h3>
             <p class="text-xs mb-4" style="color: var(--color-medium);">
-                For <span class="font-semibold" x-text="teamReferralName"></span>. Credits their balance after admin approval.
+                For <span class="font-semibold" x-text="teamUserName"></span>. Credits their balance after admin approval.
             </p>
-            <form method="POST" :action="`{{ url('/sponsor/purchases/team') }}/${teamReferralId}`" class="space-y-3">
+            <form method="POST" :action="`{{ url('/sponsor/purchases/team') }}/${teamUserId}`" class="space-y-3">
                 @csrf
                 <div>
                     <label class="block text-xs font-semibold mb-1" style="color: var(--color-medium);">Amount (৳)</label>

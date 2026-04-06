@@ -98,6 +98,8 @@ use Illuminate\Support\Str;
                         <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Code</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Orders</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Purchase Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Pending Purchase</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Joined</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Actions</th>
                     </tr>
@@ -126,6 +128,8 @@ use Illuminate\Support\Str;
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-mono" style="color: var(--color-medium);">{{ $referral->affiliate_code }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-600">{{ $referral->orders_count ?? 0 }} orders</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">৳{{ number_format((float) ($referral->purchase_amount ?? 0), 2) }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-amber-600">৳{{ number_format((float) ($referral->pending_purchase_amount ?? 0), 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $referral->created_at->format('M d, Y') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm">
                             <div class="flex gap-2 flex-wrap">

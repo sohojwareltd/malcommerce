@@ -65,6 +65,7 @@ class DashboardController extends Controller
             'total_items_sold' => $orders->sum('quantity'),
             'total_sponsors' => User::where('role', 'sponsor')->count(),
             'pending_purchases' => Purchase::where('status', Purchase::STATUS_PENDING)->count(),
+            'pending_purchases_amount' => (float) Purchase::where('status', Purchase::STATUS_PENDING)->sum('amount'),
         ];
 
         $recentOrders = Order::with('product', 'sponsor')

@@ -172,7 +172,16 @@ class DashboardController extends Controller
         $user = Auth::user();
         
         // Build referrals query
-        $query = $user->referrals()->withCount('customerOrders as orders_count');
+        $query = $user->referrals()
+            ->withCount('customerOrders as orders_count')
+            ->withSum([
+                'purchasesAsBeneficiary as pending_purchase_amount' => function ($q) {
+                    $q->where('status', Purchase::STATUS_PENDING);
+                },
+                'purchasesAsBeneficiary as purchase_amount' => function ($q) {
+                    $q->where('status', Purchase::STATUS_ACCEPTED);
+                },
+            ], 'amount');
         
         // Apply search filter if provided
         if ($request->has('search') && !empty($request->search)) {
@@ -448,8 +457,56 @@ class DashboardController extends Controller
             'pending_orders' => $referral->customerOrders()->where('status', 'pending')->count(),
             'delivered_orders' => $referral->customerOrders()->where('status', 'delivered')->count(),
         ];
-        
-        return view('sponsor.users.show', compact('referral', 'sponsor', 'stats'));
+
+        $purchaseSummary = [
+            'pending_count' => Purchase::query()
+                ->where('beneficiary_user_id', $referral->id)
+                ->where('status', Purchase::STATUS_PENDING)
+                ->count(),
+            'pending_amount' => (float) Purchase::query()
+                ->where('beneficiary_user_id', $referral->id)
+                ->where('status', Purchase::STATUS_PENDING)
+                ->sum('amount'),
+            'accepted_count' => Purchase::query()
+                ->where('beneficiary_user_id', $referral->id)
+                ->where('status', Purchase::STATUS_ACCEPTED)
+                ->count(),
+            'accepted_amount' => (float) Purchase::query()
+                ->where('beneficiary_user_id', $referral->id)
+                ->where('status', Purchase::STATUS_ACCEPTED)
+                ->sum('amount'),
+            'canceled_count' => Purchase::query()
+                ->where('beneficiary_user_id', $referral->id)
+                ->where('status', Purchase::STATUS_CANCELED)
+                ->count(),
+            'canceled_amount' => (float) Purchase::query()
+                ->where('beneficiary_user_id', $referral->id)
+                ->where('status', Purchase::STATUS_CANCELED)
+                ->sum('amount'),
+        ];
+
+        $incomeSummary = [
+            'lifetime_earnings' => (float) Earning::query()
+                ->where('sponsor_id', $referral->id)
+                ->sum('amount'),
+            'available_balance' => (float) ($referral->balance ?? 0),
+        ];
+
+        $recentPurchaseRequests = Purchase::query()
+            ->where('beneficiary_user_id', $referral->id)
+            ->with(['submittedBy', 'processedBy'])
+            ->orderByDesc('created_at')
+            ->limit(12)
+            ->get();
+
+        return view('sponsor.users.show', compact(
+            'referral',
+            'sponsor',
+            'stats',
+            'purchaseSummary',
+            'incomeSummary',
+            'recentPurchaseRequests'
+        ));
     }
     
     /**
