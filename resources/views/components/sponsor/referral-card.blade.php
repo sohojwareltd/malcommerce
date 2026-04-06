@@ -24,14 +24,10 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 mt-3">
+                <div class="grid grid-cols-1 gap-2 mt-3">
                     <div class="rounded-lg px-2.5 py-2" style="background: rgba(16,185,129,0.10);">
                         <p class="text-[10px] uppercase tracking-wide text-green-700">Purchase</p>
-                        <p class="text-xs sm:text-sm font-bold text-green-700">৳{{ number_format((float) ($referral->purchase_amount ?? 0), 2) }}</p>
-                    </div>
-                    <div class="rounded-lg px-2.5 py-2" style="background: rgba(245,158,11,0.13);">
-                        <p class="text-[10px] uppercase tracking-wide text-amber-700">Pending</p>
-                        <p class="text-xs sm:text-sm font-bold text-amber-700">৳{{ number_format((float) ($referral->pending_purchase_amount ?? 0), 2) }}</p>
+                        <p class="text-xs sm:text-sm font-bold text-green-700">৳{{ number_format((float) ($referral->current_month_purchase_amount ?? 0), 2) }}</p>
                     </div>
                 </div>
 

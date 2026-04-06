@@ -185,7 +185,7 @@ use Illuminate\Support\Facades\Storage;
                     </div>
 
                     <div class="lg:col-span-2 space-y-4">
-                        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
+                        <div class="grid grid-cols-2 xl:grid-cols-5 gap-3">
                             <div class="stat-card text-center">
                                 <p class="text-[10px] sm:text-xs text-white/80 mb-1">Balance</p>
                                 <p class="text-lg sm:text-xl font-bold text-white">৳{{ number_format($incomeSummary['available_balance'], 2) }}</p>
@@ -198,6 +198,10 @@ use Illuminate\Support\Facades\Storage;
                                 <p class="text-[10px] sm:text-xs text-white/80 mb-1">Pending Requests</p>
                                 <p class="text-lg sm:text-xl font-bold text-white">{{ $purchaseSummary['pending_count'] }}</p>
                                 <p class="text-[10px] text-white/80">৳{{ number_format($purchaseSummary['pending_amount'], 2) }}</p>
+                            </div>
+                            <div class="stat-card text-center" style="background: linear-gradient(135deg, #0F2854 0%, #1C4D8D 100%);">
+                                <p class="text-[10px] sm:text-xs text-white/80 mb-1">Current Month Purchase</p>
+                                <p class="text-lg sm:text-xl font-bold text-white">৳{{ number_format($purchaseSummary['current_month_amount'], 2) }}</p>
                             </div>
                             <div class="stat-card text-center" style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);">
                                 <p class="text-[10px] sm:text-xs text-white/80 mb-1">Accepted Requests</p>

@@ -181,6 +181,10 @@ class DashboardController extends Controller
                 'purchasesAsBeneficiary as purchase_amount' => function ($q) {
                     $q->where('status', Purchase::STATUS_ACCEPTED);
                 },
+                'purchasesAsBeneficiary as current_month_purchase_amount' => function ($q) {
+                    $q->where('status', Purchase::STATUS_ACCEPTED)
+                        ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+                },
             ], 'amount');
         
         // Apply search filter if provided
@@ -482,6 +486,11 @@ class DashboardController extends Controller
             'canceled_amount' => (float) Purchase::query()
                 ->where('beneficiary_user_id', $referral->id)
                 ->where('status', Purchase::STATUS_CANCELED)
+                ->sum('amount'),
+            'current_month_amount' => (float) Purchase::query()
+                ->where('beneficiary_user_id', $referral->id)
+                ->where('status', Purchase::STATUS_ACCEPTED)
+                ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
                 ->sum('amount'),
         ];
 
