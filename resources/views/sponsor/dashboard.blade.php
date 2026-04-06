@@ -100,6 +100,13 @@ use Illuminate\Support\Str;
                     </div>
                     <div class="flex-1 min-w-0">
                     <h1 class="text-base sm:text-lg md:text-xl font-bold text-white truncate mb-1">{{ Auth::user()->name }}</h1>
+                    <p class="text-[10px] sm:text-xs text-white/85 mb-1.5">
+                        @if(Auth::user()->sponsorLevel)
+                            {{ Auth::user()->sponsorLevel->name }}
+                        @else
+                            No level assigned
+                        @endif
+                    </p>
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[10px] sm:text-xs font-mono text-white/90 bg-white/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg">{{ Auth::user()->affiliate_code }}</span>
                         @if(Auth::user()->phone)
