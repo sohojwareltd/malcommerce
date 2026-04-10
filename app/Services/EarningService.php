@@ -7,7 +7,6 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\SponsorIncome;
-use App\Models\SponsorLevel;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -122,80 +121,11 @@ class EarningService
      */
     public function createReferralEarningsWithLevels(Order $order, Product $product, User $directSponsor, User $customer): array
     {
-        $budget = $this->referralCommissionBudget($order, $product);
-        if ($budget <= 0) {
-            return [];
-        }
+        // Order/referral income should not change with sponsor level updates.
+        // Keep legacy behavior: full referral commission goes to direct sponsor only.
+        $one = $this->createReferralEarning($order, $product, $directSponsor, $customer);
 
-        if (! $directSponsor->sponsor_level_id) {
-            $one = $this->createReferralEarning($order, $product, $directSponsor, $customer);
-
-            return $one ? [$one] : [];
-        }
-
-        if (! SponsorLevel::query()->exists()) {
-            $one = $this->createReferralEarning($order, $product, $directSponsor, $customer);
-
-            return $one ? [$one] : [];
-        }
-
-        $chain = $this->resolveSponsorUplineChain($directSponsor);
-        if ($chain === []) {
-            return [];
-        }
-
-        $weights = $this->levelDifferentialWeights($chain);
-        $slices = [];
-        foreach ($chain as $i => $sponsor) {
-            $w = $weights[$i];
-            if ($w > 0) {
-                $slices[] = ['user' => $sponsor, 'w' => $w];
-            }
-        }
-
-        if ($slices === []) {
-            return [];
-        }
-
-        $totalW = array_sum(array_column($slices, 'w'));
-        if ($totalW <= 0) {
-            return [];
-        }
-
-        $earnings = [];
-        $allocated = 0.0;
-        $last = count($slices) - 1;
-
-        foreach ($slices as $j => $slice) {
-            $sponsor = $slice['user'];
-            $w = $slice['w'];
-            $amount = $j === $last
-                ? round($budget - $allocated, 2)
-                : round($budget * ($w / $totalW), 2);
-            $allocated += $amount;
-
-            if ($amount <= 0) {
-                continue;
-            }
-
-            $earnings[] = $this->createEarning([
-                'sponsor_id' => $sponsor->id,
-                'referral_id' => $customer->id,
-                'order_id' => $order->id,
-                'earning_type' => 'referral',
-                'amount' => $amount,
-                'comment' => 'Referral commission (level split) for order #' . $order->order_number,
-                'meta' => [
-                    'product_id' => $product->id,
-                    'quantity' => $order->quantity,
-                    'level_differential' => true,
-                    'delta_percent' => $w,
-                    'weight_total_percent' => $totalW,
-                ],
-            ]);
-        }
-
-        return $earnings;
+        return $one ? [$one] : [];
     }
 
     /**
@@ -237,6 +167,8 @@ class EarningService
 
     /**
      * Differential weight (percentage points) per chain node; same or invalid upline rank => 0.
+     * Chain order: index 0 = direct sponsor (deepest toward the customer), then upline toward the root.
+     * Rank convention: lower number = higher in the tree (0 top, then 1, 2, … e.g. 6 deepest).
      *
      * @param  list<User>  $chain
      * @return list<float>
@@ -273,11 +205,11 @@ class EarningService
     }
 
     /**
-     * Credit a user's balance from an admin-approved purchase (own or team).
-     * Earning.sponsor_id stores the beneficiary (who receives the credit).
-     * Balance increases by commission only: gross purchase amount × commission % (beneficiary's level, or setting fallback).
-     */
-    /**
+     * Credit balances from an admin-approved purchase (own or team).
+     * Pays the beneficiary and every referrer up the chain (sponsor_id) until there is no referrer.
+     * Each recipient gets gross × their sponsor level commission % (or purchase_approval_commission_percent fallback).
+     * Earning linked on the purchase row is the beneficiary’s record (may be zero if their % is 0).
+     *
      * Must be called inside DB::transaction when accepting a purchase (with row lock).
      */
     public function createPurchaseCreditEarning(
@@ -285,40 +217,95 @@ class EarningService
         User $beneficiary,
         User $submittedBy,
     ): Earning {
-        $beneficiary->loadMissing('sponsorLevel');
-
         $gross = (float) $purchase->amount;
-        $commissionPercent = $beneficiary->sponsorLevel
-            ? (float) $beneficiary->sponsorLevel->commission_percent
-            : (float) Setting::get('purchase_approval_commission_percent', 0);
-
-        $credit = round(max(0, $gross * ($commissionPercent / 100)), 2);
+        $defaultCommissionPercent = (float) Setting::get('purchase_approval_commission_percent', 0);
         $platformPercentage = (float) Setting::get('platform_revenue_percentage', 0);
 
-        $earning = Earning::create([
-            'sponsor_id' => $beneficiary->id,
-            'referral_id' => $purchase->kind === \App\Models\Purchase::KIND_TEAM ? $submittedBy->id : null,
-            'order_id' => null,
-            'earning_type' => 'purchase',
-            'comment' => $purchase->comment
-                ? 'Purchase commission: ' . $purchase->comment
-                : 'Purchase commission (approved)',
-            'amount' => $credit,
-            'platform_revenue' => round($credit * ($platformPercentage / 100), 2),
-            'meta' => [
-                'purchase_id' => $purchase->id,
-                'kind' => $purchase->kind,
-                'purchase_gross_amount' => $gross,
-                'commission_percent' => $commissionPercent,
-                'commission_amount' => $credit,
-            ],
-        ]);
-
-        if ($credit > 0) {
-            $beneficiary->increment('balance', $credit);
+        $chain = $this->resolveSponsorUplineChain($beneficiary);
+        if ($chain === []) {
+            $beneficiary->loadMissing('sponsorLevel');
+            $chain = [$beneficiary];
         }
 
-        return $earning;
+        $primaryEarning = null;
+        $baseComment = $purchase->comment
+            ? 'Purchase commission: '.$purchase->comment
+            : 'Purchase commission (approved)';
+
+        foreach ($chain as $index => $recipient) {
+            $recipient->loadMissing('sponsorLevel');
+            $commissionPercent = $this->purchaseCommissionPercentForUser($recipient, $defaultCommissionPercent);
+            $credit = round(max(0, $gross * ($commissionPercent / 100)), 2);
+            $isBeneficiary = $recipient->id === $beneficiary->id;
+
+            if (! $isBeneficiary && $credit <= 0) {
+                continue;
+            }
+
+            $referralId = null;
+            if ($purchase->kind === \App\Models\Purchase::KIND_TEAM) {
+                $referralId = $isBeneficiary ? $submittedBy->id : $beneficiary->id;
+            } elseif (! $isBeneficiary) {
+                $referralId = $beneficiary->id;
+            }
+
+            $comment = $baseComment;
+            if (! $isBeneficiary) {
+                $comment .= ' (upline)';
+            }
+
+            $earning = Earning::create([
+                'sponsor_id' => $recipient->id,
+                'referral_id' => $referralId,
+                'order_id' => null,
+                'earning_type' => 'purchase',
+                'comment' => $comment,
+                'amount' => $credit,
+                'platform_revenue' => round($credit * ($platformPercentage / 100), 2),
+                'meta' => [
+                    'purchase_id' => $purchase->id,
+                    'kind' => $purchase->kind,
+                    'purchase_gross_amount' => $gross,
+                    'commission_percent' => $commissionPercent,
+                    'commission_amount' => $credit,
+                    'purchase_chain_index' => $index,
+                    'purchase_beneficiary_id' => $beneficiary->id,
+                    'is_purchase_beneficiary' => $isBeneficiary,
+                ],
+            ]);
+
+            if ($isBeneficiary) {
+                $primaryEarning = $earning;
+            }
+
+            if ($credit > 0) {
+                $recipient->increment('balance', $credit);
+            }
+        }
+
+        if (! $primaryEarning) {
+            throw new \RuntimeException('Purchase commission: could not create beneficiary earning.');
+        }
+
+        return $primaryEarning;
+    }
+
+    /**
+     * Purchase commission % for a user: level rate, or setting fallback; rank 0 with 0% level uses fallback.
+     */
+    protected function purchaseCommissionPercentForUser(User $user, float $defaultPercent): float
+    {
+        $level = $user->sponsorLevel;
+        if (! $level) {
+            return $defaultPercent;
+        }
+
+        $pct = (float) $level->commission_percent;
+        if ((int) $level->rank === 0 && $pct <= 0) {
+            return $defaultPercent;
+        }
+
+        return $pct;
     }
 
     /**
