@@ -1105,6 +1105,93 @@ class DashboardController extends Controller
 
         return redirect()->back()->with('success', 'Income recorded and sponsor balance updated.');
     }
+
+    public function updateSponsorBalance(Request $request, User $sponsor)
+    {
+        if ($sponsor->role !== 'sponsor') {
+            abort(404);
+        }
+
+        $data = $request->validate([
+            'balance' => 'required|numeric|min:0|max:99999999.99',
+        ]);
+
+        $oldBalance = (float) $sponsor->balance;
+        $newBalance = round((float) $data['balance'], 2);
+
+        DB::transaction(function () use ($sponsor, $newBalance) {
+            $locked = User::query()->whereKey($sponsor->id)->lockForUpdate()->firstOrFail();
+            $locked->balance = $newBalance;
+            $locked->save();
+        });
+
+        return redirect()->back()->with(
+            'success',
+            'Sponsor balance updated from ৳'.number_format($oldBalance, 2).' to ৳'.number_format($newBalance, 2).'.'
+        );
+    }
+
+    public function destroySponsorIncome(User $sponsor, SponsorIncome $income)
+    {
+        if ($sponsor->role !== 'sponsor' || (int) $income->sponsor_id !== (int) $sponsor->id) {
+            abort(404);
+        }
+
+        DB::transaction(function () use ($sponsor, $income) {
+            $lockedSponsor = User::query()->whereKey($sponsor->id)->lockForUpdate()->firstOrFail();
+            $lockedIncome = SponsorIncome::query()->whereKey($income->id)->lockForUpdate()->firstOrFail();
+
+            if ((int) $lockedIncome->sponsor_id !== (int) $lockedSponsor->id) {
+                throw new \RuntimeException('Sponsor income does not belong to this sponsor.');
+            }
+
+            $amount = round((float) $lockedIncome->amount, 2);
+            $linkedEarning = $lockedIncome->earning_id
+                ? Earning::query()->whereKey($lockedIncome->earning_id)->lockForUpdate()->first()
+                : null;
+
+            if ($linkedEarning && (int) $linkedEarning->sponsor_id === (int) $lockedSponsor->id) {
+                $lockedSponsor->decrement('balance', (float) $linkedEarning->amount);
+                $linkedEarning->delete();
+            } else {
+                $lockedSponsor->decrement('balance', $amount);
+            }
+
+            $lockedIncome->delete();
+        });
+
+        return redirect()->back()->with('success', 'Manual income deleted and sponsor balance adjusted.');
+    }
+
+    public function destroySponsorEarning(User $sponsor, Earning $earning)
+    {
+        if ($sponsor->role !== 'sponsor' || (int) $earning->sponsor_id !== (int) $sponsor->id) {
+            abort(404);
+        }
+
+        DB::transaction(function () use ($sponsor, $earning) {
+            $lockedSponsor = User::query()->whereKey($sponsor->id)->lockForUpdate()->firstOrFail();
+            $lockedEarning = Earning::query()->whereKey($earning->id)->lockForUpdate()->firstOrFail();
+
+            if ((int) $lockedEarning->sponsor_id !== (int) $lockedSponsor->id) {
+                throw new \RuntimeException('Earning does not belong to this sponsor.');
+            }
+
+            $linkedIncome = SponsorIncome::query()
+                ->where('earning_id', $lockedEarning->id)
+                ->lockForUpdate()
+                ->first();
+
+            $lockedSponsor->decrement('balance', (float) $lockedEarning->amount);
+            $lockedEarning->delete();
+
+            if ($linkedIncome) {
+                $linkedIncome->delete();
+            }
+        });
+
+        return redirect()->back()->with('success', 'Earning deleted and sponsor balance adjusted.');
+    }
     
     public function editSponsor(User $sponsor)
     {

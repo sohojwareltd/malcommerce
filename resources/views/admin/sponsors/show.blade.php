@@ -12,6 +12,9 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
 @if(session('success'))
     <div class="mb-4 p-4 rounded-lg bg-emerald-50 text-emerald-800 text-sm">{{ session('success') }}</div>
 @endif
+@if(session('error'))
+    <div class="mb-4 p-4 rounded-lg bg-red-50 text-red-800 text-sm">{{ session('error') }}</div>
+@endif
 <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
         <h1 class="text-3xl font-bold">Sponsor Details</h1>
@@ -170,6 +173,31 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
 
             @can('sponsors.update')
             <div class="bg-white rounded-lg shadow-md p-6 border-2 border-emerald-200">
+                <h2 class="text-xl font-bold text-neutral-900 mb-1">Edit current balance</h2>
+                <p class="text-sm text-neutral-600 mb-4">Set an exact wallet balance for this sponsor.</p>
+                <form action="{{ route('admin.sponsors.balance.update', $sponsor) }}" method="POST" class="space-y-4 max-w-md">
+                    @csrf
+                    <div>
+                        <label for="set-balance" class="block text-sm font-medium text-neutral-700 mb-1">New balance (৳)</label>
+                        <input
+                            type="number"
+                            name="balance"
+                            id="set-balance"
+                            step="0.01"
+                            min="0"
+                            value="{{ old('balance', number_format((float) $sponsor->balance, 2, '.', '')) }}"
+                            class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary tabular-nums"
+                            required
+                        >
+                        @error('balance')<p class="text-sm text-red-600 mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
+                        Update balance
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 border-2 border-emerald-200">
                 <h2 class="text-xl font-bold text-neutral-900 mb-1">Add income directly</h2>
                 <p class="text-sm text-neutral-600 mb-4">Credits this sponsor’s balance and writes a row in the <strong>sponsor incomes</strong> log (plus a matching earning for their statement). Pick a preset category <strong>or</strong> type your own (custom overrides the list if both are set).</p>
                 <form action="{{ route('admin.sponsors.income.store', $sponsor) }}" method="POST" class="space-y-4 max-w-2xl">
@@ -231,6 +259,7 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                                     <th class="px-3 py-2.5 text-left font-semibold text-neutral-600">Notes</th>
                                     <th class="px-3 py-2.5 text-left font-semibold text-neutral-600">By</th>
                                     <th class="px-3 py-2.5 text-right font-semibold text-neutral-600">Amount</th>
+                                    <th class="px-3 py-2.5 text-right font-semibold text-neutral-600">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-neutral-100">
@@ -241,6 +270,13 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                                     <td class="px-3 py-2.5 text-neutral-600 max-w-xs">{{ $row->notes ? Str::limit($row->notes, 120) : '—' }}</td>
                                     <td class="px-3 py-2.5 text-neutral-600">{{ $row->creator?->name ?? '—' }}</td>
                                     <td class="px-3 py-2.5 text-right font-semibold text-green-700 tabular-nums">+৳{{ number_format($row->amount, 2) }}</td>
+                                    <td class="px-3 py-2.5 text-right">
+                                        <form action="{{ route('admin.sponsors.income.destroy', [$sponsor, $row]) }}" method="POST" onsubmit="return confirm('Delete this income entry? This will also reduce the sponsor balance.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-xs font-semibold text-red-600 hover:text-red-800">Delete</button>
+                                        </form>
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -286,6 +322,7 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                                 <th class="px-3 py-2.5 text-left font-semibold text-neutral-600">Type</th>
                                 <th class="px-3 py-2.5 text-left font-semibold text-neutral-600">Detail</th>
                                 <th class="px-3 py-2.5 text-right font-semibold text-neutral-600">Amount</th>
+                                <th class="px-3 py-2.5 text-right font-semibold text-neutral-600">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-100">
@@ -310,6 +347,13 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                                         @endif
                                     </td>
                                     <td class="px-3 py-2.5 text-right font-semibold text-green-700 tabular-nums">+৳{{ number_format($e->amount, 2) }}</td>
+                                    <td class="px-3 py-2.5 text-right">
+                                        <form action="{{ route('admin.sponsors.earnings.destroy', [$sponsor, $e]) }}" method="POST" onsubmit="return confirm('Delete this earning? This will also reduce the sponsor balance.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-xs font-semibold text-red-600 hover:text-red-800">Delete</button>
+                                        </form>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

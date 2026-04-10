@@ -150,7 +150,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/sponsors/bulk-set-level', fn () => redirect()->route('admin.sponsors.index'))->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/{sponsor}', [AdminDashboardController::class, 'showSponsor'])->name('sponsors.show')->whereNumber('sponsor')->middleware('can:sponsors.view');
         Route::get('/sponsors/{sponsor}/edit', [AdminDashboardController::class, 'editSponsor'])->name('sponsors.edit')->whereNumber('sponsor')->middleware('can:sponsors.update');
+        Route::post('/sponsors/{sponsor}/balance', [AdminDashboardController::class, 'updateSponsorBalance'])->name('sponsors.balance.update')->whereNumber('sponsor')->middleware('can:sponsors.update');
         Route::post('/sponsors/{sponsor}/income', [AdminDashboardController::class, 'storeSponsorIncome'])->name('sponsors.income.store')->whereNumber('sponsor')->middleware('can:sponsors.update');
+        Route::delete('/sponsors/{sponsor}/income/{income}', [AdminDashboardController::class, 'destroySponsorIncome'])->name('sponsors.income.destroy')->whereNumber('sponsor')->whereNumber('income')->middleware('can:sponsors.update');
+        Route::delete('/sponsors/{sponsor}/earnings/{earning}', [AdminDashboardController::class, 'destroySponsorEarning'])->name('sponsors.earnings.destroy')->whereNumber('sponsor')->whereNumber('earning')->middleware('can:sponsors.update');
         Route::put('/sponsors/{sponsor}', [AdminDashboardController::class, 'updateSponsor'])->name('sponsors.update')->whereNumber('sponsor')->middleware('can:sponsors.update');
         Route::delete('/sponsors/{sponsor}', [AdminDashboardController::class, 'destroySponsor'])->name('sponsors.destroy')->whereNumber('sponsor')->middleware('can:sponsors.delete');
         Route::post('/sponsors/{sponsor}/restore', [AdminDashboardController::class, 'restoreSponsor'])->name('sponsors.restore')->whereNumber('sponsor')->middleware('can:sponsors.restore');
