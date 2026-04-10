@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/purchases', [AdminPurchaseController::class, 'index'])->name('purchases.index')->middleware('can:dashboard.view');
         Route::get('/purchases/{purchase}', [AdminPurchaseController::class, 'show'])->name('purchases.show')->middleware('can:dashboard.view');
         Route::patch('/purchases/{purchase}', [AdminPurchaseController::class, 'updateStatus'])->name('purchases.update-status')->middleware('can:dashboard.view');
+        Route::delete('/purchases/{purchase}', [AdminPurchaseController::class, 'destroy'])->name('purchases.destroy')->middleware('can:dashboard.view');
         Route::get('/products', [AdminProductController::class, 'index'])->name('products.index')->middleware('can:products.viewAny');
         Route::get('/products/create', [AdminProductController::class, 'create'])->name('products.create')->middleware('can:products.create');
         Route::post('/products', [AdminProductController::class, 'store'])->name('products.store')->middleware('can:products.create');

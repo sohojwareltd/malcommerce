@@ -152,6 +152,24 @@
                     </form>
                 </div>
             </div>
+        @else
+            <div class="bg-red-50 rounded-xl border border-red-200 shadow-sm p-5 sm:p-6">
+                <h2 class="text-sm font-semibold text-red-900 uppercase tracking-wide mb-4">Delete request</h2>
+                <p class="text-sm text-red-900/80 mb-4">
+                    Deleting this purchase will remove the request record.
+                    @if($purchase->status === 'accepted')
+                        Related purchase commission earnings and credited balances will be rolled back.
+                    @endif
+                </p>
+                <form method="POST" action="{{ route('admin.purchases.destroy', $purchase) }}" onsubmit="return confirm('{{ $purchase->status === 'accepted' ? 'Delete this accepted purchase and rollback commission earnings/balances?' : 'Delete this purchase request?' }}');">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="from_status" value="{{ $backStatus }}">
+                    <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
+                        Delete purchase request
+                    </button>
+                </form>
+            </div>
         @endif
     </div>
 </div>

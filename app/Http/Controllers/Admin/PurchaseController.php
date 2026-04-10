@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Earning;
 use App\Models\Purchase;
+use App\Models\User;
 use App\Services\EarningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -113,5 +115,61 @@ class PurchaseController extends Controller
         }
 
         return redirect()->back()->with('success', 'Purchase accepted. Beneficiary balance increased by commission only (see linked earning).');
+    }
+
+    public function destroy(Request $request, Purchase $purchase)
+    {
+        $statusFrom = $request->input('from_status', 'all');
+        if (! in_array($statusFrom, ['pending', 'accepted', 'canceled', 'all'], true)) {
+            $statusFrom = 'all';
+        }
+
+        $rolledBack = false;
+        $rolledBackCount = 0;
+
+        DB::transaction(function () use ($purchase, &$rolledBack, &$rolledBackCount) {
+            $locked = Purchase::query()
+                ->whereKey($purchase->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($locked->status === Purchase::STATUS_ACCEPTED) {
+                $earnings = Earning::query()
+                    ->where('earning_type', 'purchase')
+                    ->where(function ($q) use ($locked) {
+                        if ($locked->earning_id) {
+                            $q->whereKey($locked->earning_id);
+                        }
+                        $q->orWhere('meta->purchase_id', $locked->id);
+                    })
+                    ->lockForUpdate()
+                    ->get()
+                    ->unique('id')
+                    ->values();
+
+                foreach ($earnings as $earning) {
+                    $recipient = User::query()->whereKey($earning->sponsor_id)->lockForUpdate()->first();
+                    if ($recipient) {
+                        $recipient->decrement('balance', (float) $earning->amount);
+                    }
+                    $earning->delete();
+                    $rolledBackCount++;
+                }
+
+                $rolledBack = $rolledBackCount > 0;
+            }
+
+            $locked->delete();
+        });
+
+        if ($rolledBack) {
+            return redirect()
+                ->route('admin.purchases.index', ['status' => $statusFrom])
+                ->with('success', "Purchase deleted. Rolled back {$rolledBackCount} commission earning(s) and sponsor balance credit(s).");
+        }
+
+        return redirect()
+            ->route('admin.purchases.index', ['status' => $statusFrom])
+            ->with('success', 'Purchase request deleted.');
     }
 }

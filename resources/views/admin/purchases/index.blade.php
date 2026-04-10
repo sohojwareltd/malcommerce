@@ -82,6 +82,12 @@
                                     <button type="submit" class="text-red-600 hover:underline font-semibold text-xs">Cancel</button>
                                 </form>
                             @endif
+                            <form method="POST" action="{{ route('admin.purchases.destroy', $purchase) }}" class="inline" onsubmit="return confirm('{{ $purchase->status === 'accepted' ? 'Delete this accepted purchase and rollback commission earnings/balances?' : 'Delete this purchase request?' }}');">
+                                @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="from_status" value="{{ $status }}">
+                                <button type="submit" class="text-red-700 hover:underline font-semibold text-xs ml-2">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 @empty
@@ -147,6 +153,12 @@
                             <button type="submit" class="text-red-600 hover:underline font-semibold text-sm">Cancel</button>
                         </form>
                     @endif
+                    <form method="POST" action="{{ route('admin.purchases.destroy', $purchase) }}" class="inline" onsubmit="return confirm('{{ $purchase->status === 'accepted' ? 'Delete this accepted purchase and rollback commission earnings/balances?' : 'Delete this purchase request?' }}');">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="from_status" value="{{ $status }}">
+                        <button type="submit" class="text-red-700 hover:underline font-semibold text-sm">Delete</button>
+                    </form>
                 </div>
             </div>
         @empty
