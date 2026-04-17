@@ -142,6 +142,7 @@ Route::middleware('auth')->group(function () {
             ->names('sponsor-levels');
 
         Route::get('/sponsors', [AdminDashboardController::class, 'sponsors'])->name('sponsors.index')->middleware('can:sponsors.viewAny');
+        Route::get('/sponsors/leaderboard', [AdminDashboardController::class, 'sponsorLeaderboard'])->name('sponsors.leaderboard')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/create', [AdminDashboardController::class, 'createSponsor'])->name('sponsors.create')->middleware('can:sponsors.create');
         Route::post('/sponsors', [AdminDashboardController::class, 'storeSponsor'])->name('sponsors.store')->middleware('can:sponsors.create');
         Route::post('/sponsors/bulk-set-referrer', [AdminDashboardController::class, 'bulkSetSponsorReferrer'])->name('sponsors.bulk-set-referrer')->middleware('can:sponsors.update');

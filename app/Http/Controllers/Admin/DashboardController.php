@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use App\Models\Earning;
 use App\Models\Expense;
 use App\Models\JobApplication;
@@ -641,6 +642,93 @@ class DashboardController extends Controller
         }
 
         return view('admin.sponsors.index', compact('sponsors', 'bulkReferrerOptions', 'bulkSponsorLevels'));
+    }
+
+    public function sponsorLeaderboard(Request $request)
+    {
+        $filter = $request->input('filter', 'month');
+        $perPage = (int) $request->input('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100], true) ? $perPage : 20;
+
+        [$rangeStart, $rangeEnd, $rangeLabel] = $this->resolveSponsorLeaderboardRange($request, $filter);
+
+        $sponsors = User::query()
+            ->where('role', 'sponsor')
+            ->whereNull('deleted_at')
+            ->withCount([
+                'referrals',
+                'referrals as filtered_referrals_count' => function ($q) use ($rangeStart, $rangeEnd) {
+                    $q->whereNull('deleted_at')
+                        ->whereBetween('created_at', [$rangeStart, $rangeEnd]);
+                },
+            ])
+            ->with([
+                'referrals' => function ($q) {
+                    $q->whereNull('deleted_at')
+                        ->select('id', 'sponsor_id', 'name', 'phone', 'affiliate_code', 'created_at')
+                        ->orderByDesc('created_at');
+                },
+            ])
+            ->orderByDesc('filtered_referrals_count')
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return view('admin.sponsors.leaderboard', compact(
+            'sponsors',
+            'filter',
+            'rangeStart',
+            'rangeEnd',
+            'rangeLabel'
+        ));
+    }
+
+    protected function resolveSponsorLeaderboardRange(Request $request, string $filter): array
+    {
+        $now = now();
+        $rangeStart = $now->copy()->startOfMonth();
+        $rangeEnd = $now->copy()->endOfMonth();
+        $rangeLabel = 'This month';
+
+        if ($filter === 'day') {
+            $date = $request->filled('day') ? Carbon::parse($request->input('day')) : $now;
+            $rangeStart = $date->copy()->startOfDay();
+            $rangeEnd = $date->copy()->endOfDay();
+            $rangeLabel = $date->format('d M Y');
+        } elseif ($filter === 'week') {
+            $weekInput = (string) $request->input('week', '');
+            if (preg_match('/^(\d{4})-W(\d{2})$/', $weekInput, $matches)) {
+                $year = (int) $matches[1];
+                $week = (int) $matches[2];
+                $date = Carbon::now()->setISODate($year, $week);
+            } else {
+                $date = $now;
+            }
+            $rangeStart = $date->copy()->startOfWeek();
+            $rangeEnd = $date->copy()->endOfWeek();
+            $rangeLabel = $rangeStart->format('d M Y') . ' - ' . $rangeEnd->format('d M Y');
+        } elseif ($filter === 'date') {
+            $dateFrom = $request->filled('date_from') ? Carbon::parse($request->input('date_from')) : $now->copy()->startOfMonth();
+            $dateTo = $request->filled('date_to') ? Carbon::parse($request->input('date_to')) : $now->copy()->endOfMonth();
+            if ($dateTo->lt($dateFrom)) {
+                [$dateFrom, $dateTo] = [$dateTo, $dateFrom];
+            }
+            $rangeStart = $dateFrom->copy()->startOfDay();
+            $rangeEnd = $dateTo->copy()->endOfDay();
+            $rangeLabel = $rangeStart->format('d M Y') . ' - ' . $rangeEnd->format('d M Y');
+        } else {
+            $monthInput = (string) $request->input('month', $now->format('Y-m'));
+            if (preg_match('/^\d{4}-\d{2}$/', $monthInput)) {
+                $date = Carbon::createFromFormat('Y-m', $monthInput)->startOfMonth();
+            } else {
+                $date = $now->copy()->startOfMonth();
+            }
+            $rangeStart = $date->copy()->startOfMonth();
+            $rangeEnd = $date->copy()->endOfMonth();
+            $rangeLabel = $date->format('F Y');
+        }
+
+        return [$rangeStart, $rangeEnd, $rangeLabel];
     }
 
     public function bulkSetSponsorReferrer(Request $request)
