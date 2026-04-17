@@ -110,7 +110,7 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
-        <div class="overflow-x-auto">
+        <div class="hidden lg:block overflow-x-auto">
             <table class="min-w-full divide-y divide-neutral-200">
                 <thead class="bg-neutral-50">
                     <tr>
@@ -126,11 +126,13 @@
                 <tbody class="divide-y divide-neutral-100">
                     @forelse($sponsors as $index => $sponsor)
                     @php
+                        $sponsorPhotoUrl = $sponsor->photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($sponsor->photo) : null;
                         $referralPayload = $sponsor->referrals->map(function ($referral) {
                             return [
                                 'id' => $referral->id,
                                 'name' => $referral->name,
                                 'phone' => $referral->phone,
+                                'photo_url' => $referral->photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($referral->photo) : null,
                                 'affiliate_code' => $referral->affiliate_code,
                                 'created_at' => optional($referral->created_at)->format('d M Y'),
                             ];
@@ -141,8 +143,21 @@
                             {{ (($sponsors->currentPage() - 1) * $sponsors->perPage()) + $index + 1 }}
                         </td>
                         <td class="px-4 py-3">
-                            <div class="text-sm font-semibold text-neutral-900">{{ $sponsor->name }}</div>
-                            <div class="text-xs text-neutral-500">Joined {{ $sponsor->created_at->format('d M Y') }}</div>
+                            <div class="flex items-center gap-3">
+                                @if($sponsorPhotoUrl)
+                                    <img src="{{ $sponsorPhotoUrl }}" alt="{{ $sponsor->name }}" class="w-10 h-10 rounded-full object-cover border border-neutral-200">
+                                @else
+                                    <div class="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center border border-neutral-200">
+                                        <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                @endif
+                                <div>
+                                    <div class="text-sm font-semibold text-neutral-900">{{ $sponsor->name }}</div>
+                                    <div class="text-xs text-neutral-500">Joined {{ $sponsor->created_at->format('d M Y') }}</div>
+                                </div>
+                            </div>
                         </td>
                         <td class="px-4 py-3 text-sm text-neutral-700">{{ $sponsor->phone ?: 'N/A' }}</td>
                         <td class="px-4 py-3 text-sm font-mono text-neutral-700">{{ $sponsor->affiliate_code ?: 'N/A' }}</td>
@@ -177,6 +192,72 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <div class="lg:hidden divide-y divide-neutral-200">
+            @forelse($sponsors as $index => $sponsor)
+            @php
+                $sponsorPhotoUrl = $sponsor->photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($sponsor->photo) : null;
+                $referralPayload = $sponsor->referrals->map(function ($referral) {
+                    return [
+                        'id' => $referral->id,
+                        'name' => $referral->name,
+                        'phone' => $referral->phone,
+                        'photo_url' => $referral->photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($referral->photo) : null,
+                        'affiliate_code' => $referral->affiliate_code,
+                        'created_at' => optional($referral->created_at)->format('d M Y'),
+                    ];
+                })->values();
+                $rank = (($sponsors->currentPage() - 1) * $sponsors->perPage()) + $index + 1;
+            @endphp
+            <div class="p-4">
+                <div class="flex items-start gap-3">
+                    @if($sponsorPhotoUrl)
+                        <img src="{{ $sponsorPhotoUrl }}" alt="{{ $sponsor->name }}" class="w-12 h-12 rounded-full object-cover border border-neutral-200 flex-shrink-0">
+                    @else
+                        <div class="w-12 h-12 rounded-full bg-neutral-200 flex items-center justify-center border border-neutral-200 flex-shrink-0">
+                            <svg class="w-6 h-6 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </div>
+                    @endif
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm font-semibold text-neutral-900 truncate">{{ $sponsor->name }}</p>
+                            <span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">#{{ $rank }}</span>
+                        </div>
+                        <p class="text-xs text-neutral-500 mt-0.5">Joined {{ $sponsor->created_at->format('d M Y') }}</p>
+                        <div class="grid grid-cols-2 gap-x-3 gap-y-1 mt-3 text-xs">
+                            <p class="text-neutral-600">Phone: <span class="text-neutral-800">{{ $sponsor->phone ?: 'N/A' }}</span></p>
+                            <p class="text-neutral-600">Code: <span class="text-neutral-800 font-mono">{{ $sponsor->affiliate_code ?: 'N/A' }}</span></p>
+                            <p class="text-neutral-600">Filtered: <span class="text-primary font-semibold">{{ $sponsor->filtered_referrals_count }}</span></p>
+                            <p class="text-neutral-600">Total: <span class="text-neutral-800 font-semibold">{{ $sponsor->referrals_count }}</span></p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-neutral-100">
+                            <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="inline-flex rounded-md bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition">
+                                View
+                            </a>
+                            <a href="{{ route('admin.sponsors.edit', $sponsor) }}" class="inline-flex rounded-md bg-blue-100 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-200 transition">
+                                Edit
+                            </a>
+                            <button
+                                type="button"
+                                data-sponsor-name="{{ $sponsor->name }}"
+                                data-referrals='@json($referralPayload)'
+                                @click="openReferralsFromButton($el)"
+                                class="inline-flex rounded-md bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-200 transition"
+                            >
+                                List
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @empty
+            <div class="px-4 py-8 text-center text-sm text-neutral-500">
+                No sponsor data found for the selected filter.
+            </div>
+            @endforelse
         </div>
     </div>
 
@@ -228,17 +309,29 @@
                 <template x-for="referral in selectedReferrals" :key="referral.id">
                     <div class="rounded-lg border border-neutral-200 p-4">
                         <div class="flex items-start justify-between gap-3">
-                            <div>
-                                <p class="text-sm font-semibold text-neutral-900" x-text="referral.name || 'Unnamed'"></p>
-                                <p class="text-xs text-neutral-600 mt-1">
-                                    Phone: <span x-text="referral.phone || 'N/A'"></span>
-                                </p>
-                                <p class="text-xs text-neutral-600">
-                                    Code: <span class="font-mono" x-text="referral.affiliate_code || 'N/A'"></span>
-                                </p>
-                                <p class="text-xs text-neutral-500 mt-1">
-                                    Joined: <span x-text="referral.created_at || 'N/A'"></span>
-                                </p>
+                            <div class="flex items-start gap-3">
+                                <template x-if="referral.photo_url">
+                                    <img :src="referral.photo_url" :alt="referral.name || 'Sponsor photo'" class="w-10 h-10 rounded-full object-cover border border-neutral-200">
+                                </template>
+                                <template x-if="!referral.photo_url">
+                                    <div class="w-10 h-10 rounded-full bg-neutral-200 flex items-center justify-center border border-neutral-200">
+                                        <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                </template>
+                                <div>
+                                    <p class="text-sm font-semibold text-neutral-900" x-text="referral.name || 'Unnamed'"></p>
+                                    <p class="text-xs text-neutral-600 mt-1">
+                                        Phone: <span x-text="referral.phone || 'N/A'"></span>
+                                    </p>
+                                    <p class="text-xs text-neutral-600">
+                                        Code: <span class="font-mono" x-text="referral.affiliate_code || 'N/A'"></span>
+                                    </p>
+                                    <p class="text-xs text-neutral-500 mt-1">
+                                        Joined: <span x-text="referral.created_at || 'N/A'"></span>
+                                    </p>
+                                </div>
                             </div>
                             <a :href="`{{ url('/admin/sponsors') }}/${referral.id}`" class="inline-flex rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 transition">
                                 View

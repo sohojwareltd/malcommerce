@@ -665,7 +665,7 @@ class DashboardController extends Controller
             ->with([
                 'referrals' => function ($q) {
                     $q->whereNull('deleted_at')
-                        ->select('id', 'sponsor_id', 'name', 'phone', 'affiliate_code', 'created_at')
+                        ->select('id', 'sponsor_id', 'name', 'phone', 'photo', 'affiliate_code', 'created_at')
                         ->orderByDesc('created_at');
                 },
             ])
