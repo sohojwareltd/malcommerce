@@ -99,12 +99,13 @@ class PaymentController extends Controller
             );
         }
 
-        
-        $result = $this->bkashService->executePayment($paymentId);
 
-        if (!$result['success']) {
+        try {
+        $result = $this->bkashService->executePayment($paymentId);
+        } catch (\Throwable $e) {
             $result = $this->bkashService->queryPayment($paymentId);
         }
+
 
         if (!$result['success']) {
             $orderNumber = $order->order_number;
