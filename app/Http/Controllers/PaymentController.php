@@ -4,106 +4,72 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\BkashService;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    protected $bkashService;
-
-    public function __construct(BkashService $bkashService)
+    public function __construct(protected BkashService $bkashService)
     {
-        $this->bkashService = $bkashService;
     }
 
-    /**
-     * Initiate bKash payment
-     */
     public function initiateBkash(Request $request)
     {
-        // Support both GET (from redirect) and POST requests
         $orderId = $request->input('order_id') ?: $request->query('order_id');
-        
-       
         if (!$orderId) {
-            return redirect()->route('home')
-                ->with('error', 'Order ID is required.');
-        }
-        $order = Order::find($orderId);
-       
-        if (!$order) {
-            return redirect()->route('home')
-                ->with('error', 'Order not found.');
+            return redirect()->route('home')->with('error', 'Order ID is required.');
         }
 
-        // Check if order is already paid
+        $order = Order::find($orderId);
+        if (!$order) {
+            return redirect()->route('home')->with('error', 'Order not found.');
+        }
+
         if ($order->payment_status === 'completed') {
             return redirect()->route('orders.success', $order->order_number)
                 ->with('error', 'This order is already paid.');
         }
 
-        // Check if payment method is bKash
         if ($order->payment_method !== 'bkash') {
             return redirect()->route('orders.success', $order->order_number)
                 ->with('error', 'Invalid payment method.');
         }
 
-        // Generate invoice ID
         $invoiceId = 'INV-' . $order->order_number . '-' . time();
-
-        // Create payment with cancel URL
-        $cancelUrl = route('payment.bkash.cancel', ['orderId' => $order->id]);
-        
         $result = $this->bkashService->createPayment(
-            $order->total_price,
+            (float) $order->total_price,
             $invoiceId,
             $order->id,
-            $order->customer_phone,
-            $cancelUrl
+            $order->customer_phone
         );
-        dd($result);
 
-        // Debug: Check the actual error response
         if (!$result['success']) {
-            \Log::error('bKash payment initiation failed', [
-                'error' => $result['error'] ?? 'Unknown error',
+            Log::error('bKash payment initiation failed', [
                 'order_id' => $order->id,
-                'response' => $result['response'] ?? null,
-            ]);
-        }
-
-        if ($result['success']) {
-            // Update order with payment info
-            $order->update([
-                'payment_invoice_id' => $invoiceId,
-                'payment_transaction_id' => $result['payment_id'],
-                'payment_status' => 'processing',
-                'payment_response' => json_encode($result['data']),
+                'error' => $result['error'] ?? 'Unknown error',
+                'response' => $result['data'] ?? null,
             ]);
 
-            // Redirect to bKash payment page
-            return redirect($result['bkash_url']);
+            $orderNumber = $order->order_number;
+            $this->cancelOrderAndRestoreStock($order);
+
+            return $this->paymentCancelled(
+                $orderNumber,
+                'পেমেন্ট শুরু করা যায়নি। আপনার অর্ডার বাতিল করা হয়েছে।'
+            );
         }
 
-        // Payment initiation failed - delete order and restore stock
-        $product = $order->product;
-        if ($product && !$product->is_digital) {
-            $product->increment('stock_quantity', $order->quantity);
-            if ($product->stock_quantity > 0) {
-                $product->update(['in_stock' => true]);
-            }
-        }
+        $order->update([
+            'payment_invoice_id' => $invoiceId,
+            'payment_transaction_id' => $result['payment_id'],
+            'payment_status' => 'processing',
+            'payment_response' => json_encode($result['data']),
+        ]);
 
-        $orderNumber = $order->order_number;
-        $order->delete();
-
-        return redirect()->route('home')
-            ->with('error', 'Payment initiation failed. Your order has been cancelled.');
+        return redirect($result['bkash_url']);
     }
 
-    /**
-     * bKash payment callback
-     */
     public function bkashCallback(Request $request)
     {
         $paymentId = $request->input('paymentID');
@@ -111,111 +77,78 @@ class PaymentController extends Controller
 
         if (!$paymentId) {
             Log::error('bKash callback missing paymentID', $request->all());
-            return redirect()->route('home')
-                ->with('error', 'Invalid payment callback.');
+            return redirect()->route('home')->with('error', 'Invalid payment callback.');
         }
 
-        // Find order by payment transaction ID
         $order = Order::where('payment_transaction_id', $paymentId)
             ->where('payment_status', 'processing')
             ->first();
 
         if (!$order) {
             Log::error('bKash callback order not found', ['payment_id' => $paymentId]);
-            return redirect()->route('home')
-                ->with('error', 'Order not found.');
+            return redirect()->route('home')->with('error', 'Order not found.');
         }
 
-        // If status is not success, delete the order and restore stock
         if ($status !== 'success') {
-            // Restore stock before deleting order (digital products have no stock)
-            $product = $order->product;
-            if ($product && !$product->is_digital) {
-                $product->increment('stock_quantity', $order->quantity);
-                if ($product->stock_quantity > 0) {
-                    $product->update(['in_stock' => true]);
-                }
-            }
-
-            // Delete the order
             $orderNumber = $order->order_number;
-            $order->delete();
+            $this->cancelOrderAndRestoreStock($order);
 
-            return redirect()->route('home')
-                ->with('error', 'Payment was cancelled. Your order has been cancelled.');
+            return $this->paymentCancelled(
+                $orderNumber,
+                'আপনি পেমেন্ট বাতিল করেছেন বা পেমেন্ট সম্পন্ন হয়নি। অর্ডার বাতিল করা হয়েছে।'
+            );
         }
 
-        // Execute payment to verify
         $result = $this->bkashService->executePayment($paymentId);
 
-        if ($result['success']) {
-            $paymentData = $result['data'];
-
-            // Check if payment is successful
-            if (isset($paymentData['transactionStatus']) && $paymentData['transactionStatus'] === 'Completed') {
-                // Update order
-                $product = $order->product;
-                $newStatus = ($product && $product->is_digital) ? 'delivered' : 'processing';
-
-                $order->update([
-                    'payment_status' => 'completed',
-                    'payment_transaction_id' => $paymentData['trxID'] ?? $paymentId,
-                    'payment_response' => json_encode($paymentData),
-                    'payment_completed_at' => now(),
-                    'status' => $newStatus,
-                ]);
-
-                // Send SMS notification
-                try {
-                    $smsService = app(\App\Services\SmsService::class);
-                    $message = "আপনার bKash পেমেন্ট সফল হয়েছে। অর্ডার #{$order->order_number}। ধন্যবাদ!";
-                    $smsService->send($order->customer_phone, $message);
-                } catch (\Exception $e) {
-                    Log::error('Payment success SMS failed', [
-                        'order_id' => $order->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-
-                return redirect()->route('orders.success', $order->order_number)
-                    ->with('success', 'Payment completed successfully!');
-            } else {
-                // Payment not completed - delete order and restore stock
-                $product = $order->product;
-                if ($product && !$product->is_digital) {
-                    $product->increment('stock_quantity', $order->quantity);
-                    if ($product->stock_quantity > 0) {
-                        $product->update(['in_stock' => true]);
-                    }
-                }
-
-                $orderNumber = $order->order_number;
-                $order->delete();
-
-                return redirect()->route('home')
-                    ->with('error', 'Payment verification failed. Your order has been cancelled.');
-            }
-        } else {
-            // Payment execution failed - delete order and restore stock
-            $product = $order->product;
-            if ($product && !$product->is_digital) {
-                $product->increment('stock_quantity', $order->quantity);
-                if ($product->stock_quantity > 0) {
-                    $product->update(['in_stock' => true]);
-                }
-            }
-
-            $orderNumber = $order->order_number;
-            $order->delete();
-
-            return redirect()->route('home')
-                ->with('error', 'Payment verification failed. Your order has been cancelled.');
+        if (!$result['success']) {
+            $result = $this->bkashService->queryPayment($paymentId);
         }
+
+        if (!$result['success']) {
+            $orderNumber = $order->order_number;
+            $this->cancelOrderAndRestoreStock($order);
+
+            return $this->paymentCancelled(
+                $orderNumber,
+                'পেমেন্ট নিশ্চিত করা যায়নি। অর্ডার বাতিল করা হয়েছে।'
+            );
+        }
+
+        $paymentData = $result['data'] ?? [];
+        if (($paymentData['transactionStatus'] ?? null) !== 'Completed') {
+            $orderNumber = $order->order_number;
+            $this->cancelOrderAndRestoreStock($order);
+
+            return $this->paymentCancelled(
+                $orderNumber,
+                'পেমেন্ট সম্পন্ন হয়নি। অর্ডার বাতিল করা হয়েছে।'
+            );
+        }
+
+        $newStatus = ($order->product && $order->product->is_digital) ? 'delivered' : 'processing';
+        $order->update([
+            'payment_status' => 'completed',
+            'payment_transaction_id' => $paymentData['trxID'] ?? $paymentId,
+            'payment_response' => json_encode($paymentData),
+            'payment_completed_at' => now(),
+            'status' => $newStatus,
+        ]);
+
+        try {
+            $smsService = app(SmsService::class);
+            $smsService->send($order->customer_phone, "আপনার bKash পেমেন্ট সফল হয়েছে। অর্ডার #{$order->order_number}। ধন্যবাদ!");
+        } catch (\Throwable $e) {
+            Log::warning('Failed payment-success SMS', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return redirect()->route('orders.success', $order->order_number)
+            ->with('success', 'Payment completed successfully!');
     }
 
-    /**
-     * Check payment status
-     */
     public function checkStatus(Request $request)
     {
         $request->validate([
@@ -223,7 +156,6 @@ class PaymentController extends Controller
         ]);
 
         $order = Order::findOrFail($request->order_id);
-
         if ($order->payment_method !== 'bkash' || !$order->payment_transaction_id) {
             return response()->json([
                 'success' => false,
@@ -231,43 +163,34 @@ class PaymentController extends Controller
             ]);
         }
 
-        // Query payment status
         $result = $this->bkashService->queryPayment($order->payment_transaction_id);
-
-        if ($result['success']) {
-            $paymentData = $result['data'];
-
-            // Update order if payment is completed
-            if (isset($paymentData['transactionStatus']) && $paymentData['transactionStatus'] === 'Completed') {
-                if ($order->payment_status !== 'completed') {
-                    $order->update([
-                        'payment_status' => 'completed',
-                        'payment_transaction_id' => $paymentData['trxID'] ?? $order->payment_transaction_id,
-                        'payment_response' => json_encode($paymentData),
-                        'payment_completed_at' => now(),
-                        'status' => 'processing',
-                    ]);
-                }
-            }
-
+        if (!$result['success']) {
             return response()->json([
-                'success' => true,
-                'payment_status' => $order->payment_status,
-                'order_status' => $order->status,
-                'data' => $paymentData,
+                'success' => false,
+                'error' => $result['error'] ?? 'Failed to query payment status',
+            ]);
+        }
+
+        $paymentData = $result['data'] ?? [];
+        if (($paymentData['transactionStatus'] ?? null) === 'Completed' && $order->payment_status !== 'completed') {
+            $order->update([
+                'payment_status' => 'completed',
+                'payment_transaction_id' => $paymentData['trxID'] ?? $order->payment_transaction_id,
+                'payment_response' => json_encode($paymentData),
+                'payment_completed_at' => now(),
+                'status' => $order->product && $order->product->is_digital ? 'delivered' : 'processing',
             ]);
         }
 
         return response()->json([
-            'success' => false,
-            'error' => $result['error'] ?? 'Failed to query payment status',
+            'success' => true,
+            'payment_status' => $order->fresh()->payment_status,
+            'order_status' => $order->fresh()->status,
+            'data' => $paymentData,
         ]);
     }
 
-    /**
-     * Cancel payment and delete order
-     */
-    public function cancelPayment($orderId)
+    public function cancelPayment(int $orderId)
     {
         $order = Order::where('id', $orderId)
             ->where('payment_method', 'bkash')
@@ -275,11 +198,31 @@ class PaymentController extends Controller
             ->first();
 
         if (!$order) {
-            return redirect()->route('home')
-                ->with('error', 'Order not found or cannot be cancelled.');
+            return $this->paymentCancelled(
+                null,
+                'এই অর্ডারটি পাওয়া যায়নি বা ইতিমধ্যে বাতিল করা হয়েছে।'
+            );
         }
 
-        // Restore stock before deleting order (digital products have no stock)
+        $orderNumber = $order->order_number;
+        $this->cancelOrderAndRestoreStock($order);
+
+        return $this->paymentCancelled(
+            $orderNumber,
+            'পেমেন্ট বাতিল করা হয়েছে। আপনার অর্ডার মুছে ফেলা হয়েছে।'
+        );
+    }
+
+    protected function paymentCancelled(?string $orderNumber, string $message): \Illuminate\Contracts\View\View
+    {
+        return view('payment.cancelled', [
+            'orderNumber' => $orderNumber,
+            'message' => $message,
+        ]);
+    }
+
+    protected function cancelOrderAndRestoreStock(Order $order): void
+    {
         $product = $order->product;
         if ($product && !$product->is_digital) {
             $product->increment('stock_quantity', $order->quantity);
@@ -288,10 +231,6 @@ class PaymentController extends Controller
             }
         }
 
-        // Delete the order
         $order->delete();
-
-        return redirect()->route('home')
-            ->with('error', 'Payment was cancelled. Your order has been cancelled.');
     }
 }

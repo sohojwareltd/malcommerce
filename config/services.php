@@ -42,6 +42,7 @@ return [
         'app_key' => env('BKASH_APP_KEY'),
         'app_secret' => env('BKASH_APP_SECRET'),
         'sandbox' => env('BKASH_SANDBOX', true),
+        'callback_url' => env('BKASH_CALLBACK_URL'),
     ],
 
 ];
