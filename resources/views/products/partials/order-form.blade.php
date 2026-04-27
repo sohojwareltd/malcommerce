@@ -245,7 +245,7 @@
                     >
                     <div class="flex-1">
                         <div class="font-semibold text-gray-900 font-bangla flex items-center gap-2">
-                            <span>📱</span>
+                            <img src="{{ route('assets.bkash.logo') }}" alt="bKash" class="h-5 w-5 rounded-full object-cover">
                             <span>bKash</span>
                         </div>
                         <div class="text-sm text-gray-600 font-bangla mt-1">

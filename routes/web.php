@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Auth;
 
 // Webhooks (no auth, no CSRF - external POST)
 Route::post('/webhooks/steadfast', \App\Http\Controllers\SteadfastWebhookController::class)->name('webhooks.steadfast');
+Route::get('/assets/bkash-logo', function () {
+    return response()->file(resource_path('views/bkash.png'));
+})->name('assets.bkash.logo');
 
 // SEO / Feed routes (no auth, no referral - for crawlers and feeds)
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('robots');

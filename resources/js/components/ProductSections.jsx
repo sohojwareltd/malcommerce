@@ -527,7 +527,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                                             />
                                             <div className="flex-1">
                                                 <div className="font-semibold text-gray-900 font-sans flex items-center gap-2">
-                                                    <span>📱</span>
+                                                            <img src="/assets/bkash-logo" alt="bKash" className="h-5 w-5 rounded-full object-cover" />
                                                     <span>bKash</span>
                                                 </div>
                                                 <div className="text-sm text-gray-600 font-sans mt-1">

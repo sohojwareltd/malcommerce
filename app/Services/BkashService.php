@@ -88,7 +88,9 @@ class BkashService
     public function getAccessToken(): ?string
     {
         $cached = Cache::get('bkash_id_token');
+    
         if ($cached) {
+            Log::info('Cached token', ['cached' => $cached]);
             return $cached;
         }
 
@@ -133,6 +135,9 @@ class BkashService
 
         Cache::put('bkash_id_token', $decoded['id_token'], now()->addMinutes(55));
 
+
+
+        Log::info('New bKash token', ['cached' => Cache::get('bkash_id_token')]);
         return $decoded['id_token'];
     }
 
