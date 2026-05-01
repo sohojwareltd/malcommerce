@@ -120,6 +120,8 @@
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Code</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Filtered Referrals</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Total Referrals</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-500">Balance</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-neutral-500">Pending (est.)</th>
                         <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">Actions</th>
                     </tr>
                 </thead>
@@ -163,6 +165,8 @@
                         <td class="px-4 py-3 text-sm font-mono text-neutral-700">{{ $sponsor->affiliate_code ?: 'N/A' }}</td>
                         <td class="px-4 py-3 text-sm font-semibold text-primary">{{ $sponsor->filtered_referrals_count }}</td>
                         <td class="px-4 py-3 text-sm text-neutral-700">{{ $sponsor->referrals_count }}</td>
+                        <td class="px-4 py-3 text-sm text-right tabular-nums font-medium text-neutral-900">৳{{ number_format($sponsor->balance ?? 0, 2) }}</td>
+                        <td class="px-4 py-3 text-sm text-right tabular-nums font-semibold text-violet-700">৳{{ number_format($sponsor->pending_purchase_commission_estimate ?? 0, 2) }}</td>
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap items-center gap-2">
                                 <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="inline-flex rounded-md bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition">
@@ -185,7 +189,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-sm text-neutral-500">
+                        <td colspan="9" class="px-4 py-8 text-center text-sm text-neutral-500">
                             No sponsor data found for the selected filter.
                         </td>
                     </tr>
@@ -232,6 +236,8 @@
                             <p class="text-neutral-600">Code: <span class="text-neutral-800 font-mono">{{ $sponsor->affiliate_code ?: 'N/A' }}</span></p>
                             <p class="text-neutral-600">Filtered: <span class="text-primary font-semibold">{{ $sponsor->filtered_referrals_count }}</span></p>
                             <p class="text-neutral-600">Total: <span class="text-neutral-800 font-semibold">{{ $sponsor->referrals_count }}</span></p>
+                            <p class="text-neutral-600">Balance: <span class="text-neutral-900 font-semibold tabular-nums">৳{{ number_format($sponsor->balance ?? 0, 2) }}</span></p>
+                            <p class="text-neutral-600">Pending: <span class="text-violet-700 font-semibold tabular-nums">৳{{ number_format($sponsor->pending_purchase_commission_estimate ?? 0, 2) }}</span></p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-neutral-100">
                             <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="inline-flex rounded-md bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition">

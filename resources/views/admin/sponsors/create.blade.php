@@ -5,6 +5,11 @@
 @section('content')
 <div class="mb-6">
     <h1 class="text-3xl font-bold">Create Partner</h1>
+    @can('withdrawals.create')
+    <p class="text-sm text-neutral-600 mt-2 max-w-2xl">
+        After the account exists, use <strong class="text-neutral-800">Partners</strong> → <strong class="text-neutral-800">Withdraw</strong> or the partner profile sidebar to open withdrawals: list every request for that partner and submit a new one on their behalf.
+    </p>
+    @endcan
 </div>
 
 <div class="bg-white rounded-lg shadow-md p-6 max-w-2xl">

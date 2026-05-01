@@ -158,6 +158,8 @@ use Illuminate\Support\Str;
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Referrals</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Orders</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Total Revenue</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase">Balance</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-neutral-500 uppercase">Pending</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase">Actions</th>
                 </tr>
             </thead>
@@ -209,6 +211,8 @@ use Illuminate\Support\Str;
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->referrals_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500">{{ $sponsor->orders_count }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-accent">৳{{ number_format($sponsor->total_revenue, 2) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right tabular-nums font-medium text-green-800">৳{{ number_format($sponsor->balance ?? 0, 2) }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-right tabular-nums font-semibold text-violet-700" title="Estimated commissions from pending purchases">৳{{ number_format($sponsor->pending_purchase_commission_estimate ?? 0, 2) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         @if(request('trashed') && $sponsor->trashed())
                             <div class="flex flex-wrap items-center gap-2">
@@ -230,7 +234,12 @@ use Illuminate\Support\Str;
                         <div class="flex flex-wrap gap-2">
                             <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:text-primary-light font-medium">View</a>
                             <a href="{{ route('admin.sponsors.edit', $sponsor) }}" class="text-blue-600 hover:text-blue-700 font-medium">Edit</a>
+                            @can('withdrawals.create')
+                            <span class="text-neutral-300">|</span>
+                            <a href="{{ route('admin.sponsors.withdrawals', $sponsor) }}" class="text-teal-700 hover:text-teal-800 font-medium">Withdraw</a>
+                            @endcan
                             @can('sponsors.update')
+                            <span class="text-neutral-300">|</span>
                             <a href="{{ route('admin.sponsors.edit', $sponsor) }}?promote=level" class="text-amber-700 hover:text-amber-900 font-medium">Promote</a>
                             @endcan
                             <form action="{{ route('admin.sponsors.destroy', $sponsor) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?');">
@@ -244,7 +253,7 @@ use Illuminate\Support\Str;
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="{{ $bulkMode ? 12 : 11 }}" class="px-6 py-4 text-center text-neutral-500">
+                    <td colspan="{{ $bulkMode ? 14 : 13 }}" class="px-6 py-4 text-center text-neutral-500">
                         @if(request('search'))
                             No sponsors found matching "{{ request('search') }}"
                         @else
@@ -314,6 +323,14 @@ use Illuminate\Support\Str;
                             <span class="text-neutral-500">Revenue:</span>
                             <span class="text-green-600 font-semibold ml-1">৳{{ number_format($sponsor->total_revenue, 2) }}</span>
                         </div>
+                        <div>
+                            <span class="text-neutral-500">Balance:</span>
+                            <span class="text-neutral-900 font-semibold ml-1 tabular-nums">৳{{ number_format($sponsor->balance ?? 0, 2) }}</span>
+                        </div>
+                        <div>
+                            <span class="text-neutral-500">Pending:</span>
+                            <span class="text-violet-700 font-semibold ml-1 tabular-nums">৳{{ number_format($sponsor->pending_purchase_commission_estimate ?? 0, 2) }}</span>
+                        </div>
                     </div>
                     @if($sponsor->address)
                     <p class="text-xs text-neutral-500 mb-3 truncate" title="{{ $sponsor->address }}">{{ $sponsor->address }}</p>
@@ -339,6 +356,10 @@ use Illuminate\Support\Str;
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:text-primary-light font-medium text-sm">View</a>
                         <span class="text-neutral-300">|</span>
                         <a href="{{ route('admin.sponsors.edit', $sponsor) }}" class="text-blue-600 hover:text-blue-700 font-medium text-sm">Edit</a>
+                        @can('withdrawals.create')
+                        <span class="text-neutral-300">|</span>
+                        <a href="{{ route('admin.sponsors.withdrawals', $sponsor) }}" class="text-teal-700 hover:text-teal-800 font-medium text-sm">Withdraw</a>
+                        @endcan
                         @can('sponsors.update')
                         <span class="text-neutral-300">|</span>
                         <a href="{{ route('admin.sponsors.edit', $sponsor) }}?promote=level" class="text-amber-700 hover:text-amber-900 font-medium text-sm">Promote</a>

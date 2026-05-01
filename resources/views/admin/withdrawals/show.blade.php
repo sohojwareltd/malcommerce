@@ -19,14 +19,26 @@
             $info = $withdrawal->receiving_account_information ?? [];
             $number = $info['number'] ?? null;
             $masked = $number ? substr($number, 0, 3) . 'XXX-XXXXX' : '-';
+            $isCash = ($info['provider'] ?? '') === 'cash';
         @endphp
-        <p class="text-sm">
-            <strong>Provider:</strong> {{ strtoupper($info['provider'] ?? '-') }}<br>
-            <strong>Mobile:</strong> {{ $masked }}<br>
-            <strong>Account Type:</strong> {{ ucfirst($info['account_type'] ?? '-') }}<br>
-            <strong>Account Holder:</strong> {{ $info['holder_name'] ?? '-' }}<br>
-            <strong>Label:</strong> {{ $info['label'] ?? '-' }}
-        </p>
+        @if($isCash)
+            <p class="text-sm">
+                <strong>Payout type:</strong> Cash<br>
+                <strong>Label:</strong> {{ $info['label'] ?? 'Cash payout' }}<br>
+                @if(! empty($info['admin_pickup_note']))
+                    <strong>Admin note:</strong> {{ $info['admin_pickup_note'] }}<br>
+                @endif
+                <strong>Recipient (reference):</strong> {{ $info['holder_name'] ?? $withdrawal->sponsor->name }}
+            </p>
+        @else
+            <p class="text-sm">
+                <strong>Provider:</strong> {{ strtoupper($info['provider'] ?? '-') }}<br>
+                <strong>Mobile:</strong> {{ $masked }}<br>
+                <strong>Account Type:</strong> {{ ucfirst($info['account_type'] ?? '-') }}<br>
+                <strong>Account Holder:</strong> {{ $info['holder_name'] ?? '-' }}<br>
+                <strong>Label:</strong> {{ $info['label'] ?? '-' }}
+            </p>
+        @endif
     </div>
 
     <div class="bg-white border border-neutral-200 rounded-lg p-4 text-sm">

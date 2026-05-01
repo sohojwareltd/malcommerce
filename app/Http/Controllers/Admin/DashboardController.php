@@ -21,6 +21,7 @@ use App\Models\SponsorLevel;
 use App\Models\SponsorLevelHistory;
 use App\Services\EarningService;
 use App\Services\SponsorMetricsService;
+use App\Services\WithdrawalService;
 use App\Services\SmsService;
 use App\Services\SteadfastService;
 use Illuminate\Support\Facades\View;
@@ -28,7 +29,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
 
 class DashboardController extends Controller
@@ -631,6 +634,21 @@ class DashboardController extends Controller
                 return $sponsor;
             });
 
+        $pendingPurchasesPrefetch = Purchase::query()
+            ->where('status', Purchase::STATUS_PENDING)
+            ->with(['beneficiary', 'submittedBy'])
+            ->get();
+        /** @var EarningService $earningService */
+        $earningService = app(EarningService::class);
+        $sponsors->getCollection()->transform(function ($sponsor) use ($earningService, $pendingPurchasesPrefetch) {
+            $sponsor->pending_purchase_commission_estimate = $earningService->estimatePendingPurchaseCommissionForSponsor(
+                $sponsor,
+                $pendingPurchasesPrefetch
+            );
+
+            return $sponsor;
+        });
+
         $bulkReferrerOptions = collect();
         $bulkSponsorLevels = collect();
         if (!$request->boolean('trashed') && $request->user()->can('sponsors.update')) {
@@ -673,6 +691,21 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->paginate($perPage)
             ->withQueryString();
+
+        $pendingPurchasesPrefetch = Purchase::query()
+            ->where('status', Purchase::STATUS_PENDING)
+            ->with(['beneficiary', 'submittedBy'])
+            ->get();
+        /** @var EarningService $earningService */
+        $earningService = app(EarningService::class);
+        $sponsors->getCollection()->transform(function ($sponsor) use ($earningService, $pendingPurchasesPrefetch) {
+            $sponsor->pending_purchase_commission_estimate = $earningService->estimatePendingPurchaseCommissionForSponsor(
+                $sponsor,
+                $pendingPurchasesPrefetch
+            );
+
+            return $sponsor;
+        });
 
         return view('admin.sponsors.leaderboard', compact(
             'sponsors',
@@ -1134,6 +1167,9 @@ class DashboardController extends Controller
 
         $sponsorMetrics = app(SponsorMetricsService::class)->dashboardMetrics($sponsor);
 
+        $pendingPurchaseCommissionEstimate = app(EarningService::class)
+            ->estimatePendingPurchaseCommissionForSponsor($sponsor);
+
         return view('admin.sponsors.show', compact(
             'sponsor',
             'products',
@@ -1149,6 +1185,7 @@ class DashboardController extends Controller
             'sponsorMetrics',
             'manualIncomes',
             'sponsorIncomeCategorySuggestions',
+            'pendingPurchaseCommissionEstimate',
         ));
     }
 
@@ -1414,6 +1451,162 @@ class DashboardController extends Controller
 
         return redirect()->route('admin.sponsors.index', ['trashed' => 1])
             ->with('success', 'Partner permanently deleted.');
+    }
+
+    public function showSponsorWithdrawals(User $sponsor)
+    {
+        if ($sponsor->role !== 'sponsor') {
+            abort(404);
+        }
+
+        $withdrawals = $sponsor->withdrawals()->latest()->paginate(20)->withQueryString();
+        $methods = $this->normalizeWithdrawalMethodsArray($sponsor->withdrawal_methods ?? []);
+        $defaultKey = $sponsor->default_withdrawal_method;
+
+        return view('admin.sponsors.withdrawals', compact('sponsor', 'withdrawals', 'methods', 'defaultKey'));
+    }
+
+    public function storeSponsorWithdrawal(Request $request, User $sponsor, WithdrawalService $withdrawalService)
+    {
+        if ($sponsor->role !== 'sponsor') {
+            abort(404);
+        }
+
+        $this->authorize('create', Withdrawal::class);
+
+        $base = $request->validate([
+            'amount' => ['required', 'numeric', 'min:1'],
+            'payout_option' => ['required', 'in:saved,cash,new_mfs'],
+        ]);
+
+        $amount = (float) $base['amount'];
+        $option = $base['payout_option'];
+
+        if ($option === 'saved') {
+            $request->validate([
+                'method_key' => ['required', 'string'],
+            ]);
+
+            $methods = $this->normalizeWithdrawalMethodsArray($sponsor->withdrawal_methods ?? []);
+            $methodKey = $request->input('method_key');
+            $method = $methods[$methodKey] ?? null;
+
+            if (! $method || empty($methods)) {
+                throw ValidationException::withMessages([
+                    'method_key' => 'Selected payout method is invalid for this partner.',
+                ]);
+            }
+
+            try {
+                $withdrawalService->requestWithdrawal(
+                    $sponsor,
+                    $amount,
+                    array_merge($method, ['method_key' => $methodKey])
+                );
+            } catch (ValidationException $e) {
+                throw $e;
+            }
+
+            return redirect()
+                ->route('admin.sponsors.withdrawals', $sponsor)
+                ->with('success', 'Withdrawal request submitted for this partner.');
+        }
+
+        if ($option === 'cash') {
+            $data = $request->validate([
+                'cash_note' => ['nullable', 'string', 'max:500'],
+            ]);
+            $note = isset($data['cash_note']) ? trim((string) $data['cash_note']) : '';
+
+            try {
+                $withdrawalService->requestWithdrawal(
+                    $sponsor,
+                    $amount,
+                    [
+                        'provider' => 'cash',
+                        'method_key' => 'cash_admin_'.Str::lower(Str::random(10)),
+                        'label' => 'Cash payout',
+                        'number' => '',
+                        'account_type' => 'personal',
+                        'holder_name' => $sponsor->name,
+                        'admin_pickup_note' => $note !== '' ? $note : null,
+                    ]
+                );
+            } catch (ValidationException $e) {
+                throw $e;
+            }
+
+            return redirect()
+                ->route('admin.sponsors.withdrawals', $sponsor)
+                ->with('success', 'Cash withdrawal request recorded for this partner.');
+        }
+
+        // new_mfs: save method on user, then request withdrawal (same rules as sponsor portal).
+        $validatedMfs = $request->validate([
+            'provider' => ['required', 'in:bkash,nagad,rocket'],
+            'number' => ['required', 'string', 'max:20'],
+            'account_type' => ['required', 'in:personal,agent'],
+            'holder_name' => ['required', 'string', 'max:255'],
+            'new_method_label' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $number = preg_replace('/\D+/', '', (string) $request->input('number', ''));
+
+        if (strlen($number) < 10 || strlen($number) > 15) {
+            throw ValidationException::withMessages([
+                'number' => 'Enter a valid mobile wallet number.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($sponsor, $withdrawalService, $amount, $number, $validatedMfs) {
+            $locked = User::query()->whereKey($sponsor->id)->lockForUpdate()->firstOrFail();
+            if ($locked->role !== 'sponsor') {
+                abort(404);
+            }
+
+            $methods = $this->normalizeWithdrawalMethodsArray($locked->withdrawal_methods ?? []);
+            $provider = $validatedMfs['provider'];
+
+            foreach ($methods as $key => $method) {
+                if (($method['provider'] ?? null) === $provider && ($method['number'] ?? null) === $number) {
+                    throw ValidationException::withMessages([
+                        'number' => 'This mobile number is already saved for '.ucfirst((string) $provider).'.',
+                    ]);
+                }
+            }
+
+            $key = $provider.'_'.Str::random(8);
+            $label = trim((string) ($validatedMfs['new_method_label'] ?? ''));
+            $methods[$key] = [
+                'provider' => $provider,
+                'number' => $number,
+                'account_type' => $validatedMfs['account_type'],
+                'holder_name' => $validatedMfs['holder_name'],
+                'label' => $label !== '' ? $label : ucfirst($provider).' '.substr($number, -4),
+                'is_default' => false,
+                'verified' => false,
+            ];
+
+            $locked->withdrawal_methods = $methods;
+            $locked->default_withdrawal_method = $key;
+            $locked->save();
+
+            $locked->refresh();
+
+            try {
+                $withdrawalService->requestWithdrawal(
+                    $locked,
+                    $amount,
+                    array_merge($methods[$key], ['method_key' => $key])
+                );
+            } catch (ValidationException $e) {
+                throw $e;
+            }
+
+            return redirect()
+                ->route('admin.sponsors.withdrawals', $locked)
+                ->with('success', 'Payout method saved and withdrawal request submitted for this partner.');
+        });
     }
     
     public function users(Request $request)
@@ -2144,5 +2337,38 @@ class DashboardController extends Controller
         
         return redirect()->to(route('admin.profile.edit') . '#password')
             ->with('success', 'Password changed successfully!');
+    }
+
+    /**
+     * Normalize sponsor withdrawal_methods JSON (same rules as sponsor portal).
+     *
+     * @param  mixed  $raw
+     */
+    private function normalizeWithdrawalMethodsArray($raw): array
+    {
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $isAssoc = array_keys($raw) !== range(0, count($raw) - 1);
+        if ($isAssoc) {
+            return $raw;
+        }
+
+        $methods = [];
+        foreach ($raw as $item) {
+            $key = $item['id'] ?? (($item['type'] ?? 'mfs').'_'.Str::random(6));
+            $methods[$key] = [
+                'provider' => $item['type'] ?? ($item['provider'] ?? 'bkash'),
+                'number' => $item['fields']['account_number'] ?? ($item['number'] ?? ''),
+                'account_type' => $item['fields']['account_type'] ?? ($item['account_type'] ?? 'personal'),
+                'holder_name' => $item['fields']['account_name'] ?? ($item['holder_name'] ?? ''),
+                'label' => $item['label'] ?? ucfirst($item['type'] ?? 'MFS'),
+                'is_default' => $item['is_default'] ?? false,
+                'verified' => $item['verified'] ?? false,
+            ];
+        }
+
+        return $methods;
     }
 }

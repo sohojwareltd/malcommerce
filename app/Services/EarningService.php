@@ -5,9 +5,11 @@ namespace App\Services;
 use App\Models\Earning;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\Setting;
 use App\Models\SponsorIncome;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -288,6 +290,65 @@ class EarningService
         }
 
         return $primaryEarning;
+    }
+
+    /**
+     * Estimated wallet credit from pending purchases for this sponsor if all were approved with current rates
+     * (mirror of {@see createPurchaseCreditEarning} math; excludes balance mutations).
+     *
+     * @param  Collection<int, Purchase>|null  $prefetchedPurchases  Pending purchases (with beneficiary), or load all pending.
+     */
+    public function estimatePendingPurchaseCommissionForSponsor(User $sponsor, ?Collection $prefetchedPurchases = null): float
+    {
+        $purchases = $prefetchedPurchases ?? Purchase::query()
+            ->where('status', Purchase::STATUS_PENDING)
+            ->with(['beneficiary', 'submittedBy'])
+            ->get();
+
+        $defaultCommissionPercent = (float) Setting::get('purchase_approval_commission_percent', 0);
+        $chainByBeneficiaryId = [];
+        $total = 0.0;
+
+        foreach ($purchases as $purchase) {
+            $beneficiary = $purchase->beneficiary;
+            if (! $beneficiary) {
+                continue;
+            }
+
+            $bid = $beneficiary->id;
+            if (! isset($chainByBeneficiaryId[$bid])) {
+                $chain = $this->resolveSponsorUplineChain($beneficiary);
+                if ($chain === []) {
+                    $beneficiary->loadMissing('sponsorLevel');
+                    $chain = [$beneficiary];
+                }
+                $chainByBeneficiaryId[$bid] = $chain;
+            } else {
+                $chain = $chainByBeneficiaryId[$bid];
+            }
+
+            $gross = (float) $purchase->amount;
+
+            foreach ($chain as $recipient) {
+                if ($recipient->id !== $sponsor->id) {
+                    continue;
+                }
+
+                $recipient->loadMissing('sponsorLevel');
+                $commissionPercent = $this->purchaseCommissionPercentForUser($recipient, $defaultCommissionPercent);
+                $credit = round(max(0, $gross * ($commissionPercent / 100)), 2);
+                $isBeneficiary = $recipient->id === $beneficiary->id;
+
+                if (! $isBeneficiary && $credit <= 0) {
+                    break;
+                }
+
+                $total += $credit;
+                break;
+            }
+        }
+
+        return round($total, 2);
     }
 
     /**

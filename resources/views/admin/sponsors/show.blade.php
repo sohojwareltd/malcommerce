@@ -142,11 +142,23 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                         Review purchase queue
                     </a>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
                     <div class="rounded-xl bg-white/10 border border-white/10 p-4">
                         <p class="text-xs font-medium uppercase tracking-wide text-emerald-300/90">Current balance</p>
                         <p class="text-3xl font-bold mt-2 tabular-nums">৳{{ number_format($sponsor->balance, 2) }}</p>
                         <p class="text-xs text-white/50 mt-2">Available in their wallet after credits and withdrawal deductions.</p>
+                    </div>
+                    <div class="rounded-xl bg-white/10 border border-white/10 p-4 ring-2 ring-violet-400/30">
+                        <p class="text-xs font-medium uppercase tracking-wide text-violet-200/95">Pending from purchases</p>
+                        <p class="text-3xl font-bold mt-2 tabular-nums text-violet-100">৳{{ number_format($pendingPurchaseCommissionEstimate, 2) }}</p>
+                        <p class="text-xs text-white/50 mt-2">Estimated commissions if every pending purchase affecting this partner were approved today (same rules as the purchase queue).</p>
+                        @if(($purchaseAsBeneficiary['pending_count'] ?? 0) > 0 || ($purchaseSubmitted['pending_count'] ?? 0) > 0)
+                            <p class="text-[11px] text-white/45 mt-2">
+                                Pending requests (gross totals): beneficiary role ৳{{ number_format($purchaseAsBeneficiary['pending_amount'], 2) }}
+                                · submitted ৳{{ number_format($purchaseSubmitted['pending_amount'], 2) }}
+                                (actual credit uses level %).
+                            </p>
+                        @endif
                     </div>
                     <div class="rounded-xl bg-white/10 border border-white/10 p-4">
                         <p class="text-xs font-medium uppercase tracking-wide text-sky-300/90">Lifetime income credited</p>
@@ -710,6 +722,7 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Current balance</dt>
                     <dd class="mt-1 text-sm font-semibold text-green-700 tabular-nums">৳{{ number_format($sponsor->balance, 2) }}</dd>
+                    <dd class="mt-1 text-xs text-amber-800/90 tabular-nums">Pending (unapproved purchases, est.) ৳{{ number_format($pendingPurchaseCommissionEstimate, 2) }}</dd>
                 </div>
 
                 <div>
@@ -827,6 +840,11 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
             <div class="space-y-2">
+                @can('withdrawals.create')
+                <a href="{{ route('admin.sponsors.withdrawals', $sponsor) }}" class="block w-full text-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-semibold">
+                    Withdrawals &amp; payout requests
+                </a>
+                @endcan
                 @can('sponsors.update')
                 <a href="{{ route('admin.sponsors.edit', $sponsor) }}?promote=level" class="block w-full text-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-semibold">
                     Promote level
