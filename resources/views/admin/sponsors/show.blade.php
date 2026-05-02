@@ -136,51 +136,38 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                     <div>
                         <h2 class="text-lg font-semibold text-white/90">Income & balance</h2>
-                        <p class="text-sm text-white/60 mt-1">What this sponsor has been credited, what they hold now, and withdrawals.</p>
                     </div>
                     <a href="{{ route('admin.purchases.index', ['status' => 'pending']) }}" class="shrink-0 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm font-semibold text-white border border-white/20 transition">
                         Review purchase queue
                     </a>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-                    <div class="rounded-xl bg-white/10 border border-white/10 p-4">
+                    <div class="rounded-xl bg-white/10 border border-white/10 p-4 min-w-0 overflow-hidden">
                         <p class="text-xs font-medium uppercase tracking-wide text-emerald-300/90">Current balance</p>
-                        <p class="text-3xl font-bold mt-2 tabular-nums">৳{{ number_format($sponsor->balance, 2) }}</p>
-                        <p class="text-xs text-white/50 mt-2">Available in their wallet after credits and withdrawal deductions.</p>
+                        <p class="mt-2 text-xl sm:text-2xl xl:text-xl 2xl:text-2xl font-bold tabular-nums leading-tight break-all">৳{{ number_format($sponsor->balance, 2) }}</p>
                     </div>
-                    <div class="rounded-xl bg-white/10 border border-white/10 p-4 ring-2 ring-violet-400/30">
+                    <div class="rounded-xl bg-white/10 border border-white/10 p-4 ring-2 ring-violet-400/30 min-w-0 overflow-hidden">
                         <p class="text-xs font-medium uppercase tracking-wide text-violet-200/95">Pending from purchases</p>
-                        <p class="text-3xl font-bold mt-2 tabular-nums text-violet-100">৳{{ number_format($pendingPurchaseCommissionEstimate, 2) }}</p>
-                        <p class="text-xs text-white/50 mt-2">Estimated commissions if every pending purchase affecting this partner were approved today (same rules as the purchase queue).</p>
-                        @if(($purchaseAsBeneficiary['pending_count'] ?? 0) > 0 || ($purchaseSubmitted['pending_count'] ?? 0) > 0)
-                            <p class="text-[11px] text-white/45 mt-2">
-                                Pending requests (gross totals): beneficiary role ৳{{ number_format($purchaseAsBeneficiary['pending_amount'], 2) }}
-                                · submitted ৳{{ number_format($purchaseSubmitted['pending_amount'], 2) }}
-                                (actual credit uses level %).
-                            </p>
-                        @endif
+                        <p class="mt-2 text-xl sm:text-2xl xl:text-xl 2xl:text-2xl font-bold tabular-nums text-violet-100 leading-tight break-all">৳{{ number_format($pendingPurchaseCommissionEstimate, 2) }}</p>
                     </div>
-                    <div class="rounded-xl bg-white/10 border border-white/10 p-4">
+                    <div class="rounded-xl bg-white/10 border border-white/10 p-4 min-w-0 overflow-hidden">
                         <p class="text-xs font-medium uppercase tracking-wide text-sky-300/90">Lifetime income credited</p>
-                        <p class="text-3xl font-bold mt-2 tabular-nums text-sky-100">৳{{ number_format($lifetimeEarnings, 2) }}</p>
-                        <p class="text-xs text-white/50 mt-2">Sum of all earning records for this sponsor.</p>
+                        <p class="mt-2 text-xl sm:text-2xl xl:text-xl 2xl:text-2xl font-bold tabular-nums text-sky-100 leading-tight break-all">৳{{ number_format($lifetimeEarnings, 2) }}</p>
                     </div>
-                    <div class="rounded-xl bg-white/10 border border-white/10 p-4">
+                    <div class="rounded-xl bg-white/10 border border-white/10 p-4 min-w-0 overflow-hidden">
                         <p class="text-xs font-medium uppercase tracking-wide text-amber-200/90">Withdrawals paid out</p>
-                        <p class="text-3xl font-bold mt-2 tabular-nums text-amber-50">৳{{ number_format($withdrawalSummary['approved_total'], 2) }}</p>
-                        <p class="text-xs text-white/50 mt-2">Approved withdrawal total (money sent or marked complete).</p>
+                        <p class="mt-2 text-xl sm:text-2xl xl:text-xl 2xl:text-2xl font-bold tabular-nums text-amber-50 leading-tight break-all">৳{{ number_format($withdrawalSummary['approved_total'], 2) }}</p>
                     </div>
-                    <div class="rounded-xl bg-white/10 border border-white/10 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-rose-200/90">Withdrawals in progress</p>
-                        <p class="text-3xl font-bold mt-2 tabular-nums text-rose-50">৳{{ number_format($withdrawalSummary['in_queue_total'], 2) }}</p>
-                        <p class="text-xs text-white/50 mt-2">
-                            {{ $withdrawalSummary['in_queue_count'] }} open request(s) — pending, processing, or inquiry.
+                    <div class="rounded-xl bg-white/10 border border-white/10 p-4 min-w-0 overflow-hidden">
+                        <p class="text-xs font-medium uppercase tracking-wide text-rose-200/90">
+                            Withdrawals in progress
+                            @if(($withdrawalSummary['in_queue_count'] ?? 0) > 0)
+                                <span class="text-white/70 font-semibold normal-case">({{ $withdrawalSummary['in_queue_count'] }})</span>
+                            @endif
                         </p>
+                        <p class="mt-2 text-xl sm:text-2xl xl:text-xl 2xl:text-2xl font-bold tabular-nums text-rose-50 leading-tight break-all">৳{{ number_format($withdrawalSummary['in_queue_total'], 2) }}</p>
                     </div>
                 </div>
-                @if($withdrawalSummary['cancelled_total'] > 0)
-                    <p class="text-xs text-white/45 mt-4">Cancelled withdrawals returned to balance: ৳{{ number_format($withdrawalSummary['cancelled_total'], 2) }} (historical).</p>
-                @endif
             </div>
 
             @can('sponsors.update')
