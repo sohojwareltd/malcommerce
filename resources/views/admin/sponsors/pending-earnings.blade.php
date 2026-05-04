@@ -7,7 +7,7 @@
     <div>
         <h1 class="text-2xl sm:text-3xl font-bold text-neutral-900">Pending purchase earnings</h1>
         <p class="text-sm text-neutral-600 mt-1">
-            Partners ranked by estimated commission if pending requests in scope were approved today.
+            Partners with <strong>non-zero</strong> estimated commission from pending requests in scope (approved today at current rates).
             <span class="font-medium text-neutral-800">{{ $rangeLabel }}</span>
             · <span class="tabular-nums">{{ $pendingPurchaseCount }}</span> request(s) in scope.
         </p>
@@ -91,7 +91,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-10 text-center text-neutral-500">No partners found.</td>
+                        <td colspan="7" class="px-4 py-10 text-center text-neutral-500">No partners with estimated pending commission in this scope. Try another month/date range, or all requests may be outside the filter.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -110,7 +110,7 @@
                 <a href="{{ route('admin.sponsors.show', $sponsor) }}#income" class="mt-3 inline-block text-sm font-semibold text-primary hover:underline">Open profile</a>
             </div>
         @empty
-            <div class="p-8 text-center text-neutral-500 text-sm">No partners found.</div>
+            <div class="p-8 text-center text-neutral-500 text-sm">No partners with estimated pending commission in this scope.</div>
         @endforelse
     </div>
 

@@ -760,22 +760,28 @@ class DashboardController extends Controller
         /** @var EarningService $earningService */
         $earningService = app(EarningService::class);
 
-        $sponsors = User::query()
-            ->where('role', 'sponsor')
-            ->whereNull('deleted_at')
-            ->orderBy('name')
-            ->get();
+        $aggregates = $earningService->aggregatePendingPurchaseCommissionBySponsor($purchases)
+            ->filter(fn (float $amount) => $amount > 0);
 
-        foreach ($sponsors as $sponsor) {
-            $sponsor->pending_purchase_est = $earningService->estimatePendingPurchaseCommissionForSponsor(
-                $sponsor,
-                $purchases
-            );
+        $sponsorIds = $aggregates->keys()->map(fn ($id) => (int) $id)->values()->all();
+
+        if ($sponsorIds === []) {
+            $sorted = collect();
+        } else {
+            $sponsors = User::query()
+                ->where('role', 'sponsor')
+                ->whereNull('deleted_at')
+                ->whereIn('id', $sponsorIds)
+                ->get();
+
+            foreach ($sponsors as $sponsor) {
+                $sponsor->pending_purchase_est = (float) $aggregates->get($sponsor->id, 0.0);
+            }
+
+            $sorted = $sort === 'asc'
+                ? $sponsors->sortBy(fn (User $s) => $s->pending_purchase_est)->values()
+                : $sponsors->sortByDesc(fn (User $s) => $s->pending_purchase_est)->values();
         }
-
-        $sorted = $sort === 'asc'
-            ? $sponsors->sortBy(fn (User $s) => $s->pending_purchase_est)->values()
-            : $sponsors->sortByDesc(fn (User $s) => $s->pending_purchase_est)->values();
 
         $page = max(1, (int) $request->input('page', 1));
         $slice = $sorted->forPage($page, $perPage)->values();

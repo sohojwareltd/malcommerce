@@ -352,6 +352,57 @@ class EarningService
     }
 
     /**
+     * Sum estimated commission per user from a set of pending purchases (one pass; mirrors {@see createPurchaseCreditEarning}).
+     * Used for admin rankings; only includes users who appear on an upline chain for at least one purchase.
+     *
+     * @param  Collection<int, Purchase>  $purchases
+     * @return Collection<int, float> user id => total estimated commission
+     */
+    public function aggregatePendingPurchaseCommissionBySponsor(Collection $purchases): Collection
+    {
+        $defaultCommissionPercent = (float) Setting::get('purchase_approval_commission_percent', 0);
+        $chainByBeneficiaryId = [];
+        $totals = [];
+
+        foreach ($purchases as $purchase) {
+            $beneficiary = $purchase->beneficiary;
+            if (! $beneficiary) {
+                continue;
+            }
+
+            $bid = $beneficiary->id;
+            if (! isset($chainByBeneficiaryId[$bid])) {
+                $chain = $this->resolveSponsorUplineChain($beneficiary);
+                if ($chain === []) {
+                    $beneficiary->loadMissing('sponsorLevel');
+                    $chain = [$beneficiary];
+                }
+                $chainByBeneficiaryId[$bid] = $chain;
+            } else {
+                $chain = $chainByBeneficiaryId[$bid];
+            }
+
+            $gross = (float) $purchase->amount;
+
+            foreach ($chain as $recipient) {
+                $recipient->loadMissing('sponsorLevel');
+                $commissionPercent = $this->purchaseCommissionPercentForUser($recipient, $defaultCommissionPercent);
+                $credit = round(max(0, $gross * ($commissionPercent / 100)), 2);
+                $isBeneficiary = (int) $recipient->id === (int) $beneficiary->id;
+
+                if (! $isBeneficiary && $credit <= 0) {
+                    continue;
+                }
+
+                $sid = (int) $recipient->id;
+                $totals[$sid] = round(($totals[$sid] ?? 0) + $credit, 2);
+            }
+        }
+
+        return collect($totals);
+    }
+
+    /**
      * Purchase commission % for a user: level rate, or setting fallback; rank 0 with 0% level uses fallback.
      */
     protected function purchaseCommissionPercentForUser(User $user, float $defaultPercent): float
