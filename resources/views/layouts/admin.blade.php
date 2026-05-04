@@ -197,6 +197,16 @@
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Sponsor leaderboard</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Sponsor leaderboard</span>
                     </a>
+                    <a href="{{ route('admin.sponsors.pending-earnings') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Pending earnings' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.sponsors.pending-earnings') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-sky-500/15' }} transition group relative text-sm sm:text-base"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Pending earnings</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Pending earnings</span>
+                    </a>
                     @can('dashboard.view')
                     <a href="{{ route('admin.purchases.index', ['status' => 'pending']) }}"
                        :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Sponsor purchases' : ''"

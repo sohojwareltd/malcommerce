@@ -33,6 +33,12 @@ use Illuminate\Support\Str;
     <div class="mb-4 p-4 rounded-lg bg-emerald-50 text-emerald-800 text-sm">{{ session('success') }}</div>
 @endif
 
+<div class="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+    <a href="{{ route('admin.sponsors.pending-earnings') }}" class="font-semibold text-primary hover:underline">Pending earnings</a>
+    <span class="text-neutral-300" aria-hidden="true">|</span>
+    <a href="{{ route('admin.sponsors.leaderboard') }}" class="font-semibold text-primary hover:underline">Referral leaderboard</a>
+</div>
+
 <!-- Search Form -->
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
     <form method="GET" action="{{ route('admin.sponsors.index') }}" class="space-y-4">

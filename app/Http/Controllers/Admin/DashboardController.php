@@ -29,6 +29,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -714,6 +715,85 @@ class DashboardController extends Controller
             'rangeEnd',
             'rangeLabel'
         ));
+    }
+
+    /**
+     * Partners ranked by estimated pending purchase commissions (optionally limited by purchase request date).
+     */
+    public function sponsorPendingEarnings(Request $request)
+    {
+        $sort = $request->input('sort', 'desc');
+        if (! in_array($sort, ['asc', 'desc'], true)) {
+            $sort = 'desc';
+        }
+
+        $perPage = (int) $request->input('per_page', 30);
+        $perPage = in_array($perPage, [15, 30, 50, 100], true) ? $perPage : 30;
+
+        $purchaseQuery = Purchase::query()
+            ->where('status', Purchase::STATUS_PENDING)
+            ->with(['beneficiary', 'submittedBy']);
+
+        $rangeLabel = 'All pending purchase requests';
+
+        if ($request->filled('month') && preg_match('/^\d{4}-\d{2}$/', (string) $request->input('month'))) {
+            $start = Carbon::createFromFormat('Y-m', $request->input('month'))->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+            $purchaseQuery->whereBetween('created_at', [$start, $end]);
+            $rangeLabel = 'Pending requests created in '.$start->format('F Y');
+        } elseif ($request->filled('date_from') || $request->filled('date_to')) {
+            $from = $request->filled('date_from')
+                ? Carbon::parse($request->input('date_from'))->startOfDay()
+                : Carbon::create(2000, 1, 1)->startOfDay();
+            $to = $request->filled('date_to')
+                ? Carbon::parse($request->input('date_to'))->endOfDay()
+                : now()->endOfDay();
+            if ($to->lt($from)) {
+                [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
+            }
+            $purchaseQuery->whereBetween('created_at', [$from, $to]);
+            $rangeLabel = $from->format('M j, Y').' – '.$to->format('M j, Y');
+        }
+
+        $purchases = $purchaseQuery->orderByDesc('created_at')->get();
+
+        /** @var EarningService $earningService */
+        $earningService = app(EarningService::class);
+
+        $sponsors = User::query()
+            ->where('role', 'sponsor')
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get();
+
+        foreach ($sponsors as $sponsor) {
+            $sponsor->pending_purchase_est = $earningService->estimatePendingPurchaseCommissionForSponsor(
+                $sponsor,
+                $purchases
+            );
+        }
+
+        $sorted = $sort === 'asc'
+            ? $sponsors->sortBy(fn (User $s) => $s->pending_purchase_est)->values()
+            : $sponsors->sortByDesc(fn (User $s) => $s->pending_purchase_est)->values();
+
+        $page = max(1, (int) $request->input('page', 1));
+        $slice = $sorted->forPage($page, $perPage)->values();
+
+        $paginator = new LengthAwarePaginator(
+            $slice->all(),
+            $sorted->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('admin.sponsors.pending-earnings', [
+            'paginator' => $paginator,
+            'sort' => $sort,
+            'rangeLabel' => $rangeLabel,
+            'pendingPurchaseCount' => $purchases->count(),
+        ]);
     }
 
     protected function resolveSponsorLeaderboardRange(Request $request, string $filter): array

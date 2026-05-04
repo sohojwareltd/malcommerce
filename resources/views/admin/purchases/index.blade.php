@@ -8,6 +8,9 @@
         <h1 class="text-2xl sm:text-3xl font-bold text-neutral-900">Sponsor purchases</h1>
         <p class="text-neutral-600 mt-1 text-sm">Approve or cancel purchase requests. On accept, the beneficiary’s balance increases by commission on the declared amount (their sponsor level %, or the settings fallback if they have no level).</p>
     </div>
+    <a href="{{ route('admin.purchases.create') }}" class="shrink-0 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-light transition">
+        Record purchase
+    </a>
 </div>
 
 <div class="flex flex-wrap gap-2 mb-6">
@@ -75,6 +78,15 @@
                                     <input type="hidden" name="status" value="accepted">
                                     <button type="submit" class="text-green-700 hover:underline font-semibold text-xs mr-2">Accept</button>
                                 </form>
+                                @can('withdrawals.create')
+                                <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="inline" onsubmit="return confirm('Accept and immediately withdraw the beneficiary’s commission as cash?');">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="accepted">
+                                    <input type="hidden" name="withdraw_after_accept" value="1">
+                                    <button type="submit" class="text-teal-700 hover:underline font-semibold text-xs mr-2">Accept &amp; cash withdraw</button>
+                                </form>
+                                @endcan
                                 <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="inline" onsubmit="return confirm('Cancel this purchase?');">
                                     @csrf
                                     @method('PATCH')
@@ -146,6 +158,15 @@
                             <input type="hidden" name="status" value="accepted">
                             <button type="submit" class="text-green-700 hover:underline font-semibold text-sm">Accept</button>
                         </form>
+                        @can('withdrawals.create')
+                        <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="inline" onsubmit="return confirm('Accept and immediately withdraw the beneficiary’s commission as cash?');">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" value="accepted">
+                            <input type="hidden" name="withdraw_after_accept" value="1">
+                            <button type="submit" class="text-teal-700 hover:underline font-semibold text-sm">Accept &amp; cash withdraw</button>
+                        </form>
+                        @endcan
                         <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="inline" onsubmit="return confirm('Cancel this purchase?');">
                             @csrf
                             @method('PATCH')

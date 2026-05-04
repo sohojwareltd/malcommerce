@@ -137,14 +137,25 @@
             <div class="bg-amber-50 rounded-xl border border-amber-200 shadow-sm p-5 sm:p-6">
                 <h2 class="text-sm font-semibold text-amber-900 uppercase tracking-wide mb-4">Actions</h2>
                 <p class="text-sm text-amber-900/80 mb-4">Accepting credits the beneficiary balance and creates the earning. Canceling cannot be undone.</p>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="flex-1">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="status" value="accepted">
-                        <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700">Accept purchase</button>
-                    </form>
-                    <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="flex-1" onsubmit="return confirm('Cancel this purchase?');">
+                <div class="flex flex-col gap-3">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="flex-1">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" value="accepted">
+                            <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700">Accept purchase</button>
+                        </form>
+                        @can('withdrawals.create')
+                        <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="flex-1" onsubmit="return confirm('Accept and immediately withdraw the beneficiary’s commission as cash?');">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" value="accepted">
+                            <input type="hidden" name="withdraw_after_accept" value="1">
+                            <button type="submit" class="w-full px-4 py-2.5 rounded-lg bg-teal-700 text-white text-sm font-semibold hover:bg-teal-800">Accept &amp; cash withdraw</button>
+                        </form>
+                        @endcan
+                    </div>
+                    <form method="POST" action="{{ route('admin.purchases.update-status', $purchase) }}" class="w-full sm:max-w-xs" onsubmit="return confirm('Cancel this purchase?');">
                         @csrf
                         @method('PATCH')
                         <input type="hidden" name="status" value="canceled">

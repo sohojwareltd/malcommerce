@@ -92,6 +92,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['admin', 'require.password.setup'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard')->middleware('can:dashboard.view');
         Route::get('/purchases', [AdminPurchaseController::class, 'index'])->name('purchases.index')->middleware('can:dashboard.view');
+        Route::get('/purchases/create', [AdminPurchaseController::class, 'create'])->name('purchases.create')->middleware('can:dashboard.view');
+        Route::post('/purchases', [AdminPurchaseController::class, 'store'])->name('purchases.store')->middleware('can:dashboard.view');
         Route::get('/purchases/{purchase}', [AdminPurchaseController::class, 'show'])->name('purchases.show')->middleware('can:dashboard.view');
         Route::patch('/purchases/{purchase}', [AdminPurchaseController::class, 'updateStatus'])->name('purchases.update-status')->middleware('can:dashboard.view');
         Route::delete('/purchases/{purchase}', [AdminPurchaseController::class, 'destroy'])->name('purchases.destroy')->middleware('can:dashboard.view');
@@ -146,6 +148,7 @@ Route::middleware('auth')->group(function () {
             ->names('sponsor-levels');
 
         Route::get('/sponsors', [AdminDashboardController::class, 'sponsors'])->name('sponsors.index')->middleware('can:sponsors.viewAny');
+        Route::get('/sponsors/pending-earnings', [AdminDashboardController::class, 'sponsorPendingEarnings'])->name('sponsors.pending-earnings')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/leaderboard', [AdminDashboardController::class, 'sponsorLeaderboard'])->name('sponsors.leaderboard')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/create', [AdminDashboardController::class, 'createSponsor'])->name('sponsors.create')->middleware('can:sponsors.create');
         Route::post('/sponsors', [AdminDashboardController::class, 'storeSponsor'])->name('sponsors.store')->middleware('can:sponsors.create');
