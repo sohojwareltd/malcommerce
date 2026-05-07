@@ -786,6 +786,122 @@ class DashboardController extends Controller
     }
 
     /**
+     * Minimal print view for partners list (same filters as index / by balance).
+     */
+    public function sponsorsPrintPartners(Request $request)
+    {
+        $balanceMode = $request->boolean('by_balance');
+
+        if ($balanceMode) {
+            $query = User::where('role', 'sponsor')->whereNull('deleted_at');
+            $with = ['sponsor', 'orders' => fn ($q) => $q->where('status', '!=', 'cancelled')];
+            $query->withCount(['orders', 'referrals'])->with($with);
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%")
+                        ->orWhere('affiliate_code', 'like', "%{$search}%");
+                });
+            }
+
+            $perPage = $request->get('per_page', 20);
+            $perPage = in_array((int) $perPage, [10, 20, 50, 100], true) ? (int) $perPage : 20;
+
+            $sponsors = $query->orderByDesc('balance')
+                ->orderBy('name')
+                ->paginate($perPage)
+                ->withQueryString();
+
+            $reportTitle = 'Partners by balance';
+        } else {
+            $query = User::where('role', 'sponsor');
+            if ($request->boolean('trashed')) {
+                $query->onlyTrashed();
+            }
+            $with = ['sponsor', 'orders' => fn ($q) => $q->where('status', '!=', 'cancelled')];
+            if ($request->boolean('trashed')) {
+                $with['sponsor'] = fn ($q) => $q->withTrashed();
+            }
+            $query->withCount(['orders', 'referrals'])->with($with);
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%")
+                        ->orWhere('affiliate_code', 'like', "%{$search}%");
+                });
+            }
+
+            $perPage = $request->get('per_page', 20);
+            $perPage = in_array((int) $perPage, [10, 20, 50, 100], true) ? (int) $perPage : 20;
+
+            $sponsors = $query->orderBy('created_at', 'desc')
+                ->paginate($perPage)
+                ->withQueryString();
+
+            $reportTitle = $request->boolean('trashed') ? 'Deleted partners' : 'Partners';
+        }
+
+        return view('admin.sponsors.print.partners', [
+            'sponsors' => $sponsors,
+            'reportTitle' => $reportTitle,
+            'search' => $request->input('search'),
+        ]);
+    }
+
+    /**
+     * Minimal print view for referral leaderboard (same filters as leaderboard).
+     */
+    public function sponsorsPrintLeaderboard(Request $request)
+    {
+        $filter = $request->input('filter', 'month');
+        $perPage = (int) $request->input('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100], true) ? $perPage : 20;
+
+        [$rangeStart, $rangeEnd, $rangeLabel] = $this->resolveSponsorLeaderboardRange($request, $filter);
+
+        $sponsors = User::query()
+            ->where('role', 'sponsor')
+            ->whereNull('deleted_at')
+            ->withCount([
+                'referrals',
+                'referrals as filtered_referrals_count' => function ($q) use ($rangeStart, $rangeEnd) {
+                    $q->whereNull('deleted_at')
+                        ->whereBetween('created_at', [$rangeStart, $rangeEnd]);
+                },
+            ])
+            ->orderByDesc('filtered_referrals_count')
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $pendingPurchasesPrefetch = Purchase::query()
+            ->where('status', Purchase::STATUS_PENDING)
+            ->with(['beneficiary', 'submittedBy'])
+            ->get();
+        /** @var EarningService $earningService */
+        $earningService = app(EarningService::class);
+        $sponsors->getCollection()->transform(function ($sponsor) use ($earningService, $pendingPurchasesPrefetch) {
+            $sponsor->pending_purchase_commission_estimate = $earningService->estimatePendingPurchaseCommissionForSponsor(
+                $sponsor,
+                $pendingPurchasesPrefetch
+            );
+
+            return $sponsor;
+        });
+
+        return view('admin.sponsors.print.leaderboard', compact(
+            'sponsors',
+            'rangeLabel'
+        ));
+    }
+
+    /**
      * Partners ranked by estimated pending purchase commissions (optionally limited by purchase request date).
      */
     public function sponsorPendingEarnings(Request $request)

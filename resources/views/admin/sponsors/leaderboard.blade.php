@@ -3,16 +3,6 @@
 @section('title', 'Sponsor Leaderboard')
 
 @section('content')
-@push('styles')
-<style>
-@media print {
-    aside.fixed { display: none !important; }
-    main.flex-1 { margin-left: 0 !important; }
-    main > div.sticky { display: none !important; }
-    body { background: #fff !important; }
-}
-</style>
-@endpush
 <div
     x-data="{
         offcanvasOpen: false,
@@ -39,7 +29,6 @@
     }"
     class="space-y-6"
 >
-    <div class="print:hidden space-y-6">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-2xl font-bold text-neutral-900">Sponsor Leaderboard</h2>
@@ -48,9 +37,9 @@
             </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <button type="button" onclick="window.print()" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 transition order-2 sm:order-1">
+            <a href="{{ route('admin.sponsors.print.leaderboard', request()->query()) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 transition order-2 sm:order-1">
                 Print report
-            </button>
+            </a>
             <a href="{{ route('admin.sponsors.index') }}" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 transition order-1 sm:order-2">
                 Back to sponsors
             </a>
@@ -288,63 +277,11 @@
         {{ $sponsors->links() }}
     </div>
     @endif
-    </div>
-
-    <div class="hidden print:block text-neutral-900">
-        <h1 class="text-2xl font-bold mb-1">Sponsor leaderboard — report</h1>
-        <p class="text-sm text-neutral-600 mb-1">Period: {{ $rangeLabel }}</p>
-        <p class="text-sm text-neutral-600 mb-1">Generated {{ now()->format('M d, Y g:i A') }}</p>
-        <p class="text-sm text-neutral-500 mb-4">Page {{ $sponsors->currentPage() }} of {{ $sponsors->lastPage() }} ({{ $sponsors->total() }} total)</p>
-        <table class="w-full text-sm border-collapse border border-neutral-300">
-            <thead>
-                <tr class="bg-neutral-100">
-                    <th class="border border-neutral-300 px-2 py-2 text-left font-semibold">Rank</th>
-                    <th class="border border-neutral-300 px-2 py-2 text-left font-semibold">Photo</th>
-                    <th class="border border-neutral-300 px-2 py-2 text-left font-semibold">Name</th>
-                    <th class="border border-neutral-300 px-2 py-2 text-left font-semibold">Phone</th>
-                    <th class="border border-neutral-300 px-2 py-2 text-left font-semibold">Code</th>
-                    <th class="border border-neutral-300 px-2 py-2 text-right font-semibold">In period</th>
-                    <th class="border border-neutral-300 px-2 py-2 text-right font-semibold">Total ref.</th>
-                    <th class="border border-neutral-300 px-2 py-2 text-right font-semibold">Balance</th>
-                    <th class="border border-neutral-300 px-2 py-2 text-right font-semibold">Pending</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($sponsors as $index => $sponsor)
-                @php
-                    $rowPhoto = $sponsor->photo ? \Illuminate\Support\Facades\Storage::disk('public')->url($sponsor->photo) : null;
-                    $rank = (($sponsors->currentPage() - 1) * $sponsors->perPage()) + $index + 1;
-                @endphp
-                <tr class="break-inside-avoid">
-                    <td class="border border-neutral-300 px-2 py-2 font-semibold">{{ $rank }}</td>
-                    <td class="border border-neutral-300 px-2 py-2 align-middle">
-                        @if($rowPhoto)
-                            <img src="{{ $rowPhoto }}" alt="" class="h-12 w-12 object-cover rounded-full border border-neutral-200">
-                        @else
-                            <span class="inline-block h-12 w-12 rounded-full bg-neutral-200"></span>
-                        @endif
-                    </td>
-                    <td class="border border-neutral-300 px-2 py-2 font-medium">{{ $sponsor->name }}</td>
-                    <td class="border border-neutral-300 px-2 py-2">{{ $sponsor->phone ?: 'N/A' }}</td>
-                    <td class="border border-neutral-300 px-2 py-2 font-mono text-xs">{{ $sponsor->affiliate_code ?: 'N/A' }}</td>
-                    <td class="border border-neutral-300 px-2 py-2 text-right tabular-nums font-semibold">{{ $sponsor->filtered_referrals_count }}</td>
-                    <td class="border border-neutral-300 px-2 py-2 text-right tabular-nums">{{ $sponsor->referrals_count }}</td>
-                    <td class="border border-neutral-300 px-2 py-2 text-right tabular-nums font-medium">৳{{ number_format($sponsor->balance ?? 0, 2) }}</td>
-                    <td class="border border-neutral-300 px-2 py-2 text-right tabular-nums">৳{{ number_format($sponsor->pending_purchase_commission_estimate ?? 0, 2) }}</td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="9" class="border border-neutral-300 px-4 py-6 text-center text-neutral-500">No sponsor data for this report.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
 
     <div
         x-show="offcanvasOpen"
         x-transition.opacity
-        class="print:hidden fixed inset-0 z-40 bg-neutral-900/40"
+        class="fixed inset-0 z-40 bg-neutral-900/40"
         @click="offcanvasOpen = false"
         style="display: none;"
     ></div>
@@ -357,7 +294,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
-        class="print:hidden fixed top-0 right-0 z-50 h-full w-full max-w-lg bg-white shadow-2xl border-l border-neutral-200"
+        class="fixed top-0 right-0 z-50 h-full w-full max-w-lg bg-white shadow-2xl border-l border-neutral-200"
         style="display: none;"
     >
         <div class="flex items-center justify-between border-b border-neutral-200 px-5 py-4">

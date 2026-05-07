@@ -157,6 +157,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/sponsors/by-balance', [AdminDashboardController::class, 'sponsorsByBalance'])->name('sponsors.by-balance')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/pending-earnings', [AdminDashboardController::class, 'sponsorPendingEarnings'])->name('sponsors.pending-earnings')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/leaderboard', [AdminDashboardController::class, 'sponsorLeaderboard'])->name('sponsors.leaderboard')->middleware('can:sponsors.viewAny');
+        Route::get('/sponsors/print/partners', [AdminDashboardController::class, 'sponsorsPrintPartners'])->name('sponsors.print.partners')->middleware('can:sponsors.viewAny');
+        Route::get('/sponsors/print/leaderboard', [AdminDashboardController::class, 'sponsorsPrintLeaderboard'])->name('sponsors.print.leaderboard')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/create', [AdminDashboardController::class, 'createSponsor'])->name('sponsors.create')->middleware('can:sponsors.create');
         Route::post('/sponsors', [AdminDashboardController::class, 'storeSponsor'])->name('sponsors.store')->middleware('can:sponsors.create');
         Route::post('/sponsors/bulk-set-referrer', [AdminDashboardController::class, 'bulkSetSponsorReferrer'])->name('sponsors.bulk-set-referrer')->middleware('can:sponsors.update');

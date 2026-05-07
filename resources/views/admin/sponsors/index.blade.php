@@ -14,22 +14,13 @@ $sponsorsListRoute = $sponsorsListRoute ?? 'admin.sponsors.index';
 @section('content')
 @php
     $bulkMode = !request('trashed') && auth()->user()->can('sponsors.update');
-    $printReportTitle = $balanceSortMode
-        ? 'Partners by balance — report'
-        : (request('trashed') ? 'Deleted partners — report' : 'Partners — report');
+    $printPartnersParams = array_filter([
+        'search' => request('search') ?: null,
+        'per_page' => request('per_page') ?: null,
+        'trashed' => request('trashed') ? 1 : null,
+        'by_balance' => $balanceSortMode ? 1 : null,
+    ], fn ($v) => $v !== null && $v !== '');
 @endphp
-@push('styles')
-<style>
-@media print {
-    aside.fixed { display: none !important; }
-    main.flex-1 { margin-left: 0 !important; }
-    main > div.sticky { display: none !important; }
-    body { background: #fff !important; }
-}
-</style>
-@endpush
-
-<div class="print:hidden">
 <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
     <div class="flex items-center gap-3 flex-wrap">
         <div>
@@ -46,9 +37,9 @@ $sponsorsListRoute = $sponsorsListRoute ?? 'admin.sponsors.index';
         @endif
     </div>
     <div class="flex flex-col sm:flex-row gap-2 sm:items-center w-full sm:w-auto">
-        <button type="button" onclick="window.print()" class="border border-neutral-300 bg-white text-neutral-800 px-4 py-2 rounded-lg hover:bg-neutral-50 transition font-semibold text-sm sm:text-base text-center order-2 sm:order-1">
+        <a href="{{ route('admin.sponsors.print.partners', $printPartnersParams) }}" target="_blank" rel="noopener noreferrer" class="border border-neutral-300 bg-white text-neutral-800 px-4 py-2 rounded-lg hover:bg-neutral-50 transition font-semibold text-sm sm:text-base text-center order-2 sm:order-1">
             Print report
-        </button>
+        </a>
         @if(!request('trashed'))
         <a href="{{ route('admin.sponsors.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition font-semibold text-sm sm:text-base text-center order-1 sm:order-2">
             + Create Sponsor
@@ -444,47 +435,6 @@ $sponsorsListRoute = $sponsorsListRoute ?? 'admin.sponsors.index';
     {{ $sponsors->links() }}
 </div>
 @endif
-</div>
-
-<div class="hidden print:block text-neutral-900">
-    <h1 class="text-2xl font-bold mb-1">{{ $printReportTitle }}</h1>
-    <p class="text-sm text-neutral-600 mb-1">Generated {{ now()->format('M d, Y g:i A') }}</p>
-    @if(request('search'))
-        <p class="text-sm text-neutral-600 mb-4">Search: &quot;{{ request('search') }}&quot;</p>
-    @else
-        <p class="text-sm text-neutral-500 mb-4">Page {{ $sponsors->currentPage() }} of {{ $sponsors->lastPage() }} ({{ $sponsors->total() }} total)</p>
-    @endif
-    <table class="w-full text-sm border-collapse border border-neutral-300">
-        <thead>
-            <tr class="bg-neutral-100">
-                <th class="border border-neutral-300 px-2 py-2 text-left font-semibold">Photo</th>
-                <th class="border border-neutral-300 px-2 py-2 text-left font-semibold">Name</th>
-                <th class="border border-neutral-300 px-2 py-2 text-left font-semibold">Phone</th>
-                <th class="border border-neutral-300 px-2 py-2 text-right font-semibold">Balance</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($sponsors as $sponsor)
-            <tr class="break-inside-avoid">
-                <td class="border border-neutral-300 px-2 py-2 align-middle">
-                    @if($sponsor->photo)
-                        <img src="{{ Storage::disk('public')->url($sponsor->photo) }}" alt="" class="h-14 w-14 object-cover rounded-full border border-neutral-200">
-                    @else
-                        <span class="inline-block h-14 w-14 rounded-full bg-neutral-200"></span>
-                    @endif
-                </td>
-                <td class="border border-neutral-300 px-2 py-2 font-medium">{{ $sponsor->name }}</td>
-                <td class="border border-neutral-300 px-2 py-2">{{ $sponsor->phone ?? 'N/A' }}</td>
-                <td class="border border-neutral-300 px-2 py-2 text-right tabular-nums font-medium">৳{{ number_format($sponsor->balance ?? 0, 2) }}</td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="4" class="border border-neutral-300 px-4 py-6 text-center text-neutral-500">No partners on this page.</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-</div>
 
 @if($bulkMode)
 @push('scripts')
