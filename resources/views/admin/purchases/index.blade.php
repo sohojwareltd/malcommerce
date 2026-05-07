@@ -71,7 +71,14 @@
                 <a href="{{ route('admin.purchases.index', ['status' => $status]) }}" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-5 py-2.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 transition">Clear dates</a>
             </div>
         </div>
-        <p class="text-xs text-neutral-500">Current filter: <span class="font-semibold text-neutral-700">{{ $rangeLabel }}</span>@if($status !== 'all') · Status: <span class="font-semibold text-neutral-700">{{ ucfirst($status) }}</span>@else · Status: All@endif</p>
+        <p class="text-xs text-neutral-500">
+            Current filter: <span class="font-semibold text-neutral-700">{{ $rangeLabel }}</span>
+            @if($status !== 'all')
+                · Status: <span class="font-semibold text-neutral-700">{{ ucfirst($status) }}</span>
+            @else
+                · Status: All
+            @endif
+        </p>
     </form>
 </div>
 
