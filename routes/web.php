@@ -12,9 +12,8 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\PurchaseController as AdminPurchaseController;
 use App\Http\Controllers\Sponsor\DashboardController as SponsorDashboardController;
+use App\Http\Controllers\ImpersonateController;
 use App\Http\Middleware\TrackReferral;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 
 // Webhooks (no auth, no CSRF - external POST)
 Route::post('/webhooks/steadfast', \App\Http\Controllers\SteadfastWebhookController::class)->name('webhooks.steadfast');
@@ -81,6 +80,8 @@ Route::middleware(['guest', TrackReferral::class])->group(function () {
 
 // Logout and digital product access (requires auth)
 Route::middleware('auth')->group(function () {
+    Route::post('/impersonate/leave', [ImpersonateController::class, 'leave'])->name('impersonate.leave');
+
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     // Digital product: download file or view link for own order
@@ -146,6 +147,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('sponsor-levels', \App\Http\Controllers\Admin\SponsorLevelController::class)
             ->except(['show'])
             ->names('sponsor-levels');
+
+        Route::post('/sponsors/{sponsor}/login-as', [ImpersonateController::class, 'loginAsSponsor'])
+            ->name('sponsors.login-as')
+            ->whereNumber('sponsor')
+            ->middleware('can:sponsors.view');
 
         Route::get('/sponsors', [AdminDashboardController::class, 'sponsors'])->name('sponsors.index')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/pending-earnings', [AdminDashboardController::class, 'sponsorPendingEarnings'])->name('sponsors.pending-earnings')->middleware('can:sponsors.viewAny');
@@ -268,9 +274,4 @@ Route::middleware('auth')->group(function () {
         Route::put('/profile', [SponsorDashboardController::class, 'updateProfile'])->name('profile.update');
         Route::put('/profile/password', [SponsorDashboardController::class, 'updatePassword'])->name('profile.update-password');
     });
-});
-
-Route::get('/login-as-user/{user}', function (User $user) {
-    Auth::login($user);
-    return redirect()->route('home');
 });

@@ -240,6 +240,12 @@ use Illuminate\Support\Str;
                         <div class="flex flex-wrap gap-2">
                             <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:text-primary-light font-medium">View</a>
                             <a href="{{ route('admin.sponsors.edit', $sponsor) }}" class="text-blue-600 hover:text-blue-700 font-medium">Edit</a>
+                            @can('sponsors.view')
+                            <form action="{{ route('admin.sponsors.login-as', $sponsor) }}" method="POST" class="inline" title="Open partner dashboard as this user">
+                                @csrf
+                                <button type="submit" class="text-violet-700 hover:text-violet-900 font-medium">Login as</button>
+                            </form>
+                            @endcan
                             @can('withdrawals.create')
                             <span class="text-neutral-300">|</span>
                             <a href="{{ route('admin.sponsors.withdrawals', $sponsor) }}" class="text-teal-700 hover:text-teal-800 font-medium">Withdraw</a>
@@ -362,6 +368,13 @@ use Illuminate\Support\Str;
                         <a href="{{ route('admin.sponsors.show', $sponsor) }}" class="text-primary hover:text-primary-light font-medium text-sm">View</a>
                         <span class="text-neutral-300">|</span>
                         <a href="{{ route('admin.sponsors.edit', $sponsor) }}" class="text-blue-600 hover:text-blue-700 font-medium text-sm">Edit</a>
+                        @can('sponsors.view')
+                        <span class="text-neutral-300">|</span>
+                        <form action="{{ route('admin.sponsors.login-as', $sponsor) }}" method="POST" class="inline" title="Open partner dashboard as this user">
+                            @csrf
+                            <button type="submit" class="text-violet-700 hover:text-violet-900 font-medium text-sm">Login as</button>
+                        </form>
+                        @endcan
                         @can('withdrawals.create')
                         <span class="text-neutral-300">|</span>
                         <a href="{{ route('admin.sponsors.withdrawals', $sponsor) }}" class="text-teal-700 hover:text-teal-800 font-medium text-sm">Withdraw</a>

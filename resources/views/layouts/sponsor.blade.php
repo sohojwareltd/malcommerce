@@ -310,6 +310,18 @@ use Illuminate\Support\Facades\Storage;
         </main>
     </div>
     
+    @if(session('impersonator_id'))
+    <div class="fixed bottom-5 right-5 z-[100] max-w-[min(100vw-2rem,20rem)] shadow-2xl rounded-2xl border border-amber-200/80 bg-amber-50 p-4 text-center sm:text-left" role="status">
+        <p class="text-xs font-semibold text-amber-900 mb-2">You are viewing the partner dashboard as an admin.</p>
+        <form method="POST" action="{{ route('impersonate.leave') }}">
+            @csrf
+            <button type="submit" class="w-full sm:w-auto rounded-xl bg-[#0F2854] px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:opacity-95 transition">
+                Sign back in as admin
+            </button>
+        </form>
+    </div>
+    @endif
+
     @stack('scripts')
 </body>
 </html>
