@@ -1,10 +1,10 @@
 {
-  "_ProductSections-Bw_hvmPF.js": {
-    "file": "assets/ProductSections-Bw_hvmPF.js",
+  "_ProductSections-UcBGLe3g.js": {
+    "file": "assets/ProductSections-UcBGLe3g.js",
     "name": "ProductSections"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DJY1jv4S.css",
+    "file": "assets/app-DkBKdI3I.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -19,24 +19,24 @@
     "isEntry": true
   },
   "resources/js/page-builder.js": {
-    "file": "assets/page-builder-CzzxWx6I.js",
+    "file": "assets/page-builder-BToBTpzX.js",
     "name": "page-builder",
     "src": "resources/js/page-builder.js",
     "isEntry": true,
     "imports": [
-      "_ProductSections-Bw_hvmPF.js"
+      "_ProductSections-UcBGLe3g.js"
     ],
     "css": [
       "assets/page-builder-D5k_pI80.css"
     ]
   },
   "resources/js/product-sections.js": {
-    "file": "assets/product-sections-CqSvMMFs.js",
+    "file": "assets/product-sections-B7LkcD4S.js",
     "name": "product-sections",
     "src": "resources/js/product-sections.js",
     "isEntry": true,
     "imports": [
-      "_ProductSections-Bw_hvmPF.js"
+      "_ProductSections-UcBGLe3g.js"
     ]
   }
 }
