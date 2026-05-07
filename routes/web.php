@@ -154,6 +154,7 @@ Route::middleware('auth')->group(function () {
             ->middleware('can:sponsors.view');
 
         Route::get('/sponsors', [AdminDashboardController::class, 'sponsors'])->name('sponsors.index')->middleware('can:sponsors.viewAny');
+        Route::get('/sponsors/by-balance', [AdminDashboardController::class, 'sponsorsByBalance'])->name('sponsors.by-balance')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/pending-earnings', [AdminDashboardController::class, 'sponsorPendingEarnings'])->name('sponsors.pending-earnings')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/leaderboard', [AdminDashboardController::class, 'sponsorLeaderboard'])->name('sponsors.leaderboard')->middleware('can:sponsors.viewAny');
         Route::get('/sponsors/create', [AdminDashboardController::class, 'createSponsor'])->name('sponsors.create')->middleware('can:sponsors.create');

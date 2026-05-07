@@ -663,6 +663,74 @@ class DashboardController extends Controller
         return view('admin.sponsors.index', compact('sponsors', 'bulkReferrerOptions', 'bulkSponsorLevels'));
     }
 
+    /**
+     * Active partners only, highest wallet balance first.
+     */
+    public function sponsorsByBalance(Request $request)
+    {
+        $query = User::where('role', 'sponsor')->whereNull('deleted_at');
+
+        $with = ['sponsor', 'orders' => fn ($q) => $q->where('status', '!=', 'cancelled')];
+        $query->withCount(['orders', 'referrals'])->with($with);
+
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%")
+                    ->orWhere('affiliate_code', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+
+        $sponsors = $query->orderByDesc('balance')
+            ->orderBy('name')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $sponsors->getCollection()->transform(function ($sponsor) {
+            $sponsor->total_revenue = $sponsor->orders->sum('total_price') ?? 0;
+
+            return $sponsor;
+        });
+
+        $pendingPurchasesPrefetch = Purchase::query()
+            ->where('status', Purchase::STATUS_PENDING)
+            ->with(['beneficiary', 'submittedBy'])
+            ->get();
+        /** @var EarningService $earningService */
+        $earningService = app(EarningService::class);
+        $sponsors->getCollection()->transform(function ($sponsor) use ($earningService, $pendingPurchasesPrefetch) {
+            $sponsor->pending_purchase_commission_estimate = $earningService->estimatePendingPurchaseCommissionForSponsor(
+                $sponsor,
+                $pendingPurchasesPrefetch
+            );
+
+            return $sponsor;
+        });
+
+        $bulkReferrerOptions = collect();
+        $bulkSponsorLevels = collect();
+        if ($request->user()->can('sponsors.update')) {
+            $bulkReferrerOptions = User::where('role', 'sponsor')
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get(['id', 'name', 'affiliate_code', 'phone']);
+            $bulkSponsorLevels = SponsorLevel::query()->orderBy('rank')->get();
+        }
+
+        return view('admin.sponsors.index', [
+            'sponsors' => $sponsors,
+            'bulkReferrerOptions' => $bulkReferrerOptions,
+            'bulkSponsorLevels' => $bulkSponsorLevels,
+            'sponsorsListRoute' => 'admin.sponsors.by-balance',
+            'balanceSortMode' => true,
+        ]);
+    }
+
     public function sponsorLeaderboard(Request $request)
     {
         $filter = $request->input('filter', 'month');

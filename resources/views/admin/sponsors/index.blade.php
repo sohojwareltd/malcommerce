@@ -1,10 +1,14 @@
 @extends('layouts.admin')
 
-@section('title', 'Sponsors')
+@php
+$balanceSortMode = $balanceSortMode ?? false;
+@endphp
+@section('title', $balanceSortMode ? 'Partners by balance' : 'Sponsors')
 
 @php
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+$sponsorsListRoute = $sponsorsListRoute ?? 'admin.sponsors.index';
 @endphp
 
 @section('content')
@@ -12,15 +16,19 @@ use Illuminate\Support\Str;
     $bulkMode = !request('trashed') && auth()->user()->can('sponsors.update');
 @endphp
 <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 flex-wrap">
         <div>
-            <h1 class="text-2xl sm:text-3xl font-bold">Partners</h1>
-            <p class="text-neutral-600 mt-1 sm:mt-2 text-sm sm:text-base">Manage partner sponsors</p>
+            <h1 class="text-2xl sm:text-3xl font-bold">{{ $balanceSortMode ? 'Partners by balance' : 'Partners' }}</h1>
+            <p class="text-neutral-600 mt-1 sm:mt-2 text-sm sm:text-base">{{ $balanceSortMode ? 'Highest wallet balance first' : 'Manage partner sponsors' }}</p>
         </div>
+        @if(!$balanceSortMode)
         <nav class="flex gap-2">
             <a href="{{ route('admin.sponsors.index', array_merge(request()->query(), ['trashed' => 0])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ !request('trashed') ? 'bg-primary text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">Active</a>
             <a href="{{ route('admin.sponsors.index', array_merge(request()->query(), ['trashed' => 1])) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium {{ request('trashed') ? 'bg-neutral-500 text-white' : 'text-neutral-600 hover:bg-neutral-100' }}">Deleted</a>
         </nav>
+        @else
+        <a href="{{ route('admin.sponsors.index') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-neutral-100 text-neutral-700 hover:bg-neutral-200">All partners</a>
+        @endif
     </div>
     @if(!request('trashed'))
     <a href="{{ route('admin.sponsors.create') }}" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-light transition font-semibold text-sm sm:text-base text-center">
@@ -37,11 +45,15 @@ use Illuminate\Support\Str;
     <a href="{{ route('admin.sponsors.pending-earnings') }}" class="font-semibold text-primary hover:underline">Pending earnings</a>
     <span class="text-neutral-300" aria-hidden="true">|</span>
     <a href="{{ route('admin.sponsors.leaderboard') }}" class="font-semibold text-primary hover:underline">Referral leaderboard</a>
+    @if(!$balanceSortMode)
+    <span class="text-neutral-300" aria-hidden="true">|</span>
+    <a href="{{ route('admin.sponsors.by-balance') }}" class="font-semibold text-primary hover:underline">By balance</a>
+    @endif
 </div>
 
 <!-- Search Form -->
 <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
-    <form method="GET" action="{{ route('admin.sponsors.index') }}" class="space-y-4">
+    <form method="GET" action="{{ route($sponsorsListRoute) }}" class="space-y-4">
         <div class="flex flex-col sm:flex-row gap-4 sm:items-end">
         <div class="flex-1">
             <label for="search" class="block text-sm font-medium text-neutral-700 mb-2">Search Partners</label>
@@ -68,7 +80,7 @@ use Illuminate\Support\Str;
                 Search
             </button>
             @if(request('search'))
-            <a href="{{ route('admin.sponsors.index') }}{{ request('per_page') ? '?per_page=' . request('per_page') : '' }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base">
+            <a href="{{ route($sponsorsListRoute) }}{{ request('per_page') ? '?per_page=' . request('per_page') : '' }}" class="bg-neutral-200 text-neutral-700 px-4 sm:px-6 py-2 rounded-lg hover:bg-neutral-300 transition font-semibold text-sm sm:text-base">
                 Clear
             </a>
             @endif
