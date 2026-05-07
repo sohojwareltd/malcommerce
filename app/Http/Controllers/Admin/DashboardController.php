@@ -852,11 +852,11 @@ class DashboardController extends Controller
             'total_balance' => (float) (clone $base)->sum('balance'),
             'total_revenue' => (float) Order::query()
                 ->where('status', '!=', 'cancelled')
-                ->whereIn('user_id', $partnerIdsSub)
+                ->whereIn('sponsor_id', $partnerIdsSub)
                 ->sum('total_price'),
             'order_count' => Order::query()
                 ->where('status', '!=', 'cancelled')
-                ->whereIn('user_id', (clone $base)->select('id'))
+                ->whereIn('sponsor_id', (clone $base)->select('id'))
                 ->count(),
             'referral_count' => User::query()
                 ->where('role', 'sponsor')
@@ -953,11 +953,11 @@ class DashboardController extends Controller
                 ->count(),
             'total_revenue' => (float) Order::query()
                 ->where('status', '!=', 'cancelled')
-                ->whereIn('user_id', (clone $leaderScope)->select('id'))
+                ->whereIn('sponsor_id', (clone $leaderScope)->select('id'))
                 ->sum('total_price'),
             'order_count' => Order::query()
                 ->where('status', '!=', 'cancelled')
-                ->whereIn('user_id', (clone $leaderScope)->select('id'))
+                ->whereIn('sponsor_id', (clone $leaderScope)->select('id'))
                 ->count(),
         ];
 
