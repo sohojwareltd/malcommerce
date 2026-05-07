@@ -78,12 +78,17 @@ $sponsorsListRoute = $sponsorsListRoute ?? 'admin.sponsors.index';
             >
         </div>
             <div class="sm:w-40">
-                <label for="per_page" class="block text-sm font-medium text-neutral-700 mb-2">Per Page</label>
+                <label for="per_page" class="block text-sm font-medium text-neutral-700 mb-2">Per page</label>
                 <select name="per_page" id="per_page" onchange="this.form.submit()" class="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base">
-                    <option value="10" {{ request('per_page', 20) == 10 ? 'selected' : '' }}>10</option>
-                    <option value="20" {{ request('per_page', 20) == 20 ? 'selected' : '' }}>20</option>
-                    <option value="50" {{ request('per_page', 20) == 50 ? 'selected' : '' }}>50</option>
-                    <option value="100" {{ request('per_page', 20) == 100 ? 'selected' : '' }}>100</option>
+                    @php
+                        $ppRaw = request('per_page');
+                        $pp = $ppRaw !== null && $ppRaw !== '' ? (string) $ppRaw : '20';
+                    @endphp
+                    <option value="10" {{ $pp === '10' ? 'selected' : '' }}>10</option>
+                    <option value="20" {{ $pp === '20' ? 'selected' : '' }}>20</option>
+                    <option value="50" {{ $pp === '50' ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $pp === '100' ? 'selected' : '' }}>100</option>
+                    <option value="all" {{ $pp === 'all' ? 'selected' : '' }}>All</option>
                 </select>
             </div>
         <div class="flex gap-2">

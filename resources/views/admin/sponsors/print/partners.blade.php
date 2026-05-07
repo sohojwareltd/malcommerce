@@ -12,11 +12,11 @@
     @if($search)
         <p>Search: &quot;{{ $search }}&quot;</p>
     @endif
-    <p class="muted">{{ $sponsors->count() }} row(s) in this report</p>
+    <p class="muted">Only partners with wallet balance greater than ৳0. {{ $sponsors->count() }} row(s) in this report.</p>
 </div>
 
 <table class="summary">
-    <caption>Summary (all partners matching this report&apos;s filters)</caption>
+    <caption>Summary (positive balance only; same filters as list)</caption>
     <tbody>
         <tr>
             <th scope="row">Partner count</th>

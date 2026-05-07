@@ -1,6 +1,6 @@
 @extends('admin.sponsors.print.layout')
 
-@section('title', 'Sponsor leaderboard')
+@section('title', 'Sponsor leaderboard (positive balance)')
 
 @section('content')
 @php
@@ -10,11 +10,11 @@
 <div class="meta">
     <p>Period: {{ $rangeLabel }}</p>
     <p>Generated {{ now()->format('M d, Y g:i A') }}</p>
-    <p class="muted">{{ $sponsors->count() }} row(s) in ranking</p>
+    <p class="muted">Ranking includes only partners with wallet balance &gt; ৳0. {{ $sponsors->count() }} row(s).</p>
 </div>
 
 <table class="summary">
-    <caption>Summary (all active partners &amp; network)</caption>
+    <caption>Summary (partners with positive balance; referral counts from their invites)</caption>
     <tbody>
         <tr>
             <th scope="row">Active partner accounts</th>

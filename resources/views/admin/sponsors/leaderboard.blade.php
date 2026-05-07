@@ -61,9 +61,14 @@
                 <div>
                     <label for="per_page" class="block text-sm font-medium text-neutral-700 mb-1">Rows per page</label>
                     <select name="per_page" id="per_page" class="w-full rounded-lg border-neutral-300 text-sm focus:ring-primary focus:border-primary">
+                        @php
+                            $lpRaw = request('per_page');
+                            $lppStr = $lpRaw !== null && $lpRaw !== '' ? (string) $lpRaw : '20';
+                        @endphp
                         @foreach([10, 20, 50, 100] as $size)
-                            <option value="{{ $size }}" {{ (int) request('per_page', 20) === $size ? 'selected' : '' }}>{{ $size }}</option>
+                            <option value="{{ $size }}" {{ $lppStr === (string) $size ? 'selected' : '' }}>{{ $size }}</option>
                         @endforeach
+                        <option value="all" {{ $lppStr === 'all' ? 'selected' : '' }}>All</option>
                     </select>
                 </div>
                 <div class="rounded-lg bg-neutral-50 border border-neutral-200 px-3 py-2 text-sm text-neutral-600 flex items-center">

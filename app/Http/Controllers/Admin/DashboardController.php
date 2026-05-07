@@ -834,7 +834,7 @@ class DashboardController extends Controller
             });
         }
 
-        return $query;
+        return $query->where('balance', '>', 0);
     }
 
     /**
@@ -880,7 +880,7 @@ class DashboardController extends Controller
         } else {
             $sponsors = $listQuery->orderBy('created_at', 'desc')
                 ->get();
-            $reportTitle = $request->boolean('trashed') ? 'Deleted partners' : 'Partners';
+            $reportTitle = $request->boolean('trashed') ? 'Deleted partners (positive balance only)' : 'Partners (positive balance only)';
         }
 
         return view('admin.sponsors.print.partners', [
@@ -903,6 +903,7 @@ class DashboardController extends Controller
         $sponsors = User::query()
             ->where('role', 'sponsor')
             ->whereNull('deleted_at')
+            ->where('balance', '>', 0)
             ->withCount([
                 'referrals',
                 'referrals as filtered_referrals_count' => function ($q) use ($rangeStart, $rangeEnd) {
@@ -931,7 +932,8 @@ class DashboardController extends Controller
 
         $leaderScope = User::query()
             ->where('role', 'sponsor')
-            ->whereNull('deleted_at');
+            ->whereNull('deleted_at')
+            ->where('balance', '>', 0);
 
         $printSummary = [
             'sponsor_count' => (clone $leaderScope)->count(),
@@ -941,11 +943,13 @@ class DashboardController extends Controller
                 ->whereNull('deleted_at')
                 ->whereNotNull('sponsor_id')
                 ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                ->whereIn('sponsor_id', (clone $leaderScope)->select('id'))
                 ->count(),
             'referrals_all_time' => User::query()
                 ->where('role', 'sponsor')
                 ->whereNull('deleted_at')
                 ->whereNotNull('sponsor_id')
+                ->whereIn('sponsor_id', (clone $leaderScope)->select('id'))
                 ->count(),
             'total_revenue' => (float) Order::query()
                 ->where('status', '!=', 'cancelled')
