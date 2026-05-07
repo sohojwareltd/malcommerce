@@ -55,12 +55,27 @@ class PurchaseController extends Controller
         $rangeLabel = $this->purchasesPeriodLabel($request, $periodType);
         $statusLabel = $status === 'all' ? 'All statuses' : ucfirst($status);
 
+        $printSummary = [
+            'purchase_count' => $purchases->count(),
+            'total_amount' => (float) $purchases->sum(fn (Purchase $p) => (float) $p->amount),
+        ];
+
+        if ($status === 'all') {
+            $printSummary['pending_count'] = $purchases->where('status', Purchase::STATUS_PENDING)->count();
+            $printSummary['accepted_count'] = $purchases->where('status', Purchase::STATUS_ACCEPTED)->count();
+            $printSummary['canceled_count'] = $purchases->where('status', Purchase::STATUS_CANCELED)->count();
+            $printSummary['pending_amount'] = (float) $purchases->where('status', Purchase::STATUS_PENDING)->sum(fn (Purchase $p) => (float) $p->amount);
+            $printSummary['accepted_amount'] = (float) $purchases->where('status', Purchase::STATUS_ACCEPTED)->sum(fn (Purchase $p) => (float) $p->amount);
+            $printSummary['canceled_amount'] = (float) $purchases->where('status', Purchase::STATUS_CANCELED)->sum(fn (Purchase $p) => (float) $p->amount);
+        }
+
         return view('admin.purchases.print.report', compact(
             'purchases',
             'status',
             'periodType',
             'rangeLabel',
-            'statusLabel'
+            'statusLabel',
+            'printSummary'
         ));
     }
 

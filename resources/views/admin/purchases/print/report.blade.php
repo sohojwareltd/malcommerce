@@ -11,8 +11,36 @@
     <p>Status: {{ $statusLabel }}</p>
     <p>Period: {{ $rangeLabel }}</p>
     <p>Generated {{ now()->format('M d, Y g:i A') }}</p>
-    <p class="muted">{{ $purchases->count() }} row(s)</p>
 </div>
+
+<table class="summary">
+    <caption>Summary <span class="muted">(same filters as this report)</span></caption>
+    <tbody>
+        <tr>
+            <th scope="row">Purchases in report</th>
+            <td class="num tabular-nums">{{ number_format($printSummary['purchase_count']) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Total declared amount <span class="muted">(sum of Amount column)</span></th>
+            <td class="num tabular-nums">৳{{ number_format($printSummary['total_amount'], 2) }}</td>
+        </tr>
+        @if($status === 'all')
+            <tr>
+                <th scope="row">Pending <span class="muted">(count · amount)</span></th>
+                <td class="num tabular-nums">{{ number_format($printSummary['pending_count']) }} · ৳{{ number_format($printSummary['pending_amount'], 2) }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Accepted <span class="muted">(count · amount)</span></th>
+                <td class="num tabular-nums">{{ number_format($printSummary['accepted_count']) }} · ৳{{ number_format($printSummary['accepted_amount'], 2) }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Canceled <span class="muted">(count · amount)</span></th>
+                <td class="num tabular-nums">{{ number_format($printSummary['canceled_count']) }} · ৳{{ number_format($printSummary['canceled_amount'], 2) }}</td>
+            </tr>
+        @endif
+    </tbody>
+</table>
+
 <table>
     <thead>
         <tr>
