@@ -12,7 +12,7 @@
     @if($search)
         <p>Search: &quot;{{ $search }}&quot;</p>
     @endif
-    <p class="muted">Table: page {{ $sponsors->currentPage() }} of {{ $sponsors->lastPage() }} ({{ $sponsors->total() }} rows)</p>
+    <p class="muted">{{ $sponsors->count() }} row(s) in this report</p>
 </div>
 
 <table class="summary">
@@ -66,7 +66,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="4" style="text-align:center">No partners on this page.</td>
+            <td colspan="4" style="text-align:center">No partners in this report.</td>
         </tr>
         @endforelse
     </tbody>

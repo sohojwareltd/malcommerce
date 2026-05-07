@@ -597,6 +597,36 @@ class DashboardController extends Controller
         return redirect()->route('admin.orders.show', $order)
             ->with('success', 'Order updated successfully!');
     }
+
+    /**
+     * Standard admin list pagination, or every row when ?per_page=all.
+     */
+    protected function paginateOrAllPerPage(Request $request, Builder $query, int $defaultPerPage = 20): LengthAwarePaginator
+    {
+        if ($request->query('per_page') === 'all') {
+            $items = $query->get();
+            $total = $items->count();
+            $perPage = max(1, $total);
+
+            return (new LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage,
+                1,
+                [
+                    'path' => $request->url(),
+                    'pageName' => 'page',
+                ]
+            ))->appends($request->except('page'));
+        }
+
+        $perPageRaw = $request->query('per_page', (string) $defaultPerPage);
+        $perPage = is_numeric($perPageRaw) && in_array((int) $perPageRaw, [10, 20, 50, 100], true)
+            ? (int) $perPageRaw
+            : $defaultPerPage;
+
+        return $query->paginate($perPage)->withQueryString();
+    }
     
     public function sponsors(Request $request)
     {
@@ -621,14 +651,12 @@ class DashboardController extends Controller
             });
         }
         
-        // Get per page value from request, default to 20
-        $perPage = $request->get('per_page', 20);
-        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
-        
-        // Order by latest first (created_at desc)
-        $sponsors = $query->orderBy('created_at', 'desc')
-            ->paginate($perPage)
-            ->withQueryString();
+        // Get per page value from request, default to 20; use per_page=all for entire list
+        $sponsors = $this->paginateOrAllPerPage(
+            $request,
+            $query->orderBy('created_at', 'desc'),
+            20
+        );
             
         // Calculate total revenue for each sponsor
         $sponsors->getCollection()->transform(function($sponsor) {
@@ -684,13 +712,11 @@ class DashboardController extends Controller
             });
         }
 
-        $perPage = $request->get('per_page', 20);
-        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
-
-        $sponsors = $query->orderByDesc('balance')
-            ->orderBy('name')
-            ->paginate($perPage)
-            ->withQueryString();
+        $sponsors = $this->paginateOrAllPerPage(
+            $request,
+            $query->orderByDesc('balance')->orderBy('name'),
+            20
+        );
 
         $sponsors->getCollection()->transform(function ($sponsor) {
             $sponsor->total_revenue = $sponsor->orders->sum('total_price') ?? 0;
@@ -735,12 +761,10 @@ class DashboardController extends Controller
     public function sponsorLeaderboard(Request $request)
     {
         $filter = $request->input('filter', 'month');
-        $perPage = (int) $request->input('per_page', 20);
-        $perPage = in_array($perPage, [10, 20, 50, 100], true) ? $perPage : 20;
 
         [$rangeStart, $rangeEnd, $rangeLabel] = $this->resolveSponsorLeaderboardRange($request, $filter);
 
-        $sponsors = User::query()
+        $query = User::query()
             ->where('role', 'sponsor')
             ->whereNull('deleted_at')
             ->withCount([
@@ -758,9 +782,9 @@ class DashboardController extends Controller
                 },
             ])
             ->orderByDesc('filtered_referrals_count')
-            ->orderBy('name')
-            ->paginate($perPage)
-            ->withQueryString();
+            ->orderBy('name');
+
+        $sponsors = $this->paginateOrAllPerPage($request, $query, 20);
 
         $pendingPurchasesPrefetch = Purchase::query()
             ->where('status', Purchase::STATUS_PENDING)
@@ -841,26 +865,21 @@ class DashboardController extends Controller
                 ->count(),
         ];
 
-        $listQuery = (clone $base);
+        $listQuery = $this->buildPartnersPrintBaseQuery($request, $balanceMode);
         $with = ['sponsor', 'orders' => fn ($q) => $q->where('status', '!=', 'cancelled')];
         if (! $balanceMode && $request->boolean('trashed')) {
             $with['sponsor'] = fn ($q) => $q->withTrashed();
         }
         $listQuery->withCount(['orders', 'referrals'])->with($with);
 
-        $perPage = $request->get('per_page', 20);
-        $perPage = in_array((int) $perPage, [10, 20, 50, 100], true) ? (int) $perPage : 20;
-
         if ($balanceMode) {
             $sponsors = $listQuery->orderByDesc('balance')
                 ->orderBy('name')
-                ->paginate($perPage)
-                ->withQueryString();
+                ->get();
             $reportTitle = 'Partners by balance';
         } else {
             $sponsors = $listQuery->orderBy('created_at', 'desc')
-                ->paginate($perPage)
-                ->withQueryString();
+                ->get();
             $reportTitle = $request->boolean('trashed') ? 'Deleted partners' : 'Partners';
         }
 
@@ -878,8 +897,6 @@ class DashboardController extends Controller
     public function sponsorsPrintLeaderboard(Request $request)
     {
         $filter = $request->input('filter', 'month');
-        $perPage = (int) $request->input('per_page', 20);
-        $perPage = in_array($perPage, [10, 20, 50, 100], true) ? $perPage : 20;
 
         [$rangeStart, $rangeEnd, $rangeLabel] = $this->resolveSponsorLeaderboardRange($request, $filter);
 
@@ -895,8 +912,7 @@ class DashboardController extends Controller
             ])
             ->orderByDesc('filtered_referrals_count')
             ->orderBy('name')
-            ->paginate($perPage)
-            ->withQueryString();
+            ->get();
 
         $pendingPurchasesPrefetch = Purchase::query()
             ->where('status', Purchase::STATUS_PENDING)
@@ -904,7 +920,7 @@ class DashboardController extends Controller
             ->get();
         /** @var EarningService $earningService */
         $earningService = app(EarningService::class);
-        $sponsors->getCollection()->transform(function ($sponsor) use ($earningService, $pendingPurchasesPrefetch) {
+        $sponsors = $sponsors->map(function ($sponsor) use ($earningService, $pendingPurchasesPrefetch) {
             $sponsor->pending_purchase_commission_estimate = $earningService->estimatePendingPurchaseCommissionForSponsor(
                 $sponsor,
                 $pendingPurchasesPrefetch

@@ -10,7 +10,7 @@
 <div class="meta">
     <p>Period: {{ $rangeLabel }}</p>
     <p>Generated {{ now()->format('M d, Y g:i A') }}</p>
-    <p class="muted">Table: page {{ $sponsors->currentPage() }} of {{ $sponsors->lastPage() }} ({{ $sponsors->total() }} rows)</p>
+    <p class="muted">{{ $sponsors->count() }} row(s) in ranking</p>
 </div>
 
 <table class="summary">
@@ -61,7 +61,7 @@
         @forelse($sponsors as $index => $sponsor)
         @php
             $rowPhoto = $sponsor->photo ? Storage::disk('public')->url($sponsor->photo) : null;
-            $rank = (($sponsors->currentPage() - 1) * $sponsors->perPage()) + $index + 1;
+            $rank = $index + 1;
         @endphp
         <tr>
             <td>{{ $rank }}</td>
