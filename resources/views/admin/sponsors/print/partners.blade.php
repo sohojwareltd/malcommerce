@@ -27,8 +27,8 @@
             <td class="num tabular-nums">৳{{ number_format($printSummary['total_balance'], 2) }}</td>
         </tr>
         <tr>
-            <th scope="row">Total order revenue <span class="muted">(non-cancelled)</span></th>
-            <td class="num tabular-nums">৳{{ number_format($printSummary['total_revenue'], 2) }}</td>
+            <th scope="row">Purchase income (unwithdrawn, est.) <span class="muted">(purchase share of current wallet)</span></th>
+            <td class="num tabular-nums">৳{{ number_format($printSummary['purchase_income_unwithdrawn'], 2) }}</td>
         </tr>
         <tr>
             <th scope="row">Order count <span class="muted">(non-cancelled)</span></th>

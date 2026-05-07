@@ -879,8 +879,6 @@ class DashboardController extends Controller
         $balanceMode = $request->boolean('by_balance');
         $base = $this->buildPartnersPrintBaseQuery($request, $balanceMode);
 
-        $partnerIdsSub = (clone $base)->select('id');
-
         $printSummary = [
             'partner_count' => (clone $base)->count(),
             'total_balance' => (float) (clone $base)->sum('balance'),
@@ -982,10 +980,7 @@ class DashboardController extends Controller
                 ->whereNotNull('sponsor_id')
                 ->whereIn('sponsor_id', (clone $leaderScope)->select('id'))
                 ->count(),
-            'total_revenue' => (float) Order::query()
-                ->where('status', '!=', 'cancelled')
-                ->whereIn('sponsor_id', (clone $leaderScope)->select('id'))
-                ->sum('total_price'),
+            'purchase_income_unwithdrawn' => $this->sumPurchaseAttributedWalletBalance((clone $leaderScope)),
             'order_count' => Order::query()
                 ->where('status', '!=', 'cancelled')
                 ->whereIn('sponsor_id', (clone $leaderScope)->select('id'))
