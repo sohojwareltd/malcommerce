@@ -93,6 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['admin', 'require.password.setup'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard')->middleware('can:dashboard.view');
         Route::get('/purchases', [AdminPurchaseController::class, 'index'])->name('purchases.index')->middleware('can:dashboard.view');
+        Route::get('/purchases/print', [AdminPurchaseController::class, 'printReport'])->name('purchases.print')->middleware('can:dashboard.view');
         Route::get('/purchases/create', [AdminPurchaseController::class, 'create'])->name('purchases.create')->middleware('can:dashboard.view');
         Route::post('/purchases', [AdminPurchaseController::class, 'store'])->name('purchases.store')->middleware('can:dashboard.view');
         Route::get('/purchases/{purchase}', [AdminPurchaseController::class, 'show'])->name('purchases.show')->middleware('can:dashboard.view');

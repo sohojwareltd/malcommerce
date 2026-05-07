@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\Withdrawal;
 use App\Services\EarningService;
 use App\Services\WithdrawalService;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,18 +21,10 @@ class PurchaseController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->get('status', 'pending');
-        if (! in_array($status, ['pending', 'accepted', 'canceled', 'all'], true)) {
-            $status = 'pending';
-        }
+        $status = $this->normalizePurchaseStatus($request->get('status', 'pending'));
+        $periodType = $this->normalizePurchasePeriodType($request->input('period', 'all'));
 
-        $query = Purchase::query()
-            ->with(['submittedBy', 'beneficiary', 'processedBy'])
-            ->orderByDesc('created_at');
-
-        if ($status !== 'all') {
-            $query->where('status', $status);
-        }
+        $query = $this->purchasesFilteredQuery($request, $status, $periodType);
 
         $purchases = $query->paginate(30)->withQueryString();
 
@@ -40,7 +34,125 @@ class PurchaseController extends Controller
             'canceled' => Purchase::where('status', Purchase::STATUS_CANCELED)->count(),
         ];
 
-        return view('admin.purchases.index', compact('purchases', 'status', 'counts'));
+        $rangeLabel = $this->purchasesPeriodLabel($request, $periodType);
+
+        return view('admin.purchases.index', compact(
+            'purchases',
+            'status',
+            'counts',
+            'periodType',
+            'rangeLabel'
+        ));
+    }
+
+    public function printReport(Request $request)
+    {
+        $status = $this->normalizePurchaseStatus($request->get('status', 'all'));
+        $periodType = $this->normalizePurchasePeriodType($request->input('period', 'all'));
+
+        $purchases = $this->purchasesFilteredQuery($request, $status, $periodType)->get();
+
+        $rangeLabel = $this->purchasesPeriodLabel($request, $periodType);
+        $statusLabel = $status === 'all' ? 'All statuses' : ucfirst($status);
+
+        return view('admin.purchases.print.report', compact(
+            'purchases',
+            'status',
+            'periodType',
+            'rangeLabel',
+            'statusLabel'
+        ));
+    }
+
+    protected function normalizePurchaseStatus(string $status): string
+    {
+        if (! in_array($status, ['pending', 'accepted', 'canceled', 'all'], true)) {
+            return 'pending';
+        }
+
+        return $status;
+    }
+
+    protected function normalizePurchasePeriodType(?string $period): string
+    {
+        $period = $period ?? 'all';
+        if (! in_array($period, ['all', 'month', 'range'], true)) {
+            return 'all';
+        }
+
+        return $period;
+    }
+
+    protected function purchasesFilteredQuery(Request $request, string $status, string $periodType): Builder
+    {
+        $query = Purchase::query()
+            ->with(['submittedBy', 'beneficiary', 'processedBy'])
+            ->orderByDesc('created_at');
+
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $this->applyPurchaseDateScope($query, $request, $periodType);
+
+        return $query;
+    }
+
+    protected function applyPurchaseDateScope(Builder $query, Request $request, string $periodType): void
+    {
+        if ($periodType === 'month' && $request->filled('month') && preg_match('/^\d{4}-\d{2}$/', (string) $request->input('month'))) {
+            $start = Carbon::createFromFormat('Y-m', $request->input('month'))->startOfMonth();
+            $end = $start->copy()->endOfMonth();
+            $query->whereBetween('created_at', [$start, $end]);
+
+            return;
+        }
+
+        if ($periodType === 'range') {
+            $from = $request->filled('date_from')
+                ? Carbon::parse($request->input('date_from'))->startOfDay()
+                : null;
+            $to = $request->filled('date_to')
+                ? Carbon::parse($request->input('date_to'))->endOfDay()
+                : null;
+            if ($from && $to) {
+                if ($to->lt($from)) {
+                    [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
+                }
+                $query->whereBetween('created_at', [$from, $to]);
+            } elseif ($from) {
+                $query->where('created_at', '>=', $from);
+            } elseif ($to) {
+                $query->where('created_at', '<=', $to);
+            }
+        }
+    }
+
+    protected function purchasesPeriodLabel(Request $request, string $periodType): string
+    {
+        if ($periodType === 'month' && $request->filled('month') && preg_match('/^\d{4}-\d{2}$/', (string) $request->input('month'))) {
+            return Carbon::createFromFormat('Y-m', $request->input('month'))->format('F Y');
+        }
+
+        if ($periodType === 'range') {
+            $from = $request->filled('date_from')
+                ? Carbon::parse($request->input('date_from'))->format('M j, Y')
+                : null;
+            $to = $request->filled('date_to')
+                ? Carbon::parse($request->input('date_to'))->format('M j, Y')
+                : null;
+            if ($from && $to) {
+                return $from.' – '.$to;
+            }
+            if ($from) {
+                return 'From '.$from;
+            }
+            if ($to) {
+                return 'Through '.$to;
+            }
+        }
+
+        return 'All dates';
     }
 
     public function create()
