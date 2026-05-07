@@ -29,6 +29,16 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
             Edit Sponsor
         </a>
         @endcan
+        @can('sponsors.view')
+        @if(!$sponsor->trashed())
+        <form action="{{ route('admin.sponsors.login-as', $sponsor) }}" method="POST" class="inline" title="Open partner dashboard as this user">
+            @csrf
+            <button type="submit" class="px-4 py-2 bg-violet-700 text-white rounded-lg hover:bg-violet-800 transition font-semibold">
+                Login as partner
+            </button>
+        </form>
+        @endif
+        @endcan
         <a href="{{ route('admin.sponsors.index') }}" class="px-4 py-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 transition">
             ← Back to Sponsors
         </a>
