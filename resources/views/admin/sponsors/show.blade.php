@@ -132,7 +132,6 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                         <p class="text-2xl font-bold text-blue-600 mt-1">{{ $stats['delivered_orders'] }}</p>
                     </div>
                 </div>
-                @can('sponsors.view')
                 @if(!$sponsor->trashed())
                 <div class="mt-4 pt-4 border-t border-neutral-100 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
                     <form action="{{ route('admin.sponsors.login-as', $sponsor) }}" method="POST" class="inline shrink-0" title="Open partner dashboard as this user">
@@ -144,7 +143,6 @@ $pendingPurchasesTotal = $purchaseSubmitted['pending_count'] + $purchaseAsBenefi
                     <p class="text-xs text-neutral-500 sm:max-w-xl">You will be redirected to their partner dashboard. Use the floating control there to sign back in as admin.</p>
                 </div>
                 @endif
-                @endcan
                 <div class="mt-4 flex flex-wrap gap-3">
                     <button type="button" @click="setTab('income')" class="text-sm font-semibold text-primary hover:underline">View income & balance →</button>
                     <button type="button" @click="setTab('purchases')" class="text-sm font-semibold text-primary hover:underline">View purchases →</button>
