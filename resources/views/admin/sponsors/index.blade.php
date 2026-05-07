@@ -37,7 +37,7 @@ $sponsorsListRoute = $sponsorsListRoute ?? 'admin.sponsors.index';
         @endif
     </div>
     <div class="flex flex-col sm:flex-row gap-2 sm:items-center w-full sm:w-auto">
-        <a href="{{ route('admin.sponsors.print.partners', $printPartnersParams) }}" target="_blank" rel="noopener noreferrer" class="border border-neutral-300 bg-white text-neutral-800 px-4 py-2 rounded-lg hover:bg-neutral-50 transition font-semibold text-sm sm:text-base text-center order-2 sm:order-1">
+        <a href="{{ route('admin.sponsors.print.partners', $printPartnersParams) }}" target="_blank" rel="noopener noreferrer" class="border border-emerald-700 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition font-semibold text-sm sm:text-base text-center order-2 sm:order-1 shadow-sm">
             Print report
         </a>
         @if(!request('trashed'))

@@ -12,8 +12,35 @@
     @if($search)
         <p>Search: &quot;{{ $search }}&quot;</p>
     @endif
-    <p class="muted">Page {{ $sponsors->currentPage() }} of {{ $sponsors->lastPage() }} — {{ $sponsors->total() }} total</p>
+    <p class="muted">Table: page {{ $sponsors->currentPage() }} of {{ $sponsors->lastPage() }} ({{ $sponsors->total() }} rows)</p>
 </div>
+
+<table class="summary">
+    <caption>Summary (all partners matching this report&apos;s filters)</caption>
+    <tbody>
+        <tr>
+            <th scope="row">Partner count</th>
+            <td class="num tabular-nums">{{ number_format($printSummary['partner_count']) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Total wallet balance</th>
+            <td class="num tabular-nums">৳{{ number_format($printSummary['total_balance'], 2) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Total order revenue <span class="muted">(non-cancelled)</span></th>
+            <td class="num tabular-nums">৳{{ number_format($printSummary['total_revenue'], 2) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Order count <span class="muted">(non-cancelled)</span></th>
+            <td class="num tabular-nums">{{ number_format($printSummary['order_count']) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Direct referrals <span class="muted">(active partners they referred)</span></th>
+            <td class="num tabular-nums">{{ number_format($printSummary['referral_count']) }}</td>
+        </tr>
+    </tbody>
+</table>
+
 <table>
     <thead>
         <tr>

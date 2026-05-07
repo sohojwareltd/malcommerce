@@ -37,7 +37,7 @@
             </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <a href="{{ route('admin.sponsors.print.leaderboard', request()->query()) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 transition order-2 sm:order-1">
+            <a href="{{ route('admin.sponsors.print.leaderboard', request()->query()) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-lg border border-emerald-700 bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition order-2 sm:order-1 shadow-sm">
                 Print report
             </a>
             <a href="{{ route('admin.sponsors.index') }}" class="inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 transition order-1 sm:order-2">

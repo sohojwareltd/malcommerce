@@ -55,11 +55,32 @@
         .toolbar button {
             padding: 6px 12px;
             font-size: 12px;
-            border: 1px solid #000;
-            background: #fff;
+            border: 1px solid #14532d;
+            background: #15803d;
+            color: #fff;
+            font-weight: 600;
             cursor: pointer;
         }
-        .toolbar button:hover { background: #eee; }
+        .toolbar button:hover { background: #166534; }
+        .summary {
+            margin: 0 0 14px 0;
+            border: 2px solid #000;
+        }
+        .summary caption {
+            caption-side: top;
+            text-align: left;
+            font-weight: 700;
+            padding: 4px 6px;
+            border-bottom: 1px solid #000;
+        }
+        .summary th,
+        .summary td {
+            font-size: 11px;
+        }
+        .summary th {
+            width: 55%;
+            font-weight: 600;
+        }
         @media print {
             body { padding: 0; }
             .toolbar { display: none; }

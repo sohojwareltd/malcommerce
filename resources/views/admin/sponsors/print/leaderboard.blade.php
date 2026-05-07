@@ -10,8 +10,39 @@
 <div class="meta">
     <p>Period: {{ $rangeLabel }}</p>
     <p>Generated {{ now()->format('M d, Y g:i A') }}</p>
-    <p class="muted">Page {{ $sponsors->currentPage() }} of {{ $sponsors->lastPage() }} — {{ $sponsors->total() }} total</p>
+    <p class="muted">Table: page {{ $sponsors->currentPage() }} of {{ $sponsors->lastPage() }} ({{ $sponsors->total() }} rows)</p>
 </div>
+
+<table class="summary">
+    <caption>Summary (all active partners &amp; network)</caption>
+    <tbody>
+        <tr>
+            <th scope="row">Active partner accounts</th>
+            <td class="num tabular-nums">{{ number_format($printSummary['sponsor_count']) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Combined wallet balance</th>
+            <td class="num tabular-nums">৳{{ number_format($printSummary['total_balance'], 2) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">New referred partners in period</th>
+            <td class="num tabular-nums">{{ number_format($printSummary['referrals_in_period']) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Referred partners (all time)</th>
+            <td class="num tabular-nums">{{ number_format($printSummary['referrals_all_time']) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Total partner order revenue <span class="muted">(non-cancelled)</span></th>
+            <td class="num tabular-nums">৳{{ number_format($printSummary['total_revenue'], 2) }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Partner order count <span class="muted">(non-cancelled)</span></th>
+            <td class="num tabular-nums">{{ number_format($printSummary['order_count']) }}</td>
+        </tr>
+    </tbody>
+</table>
+
 <table>
     <thead>
         <tr>

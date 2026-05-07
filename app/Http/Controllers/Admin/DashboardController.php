@@ -34,6 +34,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\Eloquent\Builder;
 
 class DashboardController extends Controller
 {
@@ -786,64 +787,80 @@ class DashboardController extends Controller
     }
 
     /**
+     * Base query for partners print / summary (no ordering, eager loads, or pagination).
+     */
+    protected function buildPartnersPrintBaseQuery(Request $request, bool $balanceMode): Builder
+    {
+        if ($balanceMode) {
+            $query = User::query()->where('role', 'sponsor')->whereNull('deleted_at');
+        } else {
+            $query = User::query()->where('role', 'sponsor');
+            if ($request->boolean('trashed')) {
+                $query->onlyTrashed();
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%")
+                    ->orWhere('affiliate_code', 'like', "%{$search}%");
+            });
+        }
+
+        return $query;
+    }
+
+    /**
      * Minimal print view for partners list (same filters as index / by balance).
      */
     public function sponsorsPrintPartners(Request $request)
     {
         $balanceMode = $request->boolean('by_balance');
+        $base = $this->buildPartnersPrintBaseQuery($request, $balanceMode);
+
+        $partnerIdsSub = (clone $base)->select('id');
+
+        $printSummary = [
+            'partner_count' => (clone $base)->count(),
+            'total_balance' => (float) (clone $base)->sum('balance'),
+            'total_revenue' => (float) Order::query()
+                ->where('status', '!=', 'cancelled')
+                ->whereIn('user_id', $partnerIdsSub)
+                ->sum('total_price'),
+            'order_count' => Order::query()
+                ->where('status', '!=', 'cancelled')
+                ->whereIn('user_id', (clone $base)->select('id'))
+                ->count(),
+            'referral_count' => User::query()
+                ->where('role', 'sponsor')
+                ->whereNull('deleted_at')
+                ->whereIn('sponsor_id', (clone $base)->select('id'))
+                ->count(),
+        ];
+
+        $listQuery = (clone $base);
+        $with = ['sponsor', 'orders' => fn ($q) => $q->where('status', '!=', 'cancelled')];
+        if (! $balanceMode && $request->boolean('trashed')) {
+            $with['sponsor'] = fn ($q) => $q->withTrashed();
+        }
+        $listQuery->withCount(['orders', 'referrals'])->with($with);
+
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array((int) $perPage, [10, 20, 50, 100], true) ? (int) $perPage : 20;
 
         if ($balanceMode) {
-            $query = User::where('role', 'sponsor')->whereNull('deleted_at');
-            $with = ['sponsor', 'orders' => fn ($q) => $q->where('status', '!=', 'cancelled')];
-            $query->withCount(['orders', 'referrals'])->with($with);
-
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%")
-                        ->orWhere('address', 'like', "%{$search}%")
-                        ->orWhere('affiliate_code', 'like', "%{$search}%");
-                });
-            }
-
-            $perPage = $request->get('per_page', 20);
-            $perPage = in_array((int) $perPage, [10, 20, 50, 100], true) ? (int) $perPage : 20;
-
-            $sponsors = $query->orderByDesc('balance')
+            $sponsors = $listQuery->orderByDesc('balance')
                 ->orderBy('name')
                 ->paginate($perPage)
                 ->withQueryString();
-
             $reportTitle = 'Partners by balance';
         } else {
-            $query = User::where('role', 'sponsor');
-            if ($request->boolean('trashed')) {
-                $query->onlyTrashed();
-            }
-            $with = ['sponsor', 'orders' => fn ($q) => $q->where('status', '!=', 'cancelled')];
-            if ($request->boolean('trashed')) {
-                $with['sponsor'] = fn ($q) => $q->withTrashed();
-            }
-            $query->withCount(['orders', 'referrals'])->with($with);
-
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%")
-                        ->orWhere('address', 'like', "%{$search}%")
-                        ->orWhere('affiliate_code', 'like', "%{$search}%");
-                });
-            }
-
-            $perPage = $request->get('per_page', 20);
-            $perPage = in_array((int) $perPage, [10, 20, 50, 100], true) ? (int) $perPage : 20;
-
-            $sponsors = $query->orderBy('created_at', 'desc')
+            $sponsors = $listQuery->orderBy('created_at', 'desc')
                 ->paginate($perPage)
                 ->withQueryString();
-
             $reportTitle = $request->boolean('trashed') ? 'Deleted partners' : 'Partners';
         }
 
@@ -851,6 +868,7 @@ class DashboardController extends Controller
             'sponsors' => $sponsors,
             'reportTitle' => $reportTitle,
             'search' => $request->input('search'),
+            'printSummary' => $printSummary,
         ]);
     }
 
@@ -895,9 +913,38 @@ class DashboardController extends Controller
             return $sponsor;
         });
 
+        $leaderScope = User::query()
+            ->where('role', 'sponsor')
+            ->whereNull('deleted_at');
+
+        $printSummary = [
+            'sponsor_count' => (clone $leaderScope)->count(),
+            'total_balance' => (float) (clone $leaderScope)->sum('balance'),
+            'referrals_in_period' => User::query()
+                ->where('role', 'sponsor')
+                ->whereNull('deleted_at')
+                ->whereNotNull('sponsor_id')
+                ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                ->count(),
+            'referrals_all_time' => User::query()
+                ->where('role', 'sponsor')
+                ->whereNull('deleted_at')
+                ->whereNotNull('sponsor_id')
+                ->count(),
+            'total_revenue' => (float) Order::query()
+                ->where('status', '!=', 'cancelled')
+                ->whereIn('user_id', (clone $leaderScope)->select('id'))
+                ->sum('total_price'),
+            'order_count' => Order::query()
+                ->where('status', '!=', 'cancelled')
+                ->whereIn('user_id', (clone $leaderScope)->select('id'))
+                ->count(),
+        ];
+
         return view('admin.sponsors.print.leaderboard', compact(
             'sponsors',
-            'rangeLabel'
+            'rangeLabel',
+            'printSummary'
         ));
     }
 
