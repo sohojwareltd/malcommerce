@@ -838,6 +838,40 @@ class DashboardController extends Controller
     }
 
     /**
+     * Estimate purchase-linked wallet balance not yet withdrawn: current balance × (purchase earnings ÷ all earnings) per sponsor, summed.
+     * Withdrawals are not tagged by income source; this allocates fungible balance proportionally.
+     */
+    protected function sumPurchaseAttributedWalletBalance(Builder $sponsorScope): float
+    {
+        $ids = (clone $sponsorScope)->pluck('id');
+        if ($ids->isEmpty()) {
+            return 0.0;
+        }
+
+        $rows = Earning::query()
+            ->whereIn('sponsor_id', $ids)
+            ->selectRaw('sponsor_id, SUM(amount) as total_all, SUM(CASE WHEN earning_type = ? THEN amount ELSE 0 END) as total_purchase', ['purchase'])
+            ->groupBy('sponsor_id')
+            ->get()
+            ->keyBy('sponsor_id');
+
+        $balances = User::query()->whereIn('id', $ids)->pluck('balance', 'id');
+
+        $sum = 0.0;
+        foreach ($ids as $id) {
+            $row = $rows->get($id);
+            $totalAll = $row ? (float) $row->total_all : 0.0;
+            $totalPurchase = $row ? (float) $row->total_purchase : 0.0;
+            $balance = (float) ($balances[$id] ?? 0);
+            if ($totalAll > 0 && $totalPurchase > 0 && $balance > 0) {
+                $sum += $balance * ($totalPurchase / $totalAll);
+            }
+        }
+
+        return round($sum, 2);
+    }
+
+    /**
      * Minimal print view for partners list (same filters as index / by balance).
      */
     public function sponsorsPrintPartners(Request $request)
@@ -850,10 +884,7 @@ class DashboardController extends Controller
         $printSummary = [
             'partner_count' => (clone $base)->count(),
             'total_balance' => (float) (clone $base)->sum('balance'),
-            'total_revenue' => (float) Order::query()
-                ->where('status', '!=', 'cancelled')
-                ->whereIn('sponsor_id', $partnerIdsSub)
-                ->sum('total_price'),
+            'purchase_income_unwithdrawn' => $this->sumPurchaseAttributedWalletBalance((clone $base)),
             'order_count' => Order::query()
                 ->where('status', '!=', 'cancelled')
                 ->whereIn('sponsor_id', (clone $base)->select('id'))
