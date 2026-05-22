@@ -100,6 +100,16 @@ class User extends Authenticatable
         return $this->hasMany(Order::class, 'user_id');
     }
 
+    public function digitalCourseOrders()
+    {
+        return $this->hasMany(DigitalCourseOrder::class);
+    }
+
+    public function digitalCourseEnrollments()
+    {
+        return $this->hasMany(DigitalCourseEnrollment::class);
+    }
+
     public function earnings()
     {
         return $this->hasMany(Earning::class, 'sponsor_id');

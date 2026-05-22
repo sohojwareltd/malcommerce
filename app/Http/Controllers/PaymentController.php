@@ -128,7 +128,7 @@ class PaymentController extends Controller
             );
         }
 
-        $newStatus = ($order->product && $order->product->is_digital) ? 'delivered' : 'processing';
+        $newStatus = 'processing';
         $order->update([
             'payment_status' => 'completed',
             'payment_transaction_id' => $paymentData['trxID'] ?? $paymentId,
@@ -180,7 +180,7 @@ class PaymentController extends Controller
                 'payment_transaction_id' => $paymentData['trxID'] ?? $order->payment_transaction_id,
                 'payment_response' => json_encode($paymentData),
                 'payment_completed_at' => now(),
-                'status' => $order->product && $order->product->is_digital ? 'delivered' : 'processing',
+                'status' => 'processing',
             ]);
         }
 

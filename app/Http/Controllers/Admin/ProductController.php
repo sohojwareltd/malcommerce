@@ -16,7 +16,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::with('category')->where('is_digital', false);
         if ($request->boolean('trashed')) {
             $query->onlyTrashed();
         }
@@ -46,15 +46,6 @@ class ProductController extends Controller
             }
         }
 
-        // Filter by product type (digital/physical)
-        if ($request->filled('is_digital')) {
-            $value = $request->is_digital;
-            if (in_array($value, ['1', 'true', 'digital'], true)) {
-                $query->where('is_digital', true);
-            } elseif (in_array($value, ['0', 'false', 'physical'], true)) {
-                $query->where('is_digital', false);
-            }
-        }
         
         // Get per page value from request, default to 20
         $perPage = $request->get('per_page', 20);
@@ -78,7 +69,7 @@ class ProductController extends Controller
         // Normalize empty price so nullable validation accepts it
         $request->merge(['price' => $request->input('price') === '' ? null : $request->input('price')]);
         // Ensure payment_options is always an array (empty when no checkboxes checked)
-        $request->merge(['payment_options' => $request->input('payment_options', [])]);
+        $request->merge(['payment_options' => $request->input('payment_options', []), 'is_digital' => false]);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -241,7 +232,7 @@ class ProductController extends Controller
         // Normalize empty price so nullable validation accepts it
         $request->merge(['price' => $request->input('price') === '' ? null : $request->input('price')]);
         // Ensure payment_options is always an array (empty when no checkboxes checked)
-        $request->merge(['payment_options' => $request->input('payment_options', [])]);
+        $request->merge(['payment_options' => $request->input('payment_options', []), 'is_digital' => false]);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',

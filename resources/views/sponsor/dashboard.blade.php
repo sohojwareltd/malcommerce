@@ -377,7 +377,7 @@ use Illuminate\Support\Str;
                 </div>
             </div>
             <div class="flex flex-col sm:items-end gap-2 shrink-0">
-                <a href="{{ route('orders.digital-products') }}"
+                <a href="{{ route('my-courses.index') }}"
                    class="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-lg text-white text-sm font-medium font-bangla transition hover:opacity-95"
                    style="background: var(--color-medium);">
                     সব ডিজিটাল পণ্য দেখুন

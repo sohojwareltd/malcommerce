@@ -238,7 +238,7 @@
                         <!-- Right Menu -->
                         <div class="flex items-center gap-4">
                             <a href="{{ route('products.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
-                            <a href="{{ route('products.index', ['type' => 'digital']) }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ডিজিটাল পণ্য</a>
+                            <a href="{{ route('courses.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ডিজিটাল কোর্স</a>
                             <a href="{{ route('videos.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ভিডিও</a>
                             <a href="{{ route('jobs.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">চাকরি</a>
                             <a href="{{ route('workshops.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ওয়ার্কশপ</a>
@@ -266,50 +266,7 @@
                                     </svg>
                                 </a>
                         @endif
-                                <!-- User Avatar with Dropdown -->
-                                <div class="relative" x-data="{ userMenuOpen: false }">
-                                    <button 
-                                        @click="userMenuOpen = !userMenuOpen"
-                                        class="flex items-center focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full transition"
-                                    >
-                                        @if(auth()->user()->photo)
-                                            <img src="{{ Storage::disk('public')->url(auth()->user()->photo) }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-gray-200 hover:border-primary transition-colors">
-                                       
-                                            @else
-                                            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center border-2 border-gray-200 hover:border-primary transition-colors">
-                                                <span class="text-white font-semibold text-sm">{{ substr(auth()->user()->name, 0, 1) }}</span>
-                                            </div>
-                                        @endif
-                                    </button>
-                                    <!-- Dropdown Menu -->
-                                    <div 
-                                        x-show="userMenuOpen"
-                                        @click.away="userMenuOpen = false"
-                                        x-transition:enter="transition ease-out duration-100"
-                                        x-transition:enter-start="transform opacity-0 scale-95"
-                                        x-transition:enter-end="transform opacity-100 scale-100"
-                                        x-transition:leave="transition ease-in duration-75"
-                                        x-transition:leave-start="transform opacity-100 scale-100"
-                                        x-transition:leave-end="transform opacity-0 scale-95"
-                                        class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
-                                        style="display: none;"
-                                    >
-                                        <div class="px-4 py-3 border-b border-gray-100">
-                                            <p class="text-sm font-semibold text-gray-900">{{ auth()->user()->name }}</p>
-                                            <p class="text-xs text-gray-500 truncate">{{ auth()->user()->affiliate_code }}</p>
-                                        </div>
-                                       
-                                        <form method="POST" action="{{ route('logout') }}">
-                                            @csrf
-                                            <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition text-left">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                                </svg>
-                                                <span class="font-bangla">লগআউট</span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
+                                @include('layouts.partials.user-avatar-menu')
                             @else
                                 <a href="{{ route('login') }}" class="text-gray-700 hover:text-primary transition font-bangla">লগইন</a>
                             @endif
@@ -348,10 +305,25 @@
                     
                         <a href="{{ route('home') }}" class="block text-gray-700 hover:text-primary font-bangla">হোম</a>
                         <a href="{{ route('products.index') }}" class="block text-gray-700 hover:text-primary font-bangla">পণ্য</a>
-                        <a href="{{ route('products.index', ['type' => 'digital']) }}" class="block text-gray-700 hover:text-primary font-bangla">ডিজিটাল পণ্য</a>
+                        <a href="{{ route('courses.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ডিজিটাল কোর্স</a>
                         <a href="{{ route('videos.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ভিডিও</a>
                         <a href="{{ route('jobs.index') }}" class="block text-gray-700 hover:text-primary font-bangla">চাকরি</a>
                         <a href="{{ route('workshops.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ওয়ার্কশপ</a>
+                    @auth
+                        <div class="border-t border-gray-200 pt-3 mt-3 space-y-2">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">অ্যাকাউন্ট</p>
+                            <a href="{{ route('my-courses.index') }}" class="block text-gray-700 hover:text-primary font-bangla font-semibold">আমার কেনা কোর্স</a>
+                            @if(auth()->user()->isAdmin())
+                                <a href="{{ route('admin.dashboard') }}" class="block text-gray-700 hover:text-primary">Admin</a>
+                            @elseif(auth()->user()->isSponsor())
+                                <a href="{{ route('sponsor.dashboard') }}" class="block text-gray-700 hover:text-primary font-bangla">পার্টনার ড্যাশবোর্ড</a>
+                            @endif
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="block w-full text-left text-red-600 font-bangla">লগআউট</button>
+                            </form>
+                        </div>
+                    @endauth
                     @if($categories->count() > 0)
                         @foreach($categories as $category)
                         <a href="{{ route('products.index', ['category' => $category->id]) }}" class="block text-gray-700 hover:text-primary font-bangla pl-4">{{ $category->name }}</a>
@@ -389,7 +361,7 @@
                         'links' => [
                             ['text' => 'হোম', 'url' => route('home')],
                             ['text' => 'সব পণ্য', 'url' => route('products.index')],
-                            ['text' => 'ডিজিটাল পণ্য', 'url' => route('products.index', ['type' => 'digital'])],
+                            ['text' => 'ডিজিটাল কোর্স', 'url' => route('courses.index')],
                             ['text' => 'ভিডিও', 'url' => route('videos.index')],
                             ['text' => 'চাকরির বিজ্ঞপ্তি', 'url' => route('jobs.index')],
                             ['text' => 'ওয়ার্কশপ ও সেমিনার', 'url' => route('workshops.index')],

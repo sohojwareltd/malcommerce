@@ -27,9 +27,10 @@ class BkashService
         float $amount,
         string $invoiceId,
         int|string|null $payerReference = null,
-        ?string $customerPhone = null
+        ?string $customerPhone = null,
+        ?string $callbackUrl = null
     ): array {
-        $callbackUrl = $this->resolveCallbackUrl();
+        $callbackUrl = $callbackUrl ?: $this->resolveCallbackUrl();
 
         if (!$callbackUrl) {
             return ['success' => false, 'error' => 'bKash callback URL is not configured.'];
@@ -187,6 +188,26 @@ class BkashService
             'data' => $decoded,
             'error' => $ok ? null : ($decoded['statusMessage'] ?? 'bKash API request failed.'),
         ];
+    }
+
+    public function resolveCourseCallbackUrl(): ?string
+    {
+        $configured = trim((string) config('services.bkash.course_callback_url', ''));
+        if ($configured !== '') {
+            return $configured;
+        }
+
+        if (Route::has('payment.course-bkash.callback')) {
+            try {
+                return route('payment.course-bkash.callback');
+            } catch (\Throwable $e) {
+                Log::warning('Failed to generate course payment callback route URL', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return null;
     }
 
     protected function resolveCallbackUrl(): ?string

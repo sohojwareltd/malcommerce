@@ -30,6 +30,15 @@ Route::get('/feed/products.xml', [SeoController::class, 'productsXml'])->name('f
 Route::middleware([TrackReferral::class])->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/videos', [\App\Http\Controllers\VideoController::class, 'index'])->name('videos.index');
+    Route::get('/courses', [\App\Http\Controllers\DigitalCourseController::class, 'index'])->name('courses.index');
+    Route::get('/courses/{course:slug}', [\App\Http\Controllers\DigitalCourseController::class, 'show'])->name('courses.show');
+    Route::get('/courses/{course:slug}/lessons/{lesson}', [\App\Http\Controllers\DigitalCourseController::class, 'watchLesson'])->name('courses.lessons.watch');
+    Route::post('/courses/{course:slug}/checkout', [\App\Http\Controllers\DigitalCourseOrderController::class, 'store'])->name('courses.checkout');
+    Route::get('/course-orders/success/{orderNumber}', [\App\Http\Controllers\DigitalCourseOrderController::class, 'success'])->name('course-orders.success');
+    Route::match(['get', 'post'], '/payment/course-bkash/initiate', [\App\Http\Controllers\DigitalCoursePaymentController::class, 'initiateBkash'])->name('payment.course-bkash.initiate');
+    Route::get('/payment/course-bkash/callback', [\App\Http\Controllers\DigitalCoursePaymentController::class, 'bkashCallback'])->name('payment.course-bkash.callback');
+    Route::get('/payment/course-bkash/cancel/{orderId}', [\App\Http\Controllers\DigitalCoursePaymentController::class, 'cancelPayment'])->name('payment.course-bkash.cancel');
+    Route::post('/payment/course-check-status', [\App\Http\Controllers\DigitalCoursePaymentController::class, 'checkStatus'])->name('payment.course-check-status');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
     Route::get('/jobs', [\App\Http\Controllers\JobController::class, 'index'])->name('jobs.index');
@@ -84,11 +93,10 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Digital product: download file or view link for own order
-    Route::get('/orders/{order}/digital-download', [\App\Http\Controllers\DigitalProductController::class, 'download'])->name('orders.digital.download');
-    Route::get('/orders/{order}/digital-link', [\App\Http\Controllers\DigitalProductController::class, 'showLink'])->name('orders.digital.link');
-    Route::get('/my-digital-products', [OrderController::class, 'digitalProducts'])->name('orders.digital-products');
-    
+    Route::get('/my-courses', [\App\Http\Controllers\MyCourseController::class, 'index'])->name('my-courses.index');
+    Route::redirect('/purchased-courses', '/my-courses')->name('purchased-courses.index');
+    Route::get('/my-courses/{course:slug}', [\App\Http\Controllers\MyCourseController::class, 'show'])->name('my-courses.show');
+
     // Admin routes
     Route::middleware(['admin', 'require.password.setup'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard')->middleware('can:dashboard.view');
@@ -128,10 +136,29 @@ Route::middleware('auth')->group(function () {
         Route::post('/videos/{video}/restore', [\App\Http\Controllers\Admin\VideoController::class, 'restore'])->name('videos.restore')->middleware('can:videos.restore');
         Route::delete('/videos/{video}/force', [\App\Http\Controllers\Admin\VideoController::class, 'forceDestroy'])->name('videos.force-delete')->middleware('can:videos.forceDelete');
         Route::get('/videos/{video}', [\App\Http\Controllers\Admin\VideoController::class, 'show'])->name('videos.show')->middleware('can:videos.view');
+
+        Route::get('/digital-courses', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'index'])->name('digital-courses.index')->middleware('can:digital_courses.viewAny');
+        Route::get('/digital-courses/create', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'create'])->name('digital-courses.create')->middleware('can:digital_courses.create');
+        Route::post('/digital-courses', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'store'])->name('digital-courses.store')->middleware('can:digital_courses.create');
+        Route::get('/digital-courses/{digitalCourse}/edit', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'edit'])->name('digital-courses.edit')->middleware('can:digital_courses.update');
+        Route::put('/digital-courses/{digitalCourse}', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'update'])->name('digital-courses.update')->middleware('can:digital_courses.update');
+        Route::delete('/digital-courses/{digitalCourse}', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'destroy'])->name('digital-courses.destroy')->middleware('can:digital_courses.delete');
+        Route::post('/digital-courses/{digitalCourse}/restore', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'restore'])->name('digital-courses.restore')->middleware('can:digital_courses.restore');
+
+        Route::get('/digital-course-categories', [\App\Http\Controllers\Admin\DigitalCourseCategoryController::class, 'index'])->name('digital-course-categories.index')->middleware('can:digital_courses.viewAny');
+        Route::get('/digital-course-categories/create', [\App\Http\Controllers\Admin\DigitalCourseCategoryController::class, 'create'])->name('digital-course-categories.create')->middleware('can:digital_courses.create');
+        Route::post('/digital-course-categories', [\App\Http\Controllers\Admin\DigitalCourseCategoryController::class, 'store'])->name('digital-course-categories.store')->middleware('can:digital_courses.create');
+        Route::get('/digital-course-categories/{digitalCourseCategory}/edit', [\App\Http\Controllers\Admin\DigitalCourseCategoryController::class, 'edit'])->name('digital-course-categories.edit')->middleware('can:digital_courses.update');
+        Route::put('/digital-course-categories/{digitalCourseCategory}', [\App\Http\Controllers\Admin\DigitalCourseCategoryController::class, 'update'])->name('digital-course-categories.update')->middleware('can:digital_courses.update');
+        Route::delete('/digital-course-categories/{digitalCourseCategory}', [\App\Http\Controllers\Admin\DigitalCourseCategoryController::class, 'destroy'])->name('digital-course-categories.destroy')->middleware('can:digital_courses.delete');
+
+        Route::get('/digital-course-orders', [\App\Http\Controllers\Admin\DigitalCourseOrderController::class, 'index'])->name('digital-course-orders.index')->middleware('can:digital_courses.viewAny');
+        Route::get('/digital-course-orders/{digitalCourseOrder}', [\App\Http\Controllers\Admin\DigitalCourseOrderController::class, 'show'])->name('digital-course-orders.show')->middleware('can:digital_courses.viewAny');
+        Route::post('/digital-course-orders/{digitalCourseOrder}/mark-paid', [\App\Http\Controllers\Admin\DigitalCourseOrderController::class, 'markPaid'])->name('digital-course-orders.mark-paid')->middleware('can:digital_courses.update');
         
         Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index')->middleware('can:orders.viewAny');
         Route::get('/orders/physical', [AdminDashboardController::class, 'ordersPhysical'])->name('orders.physical')->middleware('can:orders.viewAny');
-        Route::get('/orders/digital', [AdminDashboardController::class, 'ordersDigital'])->name('orders.digital')->middleware('can:orders.viewAny');
+        Route::get('/orders/digital', fn () => redirect()->route('admin.digital-course-orders.index'))->name('orders.digital')->middleware('can:orders.viewAny');
         Route::post('/orders/bulk-delete', [AdminDashboardController::class, 'bulkDeleteOrders'])->name('orders.bulk-delete')->middleware('can:orders.bulkDelete');
         Route::post('/orders/bulk-ship', [AdminDashboardController::class, 'bulkMarkShipped'])->name('orders.bulk-ship')->middleware('can:orders.updateStatus');
         Route::get('/orders/{order}/edit', [AdminDashboardController::class, 'editOrder'])->name('orders.edit')->middleware('can:orders.update');

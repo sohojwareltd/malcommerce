@@ -91,6 +91,7 @@ class SyncPermissionsFromPolicies extends Command
             'SponsorPolicy' => 'sponsors',
             'SponsorLevelPolicy' => 'sponsorLevels',
             'VideoPolicy' => 'videos',
+            'DigitalCoursePolicy' => 'digital_courses',
             'WithdrawalPolicy' => 'withdrawals',
             'SettingPolicy' => 'settings',
             'DashboardPolicy' => 'dashboard',

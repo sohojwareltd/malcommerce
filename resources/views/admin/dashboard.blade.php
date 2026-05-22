@@ -83,7 +83,7 @@
         <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Digital Products</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate mb-2 sm:mb-3">{{ $stats['digital_products'] }}</p>
         <div class="flex gap-1 sm:gap-2 flex-wrap">
-            <a href="{{ route('admin.products.index', ['is_digital' => 1]) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Products</a>
+            <a href="{{ route('admin.digital-courses.index') }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Courses</a>
             <a href="{{ route('admin.orders.index', ['product_type' => 'digital']) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Orders</a>
             <a href="{{ route('admin.reports.sales', ['product_type' => 'digital']) }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Sales Report</a>
         </div>

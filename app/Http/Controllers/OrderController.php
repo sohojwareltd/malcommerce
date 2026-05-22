@@ -24,8 +24,12 @@ class OrderController extends Controller
         
         $product = Product::findOrFail($request->product_id);
 
-        // Check stock (digital products have unlimited quantity)
-        if (!$product->is_digital && $product->stock_quantity < $request->quantity) {
+        if ($product->is_digital) {
+            return redirect()->route('courses.index')
+                ->with('info', 'ডিজিটাল কোর্স এখন আলাদা বিভাগে কেনা যায়।');
+        }
+
+        if ($product->stock_quantity < $request->quantity) {
             return back()->withErrors(['quantity' => 'Insufficient stock available.'])->withInput();
         }
         
@@ -181,38 +185,6 @@ class OrderController extends Controller
     {
         $order = Order::with('product')->where('order_number', $orderNumber)->firstOrFail();
         return view('orders.success', compact('order'));
-    }
-
-    /**
-     * Show all accessible digital product orders for the logged-in customer.
-     */
-    public function digitalProducts(Request $request)
-    {
-        $user = $request->user();
-
-        if (!$user) {
-            abort(403);
-        }
-
-        $orders = Order::with('product')
-            ->where('user_id', $user->id)
-            ->whereHas('product', fn ($q) => $q->where('is_digital', true))
-            ->where(function ($q) {
-                // Match access rules from Order::canAccessDigitalContent()
-                $q->where(function ($q) {
-                    $q->where('payment_method', 'bkash')
-                        ->where('payment_status', 'completed');
-                })->orWhere(function ($q) {
-                    $q->where('payment_method', '!=', 'bkash')
-                        ->whereIn('status', ['processing', 'shipped', 'delivered']);
-                });
-            })
-            ->orderByDesc('created_at')
-            ->paginate(15);
-
-        return view('orders.digital-products', [
-            'orders' => $orders,
-        ]);
     }
 
     /**
