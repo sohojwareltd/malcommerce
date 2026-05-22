@@ -39,7 +39,7 @@ class DigitalCourseSmsService
         $template = $templates[$status] ?? null;
 
         if ($template === null || trim($template) === '') {
-            $template = $this->defaultTemplate($status);
+            $template = self::defaultTemplate($status);
         }
 
         if ($template === null || trim($template) === '') {
@@ -90,14 +90,18 @@ class DigitalCourseSmsService
         }
     }
 
-    protected function defaultTemplate(string $status): ?string
+    /** @return array<string, string> */
+    public static function defaultTemplates(): array
     {
-        return match ($status) {
+        return [
             self::STATUS_COMPLETED => 'আপনি "{course_title}" কোর্সটি কিনেছেন। অর্ডার #{order_number}। প্রথমে আপনার মোবাইল নম্বর ({customer_phone}) দিয়ে লগইন করুন: {login_url} তারপর আমার কেনা কোর্স থেকে ভিডিও দেখুন: {my_courses_url}',
             self::STATUS_PENDING => 'আপনার কোর্স অর্ডার #{order_number} গ্রহণ করা হয়েছে। মোট ৳{total_price}। পেমেন্ট সম্পন্ন করুন।',
             self::STATUS_CANCELLED => 'আপনার কোর্স অর্ডার #{order_number} বাতিল করা হয়েছে।',
             self::STATUS_FAILED => 'আপনার কোর্স অর্ডার #{order_number} এর পেমেন্ট সম্পন্ন হয়নি।',
-            default => null,
-        };
+        ];
     }
-}
+
+    public static function defaultTemplate(string $status): ?string
+    {
+        return self::defaultTemplates()[$status] ?? null;
+    }

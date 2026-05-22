@@ -12,7 +12,15 @@
     }
     $lessonRows = $lessonRows ?: [['title' => '', 'youtube_url' => '', 'sort_order' => 0, 'is_active' => true, 'is_free' => false]];
     $courseSmsStatuses = \App\Services\DigitalCourseSmsService::statusLabels();
-    $courseSmsTemplates = old('sms_templates', $course?->sms_templates ?? []);
+    $courseSmsDefaults = \App\Services\DigitalCourseSmsService::defaultTemplates();
+    $courseSmsStored = old('sms_templates', $course?->sms_templates ?? []);
+    $courseSmsTemplates = [];
+    foreach ($courseSmsStatuses as $statusKey => $statusLabel) {
+        $stored = $courseSmsStored[$statusKey] ?? null;
+        $courseSmsTemplates[$statusKey] = is_string($stored) && trim($stored) !== ''
+            ? $stored
+            : ($courseSmsDefaults[$statusKey] ?? '');
+    }
 @endphp
 
 <div class="bg-white rounded-lg shadow-md p-6" x-data="{
@@ -114,7 +122,7 @@
         <div class="mt-8 border-t border-neutral-200 pt-6">
             <h2 class="text-lg font-bold mb-2">SMS messages</h2>
             <p class="text-sm text-neutral-600 mb-4">
-                Customize SMS for each order stage. Leave blank to use the default (purchase completed includes login + my courses link).
+                Default messages are shown below. Edit any field to customize for this course.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @foreach($courseSmsStatuses as $statusKey => $statusLabel)
@@ -123,7 +131,7 @@
                             <label class="block text-sm font-semibold text-neutral-800">{{ $statusLabel }}</label>
                             <span class="text-xs text-neutral-500 uppercase tracking-wide">{{ $statusKey }}</span>
                         </div>
-                        <textarea name="sms_templates[{{ $statusKey }}]" rows="4" class="w-full rounded-lg border-neutral-300 text-sm" placeholder="Leave blank for default message.">{{ $courseSmsTemplates[$statusKey] ?? '' }}</textarea>
+                        <textarea name="sms_templates[{{ $statusKey }}]" rows="4" class="w-full rounded-lg border-neutral-300 text-sm">{{ $courseSmsTemplates[$statusKey] ?? '' }}</textarea>
                     </div>
                 @endforeach
             </div>
