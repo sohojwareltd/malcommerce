@@ -105,3 +105,4 @@ class DigitalCourseSmsService
     {
         return self::defaultTemplates()[$status] ?? null;
     }
+}
