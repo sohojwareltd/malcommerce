@@ -133,20 +133,45 @@
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Videos</span>
                     </a>
                     @endcan
-                    @can('digital_courses.viewAny')
-                    <a href="{{ route('admin.digital-courses.index') }}"
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Digital Products' : ''"
-                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg {{ request()->routeIs('admin.digital-courses.*') || request()->routeIs('admin.digital-course-categories.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-emerald-500/15' }} transition group relative text-sm sm:text-base"
-                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
-                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Digital Products</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Digital Products</span>
-                    </a>
-                    @endcan
                 </div>
                 @endif
+
+                <!-- Courses (digital) -->
+                @can('digital_courses.viewAny')
+                <div class="space-y-1 bg-white/5 rounded-xl py-2 mb-1 border-l-4 border-violet-400">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-[11px] font-semibold text-violet-200 uppercase tracking-wider">Courses</p>
+                    <a href="{{ route('admin.digital-courses.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Courses' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.digital-courses.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-violet-500/15' }} transition group relative text-xs sm:text-sm"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Courses</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Courses</span>
+                    </a>
+                    <a href="{{ route('admin.digital-course-categories.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Categories' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.digital-course-categories.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-violet-500/15' }} transition group relative text-xs sm:text-sm"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Categories</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Categories</span>
+                    </a>
+                    <a href="{{ route('admin.digital-course-orders.index') }}"
+                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Orders' : ''"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.digital-course-orders.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-violet-500/15' }} transition group relative text-xs sm:text-sm"
+                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m-9 4h18a2 2 0 002-2V9a2 2 0 00-2-2h-6.586a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 0012.586 5H3a2 2 0 00-2 2v11a2 2 0 002 2z"></path>
+                        </svg>
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Orders</span>
+                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Orders</span>
+                    </a>
+                </div>
+                @endcan
 
                 <!-- Sales -->
                 @can('orders.viewAny')
@@ -172,18 +197,6 @@
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Physical Orders</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Physical Orders</span>
                     </a>
-                    @can('digital_courses.viewAny')
-                    <a href="{{ route('admin.digital-course-orders.index') }}"
-                       :title="sidebarCollapsed && window.innerWidth >= 1024 ? 'Course Orders' : ''"
-                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.digital-course-orders.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-indigo-500/15' }} transition group relative text-xs sm:text-sm"
-                       :class="sidebarCollapsed && window.innerWidth >= 1024 ? 'justify-center' : ''">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m-9 4h18a2 2 0 002-2V9a2 2 0 00-2-2h-6.586a1 1 0 01-.707-.293l-1.414-1.414A1 1 0 0012.586 5H3a2 2 0 00-2 2v11a2 2 0 002 2z"></path>
-                        </svg>
-                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Course Orders</span>
-                        <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Course Orders</span>
-                    </a>
-                    @endcan
                 </div>
                 @endcan
 

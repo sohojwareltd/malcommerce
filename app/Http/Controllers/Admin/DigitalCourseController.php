@@ -72,6 +72,7 @@ class DigitalCourseController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'is_featured' => $request->boolean('is_featured'),
             'sort_order' => $validated['sort_order'] ?? 0,
+            'sms_templates' => $this->normalizeSmsTemplates($request->input('sms_templates')),
         ]);
 
         $this->syncLessons($course, $request->input('lessons', []));
@@ -115,6 +116,7 @@ class DigitalCourseController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'is_featured' => $request->boolean('is_featured'),
             'sort_order' => $validated['sort_order'] ?? 0,
+            'sms_templates' => $this->normalizeSmsTemplates($request->input('sms_templates')),
         ]);
 
         $this->syncLessons($digitalCourse, $request->input('lessons', []));
@@ -163,7 +165,23 @@ class DigitalCourseController extends Controller
             'lessons.*.is_active' => 'nullable|boolean',
             'lessons.*.is_free' => 'nullable|boolean',
             'lessons.*._delete' => 'nullable|boolean',
+            'sms_templates' => 'nullable|array',
+            'sms_templates.*' => 'nullable|string|max:1000',
         ]);
+    }
+
+    protected function normalizeSmsTemplates(?array $templates): ?array
+    {
+        if (!is_array($templates)) {
+            return null;
+        }
+
+        $filtered = array_filter(
+            array_map(fn ($value) => is_string($value) ? trim($value) : '', $templates),
+            fn ($value) => $value !== ''
+        );
+
+        return $filtered === [] ? null : $filtered;
     }
 
     protected function storeThumbnail(Request $request): ?string

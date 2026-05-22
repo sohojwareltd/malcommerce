@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DigitalCourseEnrollment;
 use App\Models\DigitalCourseOrder;
 use App\Services\BkashService;
-use App\Services\SmsService;
+use App\Services\DigitalCourseSmsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -43,7 +43,6 @@ class DigitalCoursePaymentController extends Controller
             $callbackUrl
         );
 
-        dd($result);
         if (!$result['success']) {
             Log::error('Course bKash initiation failed', [
                 'order_id' => $order->id,
@@ -119,15 +118,7 @@ class DigitalCoursePaymentController extends Controller
         ]);
 
         DigitalCourseEnrollment::grantForOrder($order);
-
-        try {
-            app(SmsService::class)->send(
-                $order->customer_phone,
-                "আপনার কোর্স কেনা সফল হয়েছে। অর্ডার #{$order->order_number}। লগইন করে ভিডিও দেখুন।"
-            );
-        } catch (\Throwable $e) {
-            Log::warning('Course payment SMS failed', ['order_id' => $order->id]);
-        }
+        app(DigitalCourseSmsService::class)->send($order, DigitalCourseSmsService::STATUS_COMPLETED);
 
         return redirect()->route('course-orders.success', $order->order_number)
             ->with('success', 'Payment completed! Login with your phone to watch the course.');
@@ -156,6 +147,7 @@ class DigitalCoursePaymentController extends Controller
                     'status' => DigitalCourseOrder::STATUS_COMPLETED,
                 ]);
                 DigitalCourseEnrollment::grantForOrder($order);
+                app(DigitalCourseSmsService::class)->send($order, DigitalCourseSmsService::STATUS_COMPLETED);
             }
         }
 

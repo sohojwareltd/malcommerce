@@ -26,6 +26,7 @@ class DigitalCourse extends Model
         'is_active',
         'is_featured',
         'sort_order',
+        'sms_templates',
     ];
 
     protected function casts(): array
@@ -36,6 +37,7 @@ class DigitalCourse extends Model
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'integer',
+            'sms_templates' => 'array',
         ];
     }
 

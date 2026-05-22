@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DigitalCourseEnrollment;
 use App\Models\DigitalCourseOrder;
+use App\Services\DigitalCourseSmsService;
 use Illuminate\Http\Request;
 
 class DigitalCourseOrderController extends Controller
@@ -56,6 +57,7 @@ class DigitalCourseOrderController extends Controller
         ]);
 
         DigitalCourseEnrollment::grantForOrder($digitalCourseOrder);
+        app(DigitalCourseSmsService::class)->send($digitalCourseOrder, DigitalCourseSmsService::STATUS_COMPLETED);
 
         return back()->with('success', 'Order marked as paid and enrollment granted.');
     }

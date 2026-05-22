@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Digital Products')
+@section('title', 'Courses')
 
 @section('content')
 <div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
-        <h1 class="text-2xl sm:text-3xl font-bold">Digital products</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold">Courses</h1>
         <p class="text-neutral-600 mt-1 text-sm">Paid video courses</p>
         <nav class="flex gap-2 mt-2">
             <a href="{{ route('admin.digital-courses.index') }}" class="px-3 py-1 rounded-lg text-sm font-medium {{ !request('trashed') ? 'bg-primary text-white' : 'bg-neutral-100' }}">Active</a>

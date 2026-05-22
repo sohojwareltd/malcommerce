@@ -80,7 +80,7 @@
                 </svg>
             </div>
         </div>
-        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Digital Products</h3>
+        <h3 class="text-white/80 text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 truncate">Courses</h3>
         <p class="text-lg sm:text-xl lg:text-3xl xl:text-4xl font-bold truncate mb-2 sm:mb-3">{{ $stats['digital_products'] }}</p>
         <div class="flex gap-1 sm:gap-2 flex-wrap">
             <a href="{{ route('admin.digital-courses.index') }}" class="inline-flex items-center px-2 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 transition">Courses</a>

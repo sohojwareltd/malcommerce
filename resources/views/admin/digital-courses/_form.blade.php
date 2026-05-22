@@ -11,6 +11,8 @@
         ])->values()->all();
     }
     $lessonRows = $lessonRows ?: [['title' => '', 'youtube_url' => '', 'sort_order' => 0, 'is_active' => true, 'is_free' => false]];
+    $courseSmsStatuses = \App\Services\DigitalCourseSmsService::statusLabels();
+    $courseSmsTemplates = old('sms_templates', $course?->sms_templates ?? []);
 @endphp
 
 <div class="bg-white rounded-lg shadow-md p-6" x-data="{
@@ -107,6 +109,27 @@
                     </div>
                 </template>
             </div>
+        </div>
+
+        <div class="mt-8 border-t border-neutral-200 pt-6">
+            <h2 class="text-lg font-bold mb-2">SMS messages</h2>
+            <p class="text-sm text-neutral-600 mb-4">
+                Customize SMS for each order stage. Leave blank to use the default (purchase completed includes login + my courses link).
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @foreach($courseSmsStatuses as $statusKey => $statusLabel)
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-sm font-semibold text-neutral-800">{{ $statusLabel }}</label>
+                            <span class="text-xs text-neutral-500 uppercase tracking-wide">{{ $statusKey }}</span>
+                        </div>
+                        <textarea name="sms_templates[{{ $statusKey }}]" rows="4" class="w-full rounded-lg border-neutral-300 text-sm" placeholder="Leave blank for default message.">{{ $courseSmsTemplates[$statusKey] ?? '' }}</textarea>
+                    </div>
+                @endforeach
+            </div>
+            <p class="text-xs text-neutral-500 mt-3">
+                Placeholders: {order_number}, {customer_name}, {customer_phone}, {course_title}, {total_price}, {my_courses_url}, {login_url}, {status}
+            </p>
         </div>
 
         <div class="mt-6 flex gap-2">
