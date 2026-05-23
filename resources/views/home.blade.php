@@ -364,6 +364,114 @@
         </div>
     @endif
 
+    <!-- Featured Courses Section -->
+    @if(isset($featuredCourses) && $featuredCourses->isNotEmpty())
+        <div class="bg-gray-50 py-16 border-t border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col items-center justify-center text-center mb-10">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 font-bangla mb-2">বিশেষ কোর্স</h2>
+                    <p class="text-gray-600 font-bangla mb-3">ভিডিও কোর্স কিনুন এবং যেকোনো সময় দেখুন</p>
+                    <a href="{{ route('courses.index') }}"
+                        class="mt-2 text-primary hover:underline font-bangla font-medium inline-block">
+                        সব কোর্স দেখুন <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    @foreach ($featuredCourses as $course)
+                        <article class="group h-full">
+                            <a href="{{ route('courses.show', $course) }}"
+                               class="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm ring-1 ring-black/[0.03] transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10">
+                                <div class="relative aspect-video overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+                                    @if($course->thumbnail_url)
+                                        <img src="{{ $course->thumbnail_url }}" alt="{{ $course->title }}"
+                                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            loading="lazy">
+                                    @else
+                                        <div class="flex h-full w-full items-center justify-center text-gray-400">
+                                            <i class="fas fa-graduation-cap text-3xl opacity-40"></i>
+                                        </div>
+                                    @endif
+
+                                    <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent"></div>
+
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                                        <span class="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/90 bg-white/15 text-white shadow-lg backdrop-blur-sm sm:h-14 sm:w-14">
+                                            <i class="fas fa-play ml-0.5 text-sm sm:text-base"></i>
+                                        </span>
+                                    </div>
+
+                                    <div class="absolute left-2 top-2 flex flex-wrap gap-1.5 sm:left-3 sm:top-3">
+                                        <span class="inline-flex items-center rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary shadow-sm sm:text-xs">
+                                            কোর্স
+                                        </span>
+                                        @if($course->compare_at_price && $course->compare_at_price > $course->price)
+                                            <span class="badge-sale font-bangla text-[10px] sm:text-xs">
+                                                {{ round((($course->compare_at_price - $course->price) / $course->compare_at_price) * 100) }}% ছাড়
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    @if($course->lessons_count)
+                                        <span class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm sm:right-3 sm:top-3 sm:text-xs">
+                                            <i class="fas fa-list-ul text-[9px] opacity-90"></i>
+                                            {{ $course->lessons_count }} লেসন
+                                        </span>
+                                    @endif
+
+                                    <div class="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+                                        @if($course->category)
+                                            <span class="mb-1 inline-block max-w-full truncate rounded-md bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white/95 backdrop-blur-sm sm:text-xs">
+                                                {{ $course->category->name }}
+                                            </span>
+                                        @endif
+                                        <p class="font-bangla text-sm font-bold leading-snug text-white line-clamp-2 sm:text-base">
+                                            {{ $course->title }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-1 flex-col p-3 sm:p-4">
+                                    @if($course->short_description)
+                                        <p class="mb-2 line-clamp-2 text-xs leading-relaxed text-gray-500 font-bangla sm:text-sm">
+                                            {{ $course->short_description }}
+                                        </p>
+                                    @endif
+
+                                    <div class="mt-auto flex items-end justify-between gap-2 border-t border-gray-100 pt-3">
+                                        <div class="min-w-0">
+                                            <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                                                <span class="text-lg font-bold sm:text-xl" style="color: var(--color-primary);">
+                                                    ৳{{ number_format($course->price, 0) }}
+                                                </span>
+                                                @if($course->compare_at_price && $course->compare_at_price > $course->price)
+                                                    <span class="text-xs text-gray-400 line-through sm:text-sm">
+                                                        ৳{{ number_format($course->compare_at_price, 0) }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <p class="mt-0.5 text-[10px] text-gray-400 font-bangla sm:text-xs">লাইফটাইম অ্যাক্সেস</p>
+                                        </div>
+                                        <span class="inline-flex shrink-0 items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-white sm:text-sm">
+                                            দেখুন
+                                            <i class="fas fa-arrow-right text-[10px] transition-transform group-hover:translate-x-0.5"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+                    @endforeach
+                </div>
+
+                <div class="text-center mt-8 md:hidden">
+                    <a href="{{ route('courses.index') }}" class="inline-block btn-primary font-bangla px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 text-white font-medium">
+                        সব কোর্স দেখুন
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Featured Jobs Section -->
     @if(isset($featuredJobs) && $featuredJobs->isNotEmpty())
     <div class="bg-gray-50 py-16 border-t border-gray-200">

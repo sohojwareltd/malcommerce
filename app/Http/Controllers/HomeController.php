@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DigitalCourse;
 use App\Models\JobCircular;
 use App\Models\Product;
 use App\Models\Video;
@@ -24,6 +25,16 @@ class HomeController extends Controller
             ->where('is_digital', false)
             ->where('is_featured', true)
             ->orderBy('sort_order')
+            ->get();
+
+        $featuredCourses = DigitalCourse::query()
+            ->active()
+            ->where('is_featured', true)
+            ->with('category')
+            ->withCount(['activeLessons as lessons_count'])
+            ->orderBy('sort_order')
+            ->orderByDesc('created_at')
+            ->take(8)
             ->get();
 
         $featuredJobs = JobCircular::where('is_active', true)
@@ -56,6 +67,7 @@ class HomeController extends Controller
         return view('home', compact(
             'products',
             'featuredProducts',
+            'featuredCourses',
             'featuredJobs',
             'featuredWorkshops',
             'featuredVideos'
