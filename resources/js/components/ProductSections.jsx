@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { MetaPixel } from '../meta-pixel.js';
 
 // Helper function to check if string contains HTML tags
 const containsHTML = (str) => {
@@ -62,8 +63,17 @@ const RenderText = ({ content, className = '', style = {}, tag = 'div' }) => {
     }
 };
 
-const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity, orderSettings = {}, builderMode = false, selectedSectionIndex = null, onSectionClick, renderAddBetween }) => {
+const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity, productCategory = '', productSlug = '', orderSettings = {}, builderMode = false, selectedSectionIndex = null, onSectionClick, renderAddBetween }) => {
     const [videoLightbox, setVideoLightbox] = useState({ open: false, url: '', title: '' });
+
+    const metaProduct = productId ? {
+        id: String(productId),
+        name: productName || '',
+        slug: productSlug || '',
+        category: productCategory || '',
+        price: parseFloat(productPrice) || 0,
+        currency: 'BDT',
+    } : null;
 
     // Helper to get YouTube thumbnail
     const getYouTubeThumbnail = (url) => {
@@ -290,6 +300,7 @@ const ProductSections = ({ layout, productId, productName, productImage, product
     const OrderForm = ({ index, section, isPrimary, spacingStyle = {} }) => {
         if (!isPrimary) return null;
 
+        const formRef = useRef(null);
         const [quantity, setQuantity] = useState(1);
         const deliveryOptions = orderSettings.deliveryOptions || [];
         const [selectedDelivery, setSelectedDelivery] = useState(deliveryOptions.length > 0 ? 0 : null);
@@ -310,6 +321,14 @@ const ProductSections = ({ layout, productId, productName, productImage, product
         const stockQuantity = parseInt(productStockQuantity) || 999;
         const maxQuantity = maxQuantitySetting > 0 ? Math.min(stockQuantity, maxQuantitySetting) : stockQuantity;
         const effectiveMinQuantity = Math.max(1, minQuantity);
+
+        useEffect(() => {
+            const form = formRef.current;
+            if (!form || builderMode || !metaProduct) {
+                return;
+            }
+            MetaPixel.bindOrderForm(form, metaProduct, () => MetaPixel.checkoutStateFromForm(form));
+        }, [index, productId, builderMode]);
 
         // Initialize first delivery option if available (handled in useState initialization above)
 
@@ -337,7 +356,15 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                         {/* Order Form */}
                         <div className="card overflow-hidden" style={section.background_color ? { backgroundColor: section.background_color } : {}}>
                             <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-900 font-sans break-words">{orderFormTitle}</h2>
-                            <form action="/orders" method="POST" id={`product-order-form-${index}`} className="space-y-4">
+                            <form
+                                ref={formRef}
+                                action="/orders"
+                                method="POST"
+                                id={`product-order-form-${index}`}
+                                className="space-y-4"
+                                data-product-price={productPrice}
+                                data-delivery-options={JSON.stringify(deliveryOptions)}
+                            >
                                 <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
                                 <input type="hidden" name="product_id" value={productId} />
                                 
@@ -1078,6 +1105,9 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 // Secondary CTAs just scroll to the primary order form
                 const handleOrderScroll = (e) => {
                     e.preventDefault();
+                    if (metaProduct && MetaPixel.isEnabled()) {
+                        MetaPixel.trackLead(metaProduct);
+                    }
                     const target = document.getElementById('page-order-form');
                     if (target) {
                         target.scrollIntoView({ behavior: 'smooth', block: 'start' });

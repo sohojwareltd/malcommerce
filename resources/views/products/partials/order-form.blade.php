@@ -32,7 +32,10 @@
     <div class="card overflow-hidden">
     <h2 class="text-xl md:text-2xl font-bold mb-6 text-gray-900 font-bangla break-words">{{ $orderFormTitle }}</h2>
 
-    <form action="{{ route('orders.store') }}" method="POST" x-data="{ 
+    <form action="{{ route('orders.store') }}" method="POST"
+        data-product-price="{{ $product->price }}"
+        data-delivery-options='@json($deliveryOptions ?? [])'
+        x-data="{
         quantity: {{ max(1, $minQuantity) }}, 
         price: {{ $product->price }}, 
         deliveryCharge: {{ !empty($deliveryOptions) && isset($deliveryOptions[0]['charge']) ? $deliveryOptions[0]['charge'] : 0 }},
@@ -326,31 +329,15 @@
 </div>
 
 @push('scripts')
-@if(\App\Models\Setting::get('fb_pixel_id'))
+@if(\App\Support\MetaPixel::enabled())
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    if (!window.MetaPixel) return;
+    var product = @json(\App\Support\MetaPixel::productPayload($product));
     var form = document.querySelector('#order form[action="{{ route('orders.store') }}"]');
-    if (!form || typeof fbq !== 'function') return;
-    var initiated = false;
-    form.addEventListener('submit', function () {
-        if (initiated) return;
-        initiated = true;
-        var quantityInput = form.querySelector('input[name="quantity"]');
-        var quantity = 1;
-        if (quantityInput && quantityInput.value) {
-            var parsed = parseInt(quantityInput.value, 10);
-            if (!isNaN(parsed) && parsed > 0) quantity = parsed;
-        }
-        fbq('track', 'InitiateCheckout', {
-            content_name: @json($product->name),
-            content_ids: [@json($product->id)],
-            content_type: 'product',
-            content_category: @json(optional($product->category)->name),
-            content_slug: @json($product->slug),
-            value: {{ (float) $product->price }},
-            currency: 'BDT',
-            num_items: quantity
-        });
+    if (!form) return;
+    window.MetaPixel.bindOrderForm(form, product, function () {
+        return window.MetaPixel.checkoutStateFromForm(form);
     });
 });
 </script>
@@ -360,29 +347,24 @@ document.addEventListener('DOMContentLoaded', function () {
 document.addEventListener('DOMContentLoaded', function () {
     var form = document.querySelector('#order form[action="{{ route('orders.store') }}"]');
     if (!form) return;
-    var quantityInput = form.querySelector('input[name="quantity"]');
-    var quantity = 1;
-    if (quantityInput && quantityInput.value) {
-        var parsed = parseInt(quantityInput.value, 10);
-        if (!isNaN(parsed) && parsed > 0) quantity = parsed;
-    }
-    var productPrice = {{ (float) $product->price }};
-    var value = productPrice * quantity;
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-        event: 'begin_checkout',
-        ecommerce: {
-            currency: 'BDT',
-            value: value,
-            items: [{
-                item_id: @json((string) $product->id),
-                item_name: @json($product->name),
-                item_category: @json(optional($product->category)->name ?? ''),
-                price: productPrice,
-                quantity: quantity,
-                index: 0
-            }]
-        }
+    form.addEventListener('submit', function () {
+        var state = window.MetaPixel ? window.MetaPixel.checkoutStateFromForm(form) : { quantity: 1, value: {{ (float) $product->price }} };
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+            event: 'begin_checkout',
+            ecommerce: {
+                currency: 'BDT',
+                value: state.value,
+                items: [{
+                    item_id: @json((string) $product->id),
+                    item_name: @json($product->name),
+                    item_category: @json(optional($product->category)->name ?? ''),
+                    price: {{ (float) $product->price }},
+                    quantity: state.quantity,
+                    index: 0
+                }]
+            }
+        });
     });
 });
 </script>

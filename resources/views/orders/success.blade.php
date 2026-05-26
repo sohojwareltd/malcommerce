@@ -3,20 +3,12 @@
 @section('title', 'Order Success')
 
 @push('scripts')
-@if(\App\Models\Setting::get('fb_pixel_id'))
+@if(\App\Support\MetaPixel::enabled())
 <script>
-  if (typeof fbq === 'function') {
-    fbq('track', 'Purchase', {
-      value: {{ (float) $order->total_price }},
-      currency: 'BDT',
-      order_id: @json($order->order_number),
-      content_ids: [@json($order->product_id)],
-      content_type: 'product',
-      content_name: @json($order->product->name),
-      content_category: @json(optional($order->product->category)->name),
-      num_items: {{ (int) $order->quantity }}
-    });
-  }
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.MetaPixel) return;
+    window.MetaPixel.trackPurchase(@json(\App\Support\MetaPixel::orderPayload($order)));
+});
 </script>
 @endif
 @if(\App\Models\Setting::get('gtm_container_id'))

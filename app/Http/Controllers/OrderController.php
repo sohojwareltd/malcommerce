@@ -183,7 +183,7 @@ class OrderController extends Controller
     
     public function success($orderNumber)
     {
-        $order = Order::with('product')->where('order_number', $orderNumber)->firstOrFail();
+        $order = Order::with('product.category')->where('order_number', $orderNumber)->firstOrFail();
         return view('orders.success', compact('order'));
     }
 

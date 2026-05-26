@@ -1,4 +1,5 @@
 import './bootstrap';
+import './meta-pixel.js';
 import Alpine from 'alpinejs';
 
 // Initialize Alpine.js

@@ -16,6 +16,8 @@ function initProductSections() {
             const productComparePrice = container.dataset.productComparePrice;
             const productInStock = container.dataset.productInStock === '1';
             const productStockQuantity = container.dataset.productStockQuantity;
+            const productCategory = container.dataset.productCategory || '';
+            const productSlug = container.dataset.productSlug || '';
             const orderSettings = JSON.parse(container.dataset.orderSettings || '{}');
             
             if (!layout || !Array.isArray(layout) || layout.length === 0) {
@@ -34,6 +36,8 @@ function initProductSections() {
                 productComparePrice,
                 productInStock,
                 productStockQuantity,
+                productCategory,
+                productSlug,
                 orderSettings
             }));
         } catch (error) {

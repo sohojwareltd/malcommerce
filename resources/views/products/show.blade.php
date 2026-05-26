@@ -81,6 +81,8 @@
          data-product-compare-price="{{ $product->compare_at_price ?? '' }}"
          data-product-in-stock="{{ $product->in_stock ? '1' : '0' }}"
          data-product-stock-quantity="{{ $product->stock_quantity }}"
+         data-product-category="{{ $product->category?->name ?? '' }}"
+         data-product-slug="{{ $product->slug }}"
          data-order-settings="{{ json_encode($orderFormSettings) }}">
         <!-- Loading indicator -->
         <div class="flex items-center justify-center min-h-screen">
@@ -283,19 +285,12 @@
     } catch (e) { console.warn('Recently viewed save failed:', e); }
 })();
 </script>
-@if(\App\Models\Setting::get('fb_pixel_id'))
+@if(\App\Support\MetaPixel::enabled())
 <script>
-  if (typeof fbq === 'function') {
-    fbq('track', 'ViewContent', {
-      content_name: @json($product->name),
-      content_ids: [@json($product->id)],
-      content_type: 'product',
-      content_category: @json(optional($product->category)->name),
-      content_slug: @json($product->slug),
-      value: {{ (float) $product->price }},
-      currency: 'BDT'
-    });
-  }
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.MetaPixel) return;
+    window.MetaPixel.trackViewContent(@json(\App\Support\MetaPixel::productPayload($product)));
+});
 </script>
 @endif
 @if(\App\Models\Setting::get('gtm_container_id'))

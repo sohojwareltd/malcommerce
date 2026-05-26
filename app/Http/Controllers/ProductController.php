@@ -38,7 +38,7 @@ class ProductController extends Controller
     
     public function show($slug)
     {
-        $product = Product::where('slug', $slug)
+        $product = Product::with('category')->where('slug', $slug)
             ->where('is_active', true)
             ->where('is_digital', false)
             ->firstOrFail();
