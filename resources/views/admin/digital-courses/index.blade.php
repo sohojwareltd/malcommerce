@@ -73,6 +73,7 @@
                         <form method="POST" action="{{ route('admin.digital-courses.restore', $course->id) }}" class="inline">@csrf<button class="text-primary font-semibold">Restore</button></form>
                     @else
                         <a href="{{ route('courses.show', $course->slug) }}" target="_blank" class="text-neutral-600 hover:underline text-xs mr-2">View</a>
+                        <a href="{{ route('admin.digital-courses.builder', $course) }}" class="text-sky-700 hover:underline font-semibold mr-2">Page Builder</a>
                         <a href="{{ route('admin.digital-courses.edit', $course) }}" class="text-primary hover:underline font-semibold">Edit</a>
                         <form method="POST" action="{{ route('admin.digital-courses.destroy', $course) }}" class="inline" onsubmit="return confirm('Delete?');">@csrf @method('DELETE')<button class="text-red-600 font-semibold ml-2">Delete</button></form>
                     @endif

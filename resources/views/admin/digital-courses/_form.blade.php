@@ -125,6 +125,17 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="checkout_form_title" class="{{ $labelClass }}">Checkout form title</label>
+                                <input type="text" name="checkout_form_title" id="checkout_form_title" value="{{ old('checkout_form_title', $course?->checkout_form_title) }}" placeholder="কোর্স কিনুন" class="{{ $inputClass }}">
+                                <p class="{{ $hintClass }}">Used on custom sales pages. Leave empty for default.</p>
+                            </div>
+                            <div>
+                                <label for="checkout_button_text" class="{{ $labelClass }}">Checkout button text</label>
+                                <input type="text" name="checkout_button_text" id="checkout_button_text" value="{{ old('checkout_button_text', $course?->checkout_button_text) }}" placeholder="bKash দিয়ে কিনুন" class="{{ $inputClass }}">
+                            </div>
+                        </div>
                         <div>
                             <label for="short_description" class="{{ $labelClass }}">Short description</label>
                             <textarea name="short_description" id="short_description" rows="2" class="{{ $inputClass }} resize-y">{{ old('short_description', $course?->short_description) }}</textarea>

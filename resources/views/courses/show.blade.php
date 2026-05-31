@@ -1,8 +1,49 @@
 @extends('layouts.app')
 
+@php
+    $hasCustomLayout = $course->page_layout && is_array($course->page_layout) && count($course->page_layout) > 0;
+    $hideLayoutChrome = $hasCustomLayout;
+    $metaDescOverride = $course->short_description ?? $course->description ?? 'কোর্সের বিবরণ দেখুন';
+    $ogImageOverride = $course->thumbnail_url ?: null;
+@endphp
+
 @section('title', $course->title)
 
 @section('content')
+@if($hasCustomLayout)
+    @php
+        $checkoutSettings = [
+            'title' => $course->checkout_form_title ?: 'কোর্স কিনুন',
+            'buttonText' => $course->checkout_button_text ?: 'bKash দিয়ে কিনুন',
+        ];
+    @endphp
+    <div id="custom-sections"
+         data-entity-type="course"
+         data-layout="{{ json_encode($course->page_layout) }}"
+         data-product-id="{{ $course->id }}"
+         data-product-name="{{ $course->title }}"
+         data-product-image="{{ $course->thumbnail_url }}"
+         data-product-short-description="{{ $course->short_description ?? '' }}"
+         data-product-price="{{ $course->price }}"
+         data-product-compare-price="{{ $course->compare_at_price ?? '' }}"
+         data-product-in-stock="1"
+         data-product-stock-quantity="999"
+         data-product-category="{{ $course->category?->name ?? '' }}"
+         data-product-slug="{{ $course->slug }}"
+         data-course-slug="{{ $course->slug }}"
+         data-course-enrolled="{{ $enrolled ? '1' : '0' }}"
+         data-my-course-url="{{ route('my-courses.show', $course) }}"
+         data-auth-name="{{ auth()->user()?->name ?? '' }}"
+         data-auth-phone="{{ auth()->user()?->phone ?? '' }}"
+         data-checkout-settings="{{ json_encode($checkoutSettings) }}">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style="border-color: var(--color-primary);"></div>
+                <p class="text-gray-600 font-sans">পেজ লোড হচ্ছে...</p>
+            </div>
+        </div>
+    </div>
+@else
 <div class="bg-white py-8 md:py-12" x-data="{ buyOpen: {{ ($errors->any() && !$enrolled) ? 'true' : 'false' }} }">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -76,7 +117,7 @@
                             </div>
                             <button type="submit" class="w-full flex items-center justify-center gap-2 bg-[#E2136E] hover:bg-[#c9105f] text-white py-3 rounded-lg font-semibold font-bangla transition">
                                 <img src="{{ route('assets.bkash.logo') }}" alt="" class="h-6 w-auto" onerror="this.style.display='none'">
-                                bKash দিয়ে কিনুন
+                                {{ $course->checkout_button_text ?: 'bKash দিয়ে কিনুন' }}
                             </button>
                         </form>
                         @guest
@@ -92,4 +133,29 @@
         @include('courses.partials.buy-course-modal', ['course' => $course])
     @endif
 </div>
+@endif
+
+@push('scripts')
+@if($hasCustomLayout)
+@vite('resources/js/product-sections.js')
+@endif
+@if(\App\Support\MetaPixel::enabled())
+@php
+    $metaPixelCourse = [
+        'id' => (string) $course->id,
+        'name' => $course->title,
+        'slug' => $course->slug,
+        'category' => $course->category?->name ?? '',
+        'price' => (float) $course->price,
+        'currency' => 'BDT',
+    ];
+@endphp
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.MetaPixel) return;
+    window.MetaPixel.trackViewContent(@json($metaPixelCourse));
+});
+</script>
+@endif
+@endpush
 @endsection

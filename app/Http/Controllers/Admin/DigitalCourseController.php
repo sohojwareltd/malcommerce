@@ -72,6 +72,8 @@ class DigitalCourseController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'is_featured' => $request->boolean('is_featured'),
             'sort_order' => $validated['sort_order'] ?? 0,
+            'checkout_form_title' => $validated['checkout_form_title'] ?? null,
+            'checkout_button_text' => $validated['checkout_button_text'] ?? null,
             'sms_templates' => $this->normalizeSmsTemplates($request->input('sms_templates')),
         ]);
 
@@ -92,6 +94,11 @@ class DigitalCourseController extends Controller
         ]);
     }
 
+    public function builder(DigitalCourse $digitalCourse)
+    {
+        return view('admin.digital-courses.builder', ['course' => $digitalCourse]);
+    }
+
     public function update(Request $request, DigitalCourse $digitalCourse)
     {
         $validated = $this->validateCourse($request, $digitalCourse->id);
@@ -102,8 +109,9 @@ class DigitalCourseController extends Controller
         }
 
         $thumbnailPath = $this->storeThumbnail($request) ?? $digitalCourse->thumbnail;
+        $isLayoutOnlySave = $request->filled('page_layout');
 
-        $digitalCourse->update([
+        $updateData = [
             'category_id' => $validated['category_id'] ?? null,
             'title' => $validated['title'],
             'slug' => $slug,
@@ -116,10 +124,33 @@ class DigitalCourseController extends Controller
             'is_active' => $request->boolean('is_active', true),
             'is_featured' => $request->boolean('is_featured'),
             'sort_order' => $validated['sort_order'] ?? 0,
-            'sms_templates' => $this->normalizeSmsTemplates($request->input('sms_templates')),
-        ]);
+            'checkout_form_title' => $validated['checkout_form_title'] ?? null,
+            'checkout_button_text' => $validated['checkout_button_text'] ?? null,
+        ];
 
-        $this->syncLessons($digitalCourse, $request->input('lessons', []));
+        if (!$isLayoutOnlySave) {
+            $updateData['sms_templates'] = $this->normalizeSmsTemplates($request->input('sms_templates'));
+        }
+
+        if (array_key_exists('page_layout', $validated)) {
+            if (isset($validated['page_layout']) && is_string($validated['page_layout']) && $validated['page_layout'] !== '') {
+                $decoded = json_decode($validated['page_layout'], true);
+                $updateData['page_layout'] = is_array($decoded) ? $decoded : null;
+            } elseif ($request->has('page_layout')) {
+                $updateData['page_layout'] = null;
+            }
+        }
+
+        $digitalCourse->update($updateData);
+
+        if (!$isLayoutOnlySave && $request->has('lessons')) {
+            $this->syncLessons($digitalCourse, $request->input('lessons', []));
+        }
+
+        if ($request->has('page_layout')) {
+            return redirect()->route('admin.digital-courses.builder', $digitalCourse)
+                ->with('success', 'Layout saved successfully!');
+        }
 
         return redirect()->route('admin.digital-courses.edit', $digitalCourse)
             ->with('success', 'Course updated.');
@@ -157,6 +188,9 @@ class DigitalCourseController extends Controller
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
+            'checkout_form_title' => 'nullable|string|max:255',
+            'checkout_button_text' => 'nullable|string|max:255',
+            'page_layout' => 'nullable',
             'lessons' => 'nullable|array',
             'lessons.*.id' => 'nullable|integer',
             'lessons.*.title' => 'required_with:lessons.*.youtube_url|string|max:255',

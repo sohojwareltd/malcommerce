@@ -63,17 +63,29 @@ const RenderText = ({ content, className = '', style = {}, tag = 'div' }) => {
     }
 };
 
-const ProductSections = ({ layout, productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity, productCategory = '', productSlug = '', orderSettings = {}, builderMode = false, selectedSectionIndex = null, onSectionClick, renderAddBetween }) => {
+const ProductSections = ({ layout, entityType = 'product', productId, productName, productImage, productShortDescription, productPrice, productComparePrice, productInStock, productStockQuantity, productCategory = '', productSlug = '', courseSlug = '', courseEnrolled = false, myCourseUrl = '', authName = '', authPhone = '', orderSettings = {}, builderMode = false, selectedSectionIndex = null, onSectionClick, renderAddBetween }) => {
     const [videoLightbox, setVideoLightbox] = useState({ open: false, url: '', title: '' });
 
     const metaProduct = productId ? {
         id: String(productId),
         name: productName || '',
-        slug: productSlug || '',
+        slug: productSlug || courseSlug || '',
         category: productCategory || '',
         price: parseFloat(productPrice) || 0,
         currency: 'BDT',
     } : null;
+
+    const isCourseCheckoutCTA = (section) => {
+        const text = section.button_text?.toLowerCase() || '';
+        return (
+            section.button_link === '#order' ||
+            text.includes('order') ||
+            text.includes('অর্ডার') ||
+            text.includes('কিনুন') ||
+            text.includes('enroll') ||
+            text.includes('এনরোল')
+        );
+    };
 
     // Helper to get YouTube thumbnail
     const getYouTubeThumbnail = (url) => {
@@ -287,14 +299,87 @@ const ProductSections = ({ layout, productId, productName, productImage, product
     // Priority: order_form first, then call_to_action with order keywords
     const firstOrderFormIndex = layout.findIndex((section) => section.type === 'order_form');
     const firstOrderCTIndex = layout.findIndex((section) =>
-        section.type === 'call_to_action' &&
-        (
-            section.button_link === '#order' ||
-            section.button_text?.toLowerCase().includes('order') ||
-            section.button_text?.toLowerCase().includes('অর্ডার')
-        )
+        section.type === 'call_to_action' && isCourseCheckoutCTA(section)
     );
     const firstOrderIndex = firstOrderFormIndex !== -1 ? firstOrderFormIndex : firstOrderCTIndex;
+    const canShowCheckout = Boolean(productId) && (entityType === 'course' ? (!courseEnrolled || builderMode) : productInStock);
+
+    const CourseCheckoutForm = ({ index, section, isPrimary, spacingStyle = {} }) => {
+        if (!isPrimary) return null;
+
+        const formRef = useRef(null);
+        const price = parseFloat(productPrice) || 0;
+        const comparePrice = parseFloat(productComparePrice) || 0;
+        const checkoutTitle = orderSettings.title || 'কোর্স কিনুন';
+        const checkoutButtonText = orderSettings.buttonText || 'bKash দিয়ে কিনুন';
+        const checkoutUrl = courseSlug ? `/courses/${courseSlug}/checkout` : '#';
+
+        useEffect(() => {
+            const form = formRef.current;
+            if (!form || builderMode || !metaProduct || !window.MetaPixel) {
+                return;
+            }
+            window.MetaPixel.bindOrderForm(form, metaProduct, () => ({
+                quantity: 1,
+                deliveryCharge: 0,
+                value: price,
+            }));
+        }, [index, productId, builderMode, price]);
+
+        return (
+            <div className="w-full py-8 theme-section" id="page-order-form" style={spacingStyle}>
+                {(section.title || section.content) && (
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 text-center">
+                        {section.title && (
+                            <RenderText content={section.title} tag="h2" className="theme-section-title font-sans" />
+                        )}
+                        {section.content && (
+                            <RenderText content={section.content} tag="p" className="text-lg font-sans" style={{ lineHeight: '1.8' }} />
+                        )}
+                    </div>
+                )}
+                <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="card overflow-hidden bg-gray-50 border border-gray-200 rounded-xl p-6" style={section.background_color ? { backgroundColor: section.background_color } : {}}>
+                        {courseEnrolled && !builderMode ? (
+                            <>
+                                <p className="text-green-700 font-semibold font-sans mb-4">আপনার কাছে এই কোর্স আছে</p>
+                                {myCourseUrl ? (
+                                    <a href={myCourseUrl} className="block w-full text-center bg-primary text-white py-3 rounded-lg font-semibold font-sans hover:opacity-95 transition">
+                                        কোর্স দেখুন
+                                    </a>
+                                ) : null}
+                            </>
+                        ) : (
+                            <>
+                                <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900 font-sans break-words">{checkoutTitle}</h2>
+                                <div className="mb-4">
+                                    {comparePrice > price && (
+                                        <span className="text-gray-400 line-through text-sm mr-2">৳{comparePrice.toLocaleString('bn-BD')}</span>
+                                    )}
+                                    <span className="text-2xl font-bold text-gray-900">৳{price.toLocaleString('bn-BD')}</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mb-4 font-sans">bKash দিয়ে পেমেন্ট · ফোন নম্বর দিয়ে অ্যাকাউন্ট তৈরি হবে</p>
+                                <form ref={formRef} action={checkoutUrl} method="POST" className="space-y-3" onSubmit={builderMode ? (e) => e.preventDefault() : undefined}>
+                                    <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1 font-sans">নাম</label>
+                                        <input type="text" name="customer_name" defaultValue={authName} required className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-sans" placeholder="আপনার সম্পূর্ণ নাম" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1 font-sans">মোবাইল</label>
+                                        <input type="tel" name="customer_phone" defaultValue={authPhone} required pattern="[0-9]{11}" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="01XXXXXXXXX" />
+                                    </div>
+                                    <button type="submit" className="w-full flex items-center justify-center gap-2 bg-[#E2136E] hover:bg-[#c9105f] text-white py-3 rounded-lg font-semibold font-sans transition">
+                                        {checkoutButtonText}
+                                    </button>
+                                </form>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     // Order Form Component with React State (single primary form per page)
     const OrderForm = ({ index, section, isPrimary, spacingStyle = {} }) => {
@@ -1082,24 +1167,20 @@ const ProductSections = ({ layout, productId, productName, productImage, product
                 );
             
             case 'order_form': {
-                // Only render the first order form as primary
-                if (index === firstOrderIndex && productInStock && productId) {
-                    return <OrderForm key={index} index={index} section={section} isPrimary={true} spacingStyle={spacingStyle} />;
+                const CheckoutForm = entityType === 'course' ? CourseCheckoutForm : OrderForm;
+                if (index === firstOrderIndex && canShowCheckout) {
+                    return <CheckoutForm key={index} index={index} section={section} isPrimary={true} spacingStyle={spacingStyle} />;
                 }
-                
-                // Other order forms are ignored (only one allowed)
+
                 return null;
             }
             
             case 'call_to_action': {
-                const isOrderCTA =
-                    section.button_link === '#order' ||
-                    section.button_text?.toLowerCase().includes('order') ||
-                    section.button_text?.toLowerCase().includes('অর্ডার');
+                const isOrderCTA = isCourseCheckoutCTA(section);
+                const CheckoutForm = entityType === 'course' ? CourseCheckoutForm : OrderForm;
 
-                // Primary order CTA renders the single shared order form
-                if (isOrderCTA && index === firstOrderIndex && productInStock && productId) {
-                    return <OrderForm key={index} index={index} section={section} isPrimary={true} spacingStyle={spacingStyle} />;
+                if (isOrderCTA && index === firstOrderIndex && canShowCheckout) {
+                    return <CheckoutForm key={index} index={index} section={section} isPrimary={true} spacingStyle={spacingStyle} />;
                 }
 
                 // Secondary CTAs just scroll to the primary order form

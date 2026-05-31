@@ -140,6 +140,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/digital-courses', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'index'])->name('digital-courses.index')->middleware('can:digital_courses.viewAny');
         Route::get('/digital-courses/create', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'create'])->name('digital-courses.create')->middleware('can:digital_courses.create');
         Route::post('/digital-courses', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'store'])->name('digital-courses.store')->middleware('can:digital_courses.create');
+        Route::get('/digital-courses/{digitalCourse}/builder', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'builder'])->name('digital-courses.builder')->middleware('can:digital_courses.update');
         Route::get('/digital-courses/{digitalCourse}/edit', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'edit'])->name('digital-courses.edit')->middleware('can:digital_courses.update');
         Route::put('/digital-courses/{digitalCourse}', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'update'])->name('digital-courses.update')->middleware('can:digital_courses.update');
         Route::delete('/digital-courses/{digitalCourse}', [\App\Http\Controllers\Admin\DigitalCourseController::class, 'destroy'])->name('digital-courses.destroy')->middleware('can:digital_courses.delete');

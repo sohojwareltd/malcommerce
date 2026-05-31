@@ -11,6 +11,7 @@ function initPageBuilder() {
             const initialSections = scriptEl && scriptEl.textContent
                 ? JSON.parse(scriptEl.textContent)
                 : [];
+            const entityType = container.dataset.entityType || 'product';
             const productId = container.dataset.productId || null;
             const productName = container.dataset.productName || '';
             const productImage = container.dataset.productImage || '';
@@ -18,7 +19,34 @@ function initPageBuilder() {
             const productComparePrice = container.dataset.productComparePrice || null;
             const productInStock = container.dataset.productInStock === '1';
             const productStockQuantity = container.dataset.productStockQuantity || null;
+            const courseSlug = container.dataset.courseSlug || '';
             const orderSettings = (() => {
+                if (entityType === 'course') {
+                    try {
+                        const checkout = JSON.parse(container.dataset.checkoutSettings || '{}');
+                        return {
+                            title: checkout.title || 'কোর্স কিনুন',
+                            buttonText: checkout.buttonText || 'bKash দিয়ে কিনুন',
+                            hideSummary: true,
+                            hideQuantity: true,
+                            deliveryOptions: [],
+                            minQuantity: 1,
+                            maxQuantity: 1,
+                            paymentOptions: ['bkash'],
+                        };
+                    } catch (_) {
+                        return {
+                            title: 'কোর্স কিনুন',
+                            buttonText: 'bKash দিয়ে কিনুন',
+                            hideSummary: true,
+                            hideQuantity: true,
+                            deliveryOptions: [],
+                            minQuantity: 1,
+                            maxQuantity: 1,
+                            paymentOptions: ['bkash'],
+                        };
+                    }
+                }
                 try {
                     return JSON.parse(container.dataset.orderSettings || '{}');
                 } catch (_) {
@@ -29,6 +57,7 @@ function initPageBuilder() {
             const root = createRoot(container);
             root.render(React.createElement(PageBuilder, {
                 initialSections: initialSections,
+                entityType: entityType,
                 productId: productId,
                 productName: productName,
                 productImage: productImage,
@@ -36,6 +65,7 @@ function initPageBuilder() {
                 productComparePrice: productComparePrice,
                 productInStock: productInStock,
                 productStockQuantity: productStockQuantity,
+                courseSlug: courseSlug,
                 orderSettings: orderSettings
             }));
         } catch (error) {

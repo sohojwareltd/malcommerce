@@ -26,6 +26,9 @@ class DigitalCourse extends Model
         'is_active',
         'is_featured',
         'sort_order',
+        'page_layout',
+        'checkout_form_title',
+        'checkout_button_text',
         'sms_templates',
     ];
 
@@ -37,6 +40,7 @@ class DigitalCourse extends Model
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'sort_order' => 'integer',
+            'page_layout' => 'array',
             'sms_templates' => 'array',
         ];
     }

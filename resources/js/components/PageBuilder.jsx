@@ -5,7 +5,7 @@ import ProductSections from './ProductSections';
 
 const HISTORY_LIMIT = 50;
 
-const PageBuilder = ({ initialSections = [], productId = null, productName = '', productImage = '', productPrice = null, productComparePrice = null, productInStock = false, productStockQuantity = null, orderSettings = {} }) => {
+const PageBuilder = ({ initialSections = [], entityType = 'product', productId = null, productName = '', productImage = '', productPrice = null, productComparePrice = null, productInStock = false, productStockQuantity = null, courseSlug = '', orderSettings = {} }) => {
     const [sections, setSections] = useState(initialSections);
     const [selectedSectionIndex, setSelectedSectionIndex] = useState(null);
     const [uploading, setUploading] = useState({});
@@ -384,6 +384,7 @@ const PageBuilder = ({ initialSections = [], productId = null, productName = '',
                             ) : (
                                 <ProductSections
                                     layout={sections}
+                                    entityType={entityType}
                                     productId={productId}
                                     productName={productName}
                                     productImage={productImage}
@@ -391,6 +392,7 @@ const PageBuilder = ({ initialSections = [], productId = null, productName = '',
                                     productComparePrice={productComparePrice}
                                     productInStock={productInStock}
                                     productStockQuantity={productStockQuantity}
+                                    courseSlug={courseSlug}
                                     orderSettings={orderSettings}
                                 />
                             )
@@ -408,6 +410,7 @@ const PageBuilder = ({ initialSections = [], productId = null, productName = '',
                             ) : (
                                 <ProductSections
                                     layout={sections}
+                                    entityType={entityType}
                                     productId={productId}
                                     productName={productName}
                                     productImage={productImage}
@@ -415,6 +418,7 @@ const PageBuilder = ({ initialSections = [], productId = null, productName = '',
                                     productComparePrice={productComparePrice}
                                     productInStock={productInStock}
                                     productStockQuantity={productStockQuantity}
+                                    courseSlug={courseSlug}
                                     orderSettings={orderSettings}
                                     builderMode={true}
                                     selectedSectionIndex={selectedSectionIndex}
