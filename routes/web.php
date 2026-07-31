@@ -32,6 +32,10 @@ Route::middleware([TrackReferral::class])->group(function () {
     Route::get('/videos', [\App\Http\Controllers\VideoController::class, 'index'])->name('videos.index');
     Route::get('/courses', [\App\Http\Controllers\DigitalCourseController::class, 'index'])->name('courses.index');
     Route::get('/courses/{course:slug}', [\App\Http\Controllers\DigitalCourseController::class, 'show'])->name('courses.show');
+    Route::get('/exams', [\App\Http\Controllers\ExamController::class, 'index'])->name('exams.index');
+    Route::get('/exams/{exam:slug}', [\App\Http\Controllers\ExamController::class, 'show'])->name('exams.show');
+    Route::get('/certificate/verify', [\App\Http\Controllers\CertificateController::class, 'verify'])->name('certificates.verify');
+    Route::get('/student-documents/verify/{serialNumber}', \App\Http\Controllers\StudentDocumentVerifyController::class)->name('student-documents.verify');
     Route::get('/courses/{course:slug}/lessons/{lesson}', [\App\Http\Controllers\DigitalCourseController::class, 'watchLesson'])->name('courses.lessons.watch');
     Route::post('/courses/{course:slug}/checkout', [\App\Http\Controllers\DigitalCourseOrderController::class, 'store'])->name('courses.checkout');
     Route::get('/course-orders/success/{orderNumber}', [\App\Http\Controllers\DigitalCourseOrderController::class, 'success'])->name('course-orders.success');
@@ -39,6 +43,12 @@ Route::middleware([TrackReferral::class])->group(function () {
     Route::get('/payment/course-bkash/callback', [\App\Http\Controllers\DigitalCoursePaymentController::class, 'bkashCallback'])->name('payment.course-bkash.callback');
     Route::get('/payment/course-bkash/cancel/{orderId}', [\App\Http\Controllers\DigitalCoursePaymentController::class, 'cancelPayment'])->name('payment.course-bkash.cancel');
     Route::post('/payment/course-check-status', [\App\Http\Controllers\DigitalCoursePaymentController::class, 'checkStatus'])->name('payment.course-check-status');
+    Route::post('/exams/{exam:slug}/checkout', [\App\Http\Controllers\ExamOrderController::class, 'store'])->name('exams.checkout');
+    Route::get('/exam-orders/success/{orderNumber}', [\App\Http\Controllers\ExamOrderController::class, 'success'])->name('exam-orders.success');
+    Route::match(['get', 'post'], '/payment/exam-bkash/initiate', [\App\Http\Controllers\ExamPaymentController::class, 'initiateBkash'])->name('payment.exam-bkash.initiate');
+    Route::get('/payment/exam-bkash/callback', [\App\Http\Controllers\ExamPaymentController::class, 'bkashCallback'])->name('payment.exam-bkash.callback');
+    Route::get('/payment/exam-bkash/cancel/{orderId}', [\App\Http\Controllers\ExamPaymentController::class, 'cancelPayment'])->name('payment.exam-bkash.cancel');
+    Route::post('/payment/exam-check-status', [\App\Http\Controllers\ExamPaymentController::class, 'checkStatus'])->name('payment.exam-check-status');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
     Route::get('/jobs', [\App\Http\Controllers\JobController::class, 'index'])->name('jobs.index');
@@ -96,6 +106,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-courses', [\App\Http\Controllers\MyCourseController::class, 'index'])->name('my-courses.index');
     Route::redirect('/purchased-courses', '/my-courses')->name('purchased-courses.index');
     Route::get('/my-courses/{course:slug}', [\App\Http\Controllers\MyCourseController::class, 'show'])->name('my-courses.show');
+
+    Route::post('/exams/{exam:slug}/redeem-code', [\App\Http\Controllers\ExamCodeController::class, 'redeem'])->name('exams.redeem-code');
+    Route::post('/exams/{exam:slug}/start', [\App\Http\Controllers\ExamSessionController::class, 'start'])->name('exams.start');
+    Route::get('/exam-attempts/{attempt}', [\App\Http\Controllers\ExamSessionController::class, 'take'])->name('exams.take');
+    Route::post('/exam-attempts/{attempt}/submit', [\App\Http\Controllers\ExamSessionController::class, 'submit'])->name('exams.submit');
+    Route::get('/exam-attempts/{attempt}/result', [\App\Http\Controllers\ExamSessionController::class, 'result'])->name('exams.result');
+    Route::get('/my-certificates', [\App\Http\Controllers\ExamSessionController::class, 'myCertificates'])->name('my-certificates.index');
+    Route::get('/certificates/{certificate}', [\App\Http\Controllers\CertificateController::class, 'show'])->name('certificates.show');
 
     // Admin routes
     Route::middleware(['admin', 'require.password.setup'])->prefix('admin')->name('admin.')->group(function () {
@@ -156,6 +174,52 @@ Route::middleware('auth')->group(function () {
         Route::get('/digital-course-orders', [\App\Http\Controllers\Admin\DigitalCourseOrderController::class, 'index'])->name('digital-course-orders.index')->middleware('can:digital_courses.viewAny');
         Route::get('/digital-course-orders/{digitalCourseOrder}', [\App\Http\Controllers\Admin\DigitalCourseOrderController::class, 'show'])->name('digital-course-orders.show')->middleware('can:digital_courses.viewAny');
         Route::post('/digital-course-orders/{digitalCourseOrder}/mark-paid', [\App\Http\Controllers\Admin\DigitalCourseOrderController::class, 'markPaid'])->name('digital-course-orders.mark-paid')->middleware('can:digital_courses.update');
+
+        Route::get('/exams', [\App\Http\Controllers\Admin\ExamController::class, 'index'])->name('exams.index')->middleware('can:exams.viewAny');
+        Route::get('/exams/create', [\App\Http\Controllers\Admin\ExamController::class, 'create'])->name('exams.create')->middleware('can:exams.create');
+        Route::post('/exams', [\App\Http\Controllers\Admin\ExamController::class, 'store'])->name('exams.store')->middleware('can:exams.create');
+        Route::get('/exams/{exam}/edit', [\App\Http\Controllers\Admin\ExamController::class, 'edit'])->name('exams.edit')->middleware('can:exams.update');
+        Route::put('/exams/{exam}', [\App\Http\Controllers\Admin\ExamController::class, 'update'])->name('exams.update')->middleware('can:exams.update');
+        Route::delete('/exams/{exam}', [\App\Http\Controllers\Admin\ExamController::class, 'destroy'])->name('exams.destroy')->middleware('can:exams.delete');
+        Route::post('/exams/{exam}/restore', [\App\Http\Controllers\Admin\ExamController::class, 'restore'])->name('exams.restore')->middleware('can:exams.restore');
+        Route::post('/exams/{exam}/generate-codes', [\App\Http\Controllers\Admin\ExamController::class, 'generateCodes'])->name('exams.generate-codes')->middleware('can:exams.update');
+        Route::get('/exam-orders', [\App\Http\Controllers\Admin\ExamOrderController::class, 'index'])->name('exam-orders.index')->middleware('can:exams.viewAny');
+        Route::get('/exam-orders/{examOrder}', [\App\Http\Controllers\Admin\ExamOrderController::class, 'show'])->name('exam-orders.show')->middleware('can:exams.viewAny');
+        Route::post('/exam-orders/{examOrder}/mark-paid', [\App\Http\Controllers\Admin\ExamOrderController::class, 'markPaid'])->name('exam-orders.mark-paid')->middleware('can:exams.update');
+        Route::get('/exam-enrollments', [\App\Http\Controllers\Admin\ExamEnrollmentController::class, 'index'])->name('exam-enrollments.index')->middleware('can:exams.viewAny');
+        Route::get('/exam-attempts', [\App\Http\Controllers\Admin\ExamEnrollmentController::class, 'attempts'])->name('exam-attempts.index')->middleware('can:exams.viewAny');
+        Route::get('/exam-certificates', [\App\Http\Controllers\Admin\ExamEnrollmentController::class, 'certificates'])->name('exam-certificates.index')->middleware('can:exams.viewAny');
+        Route::get('/exam-code-bans', [\App\Http\Controllers\Admin\ExamEnrollmentController::class, 'codeBans'])->name('exam-code-bans.index')->middleware('can:exams.viewAny');
+        Route::post('/exam-code-bans/unban', [\App\Http\Controllers\Admin\ExamEnrollmentController::class, 'unbanCode'])->name('exam-code-bans.unban')->middleware('can:exams.update');
+        Route::post('/exam-enrollments/grant', [\App\Http\Controllers\Admin\ExamEnrollmentController::class, 'grantAccess'])->name('exam-enrollments.grant')->middleware('can:exams.update');
+
+        Route::get('/institutes', [\App\Http\Controllers\Admin\InstituteController::class, 'index'])->name('institutes.index')->middleware('can:institutes.viewAny');
+        Route::get('/institutes/create', [\App\Http\Controllers\Admin\InstituteController::class, 'create'])->name('institutes.create')->middleware('can:institutes.create');
+        Route::post('/institutes', [\App\Http\Controllers\Admin\InstituteController::class, 'store'])->name('institutes.store')->middleware('can:institutes.create');
+        Route::get('/institutes/{institute}/edit', [\App\Http\Controllers\Admin\InstituteController::class, 'edit'])->name('institutes.edit')->middleware('can:institutes.update');
+        Route::put('/institutes/{institute}', [\App\Http\Controllers\Admin\InstituteController::class, 'update'])->name('institutes.update')->middleware('can:institutes.update');
+        Route::delete('/institutes/{institute}', [\App\Http\Controllers\Admin\InstituteController::class, 'destroy'])->name('institutes.destroy')->middleware('can:institutes.delete');
+        Route::post('/institutes/{institute}/restore', [\App\Http\Controllers\Admin\InstituteController::class, 'restore'])->name('institutes.restore')->middleware('can:institutes.restore');
+
+        Route::get('/student-courses', [\App\Http\Controllers\Admin\StudentCourseController::class, 'index'])->name('student-courses.index')->middleware('can:studentCourses.viewAny');
+        Route::get('/student-courses/create', [\App\Http\Controllers\Admin\StudentCourseController::class, 'create'])->name('student-courses.create')->middleware('can:studentCourses.create');
+        Route::post('/student-courses', [\App\Http\Controllers\Admin\StudentCourseController::class, 'store'])->name('student-courses.store')->middleware('can:studentCourses.create');
+        Route::get('/student-courses/{studentCourse}/edit', [\App\Http\Controllers\Admin\StudentCourseController::class, 'edit'])->name('student-courses.edit')->middleware('can:studentCourses.update');
+        Route::put('/student-courses/{studentCourse}', [\App\Http\Controllers\Admin\StudentCourseController::class, 'update'])->name('student-courses.update')->middleware('can:studentCourses.update');
+        Route::delete('/student-courses/{studentCourse}', [\App\Http\Controllers\Admin\StudentCourseController::class, 'destroy'])->name('student-courses.destroy')->middleware('can:studentCourses.delete');
+
+        Route::get('/students', [\App\Http\Controllers\Admin\StudentController::class, 'index'])->name('students.index')->middleware('can:students.viewAny');
+        Route::get('/students/create', [\App\Http\Controllers\Admin\StudentController::class, 'create'])->name('students.create')->middleware('can:students.create');
+        Route::post('/students', [\App\Http\Controllers\Admin\StudentController::class, 'store'])->name('students.store')->middleware('can:students.create');
+        Route::get('/students/{student}', [\App\Http\Controllers\Admin\StudentController::class, 'show'])->name('students.show')->middleware('can:students.view');
+        Route::get('/students/{student}/edit', [\App\Http\Controllers\Admin\StudentController::class, 'edit'])->name('students.edit')->middleware('can:students.update');
+        Route::put('/students/{student}', [\App\Http\Controllers\Admin\StudentController::class, 'update'])->name('students.update')->middleware('can:students.update');
+        Route::delete('/students/{student}', [\App\Http\Controllers\Admin\StudentController::class, 'destroy'])->name('students.destroy')->middleware('can:students.delete');
+        Route::post('/students/{student}/restore', [\App\Http\Controllers\Admin\StudentController::class, 'restore'])->name('students.restore')->middleware('can:students.restore');
+        Route::get('/students/{student}/documents/registration', [\App\Http\Controllers\Admin\StudentDocumentController::class, 'registration'])->name('students.documents.registration')->middleware('can:students.view');
+        Route::get('/students/{student}/documents/admit', [\App\Http\Controllers\Admin\StudentDocumentController::class, 'admit'])->name('students.documents.admit')->middleware('can:students.view');
+        Route::get('/students/{student}/documents/certificate', [\App\Http\Controllers\Admin\StudentDocumentController::class, 'certificate'])->name('students.documents.certificate')->middleware('can:students.view');
+        Route::get('/students/{student}/documents/marksheet', [\App\Http\Controllers\Admin\StudentDocumentController::class, 'marksheet'])->name('students.documents.marksheet')->middleware('can:students.view');
         
         Route::get('/orders', [AdminDashboardController::class, 'orders'])->name('orders.index')->middleware('can:orders.viewAny');
         Route::get('/orders/physical', [AdminDashboardController::class, 'ordersPhysical'])->name('orders.physical')->middleware('can:orders.viewAny');

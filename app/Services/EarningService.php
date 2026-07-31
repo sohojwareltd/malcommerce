@@ -173,16 +173,17 @@ class EarningService
      * Rank convention: lower number = higher in the tree (0 top, then 1, 2, … e.g. 6 deepest).
      *
      * @param  list<User>  $chain
+     * @param  list<float>|null  $rates  Optional per-node rates (same length as $chain); defaults to each user’s level commission %.
      * @return list<float>
      */
-    protected function levelDifferentialWeights(array $chain): array
+    protected function levelDifferentialWeights(array $chain, ?array $rates = null): array
     {
         $maxRate = 0.0;
         $weights = [];
 
         foreach ($chain as $i => $user) {
             $level = $user->sponsorLevel;
-            $rate = $level ? (float) $level->commission_percent : 0.0;
+            $rate = $rates[$i] ?? ($level ? (float) $level->commission_percent : 0.0);
             $rank = $level ? (int) $level->rank : PHP_INT_MAX;
 
             if ($i > 0) {
@@ -207,10 +208,28 @@ class EarningService
     }
 
     /**
+     * Level rates + differential weights for a purchase beneficiary chain.
+     *
+     * @param  list<User>  $chain
+     * @return array{0: list<float>, 1: list<float>} [levelRates, differentialWeights]
+     */
+    protected function purchaseCommissionDifferentials(array $chain, float $defaultCommissionPercent): array
+    {
+        $levelRates = [];
+        foreach ($chain as $recipient) {
+            $recipient->loadMissing('sponsorLevel');
+            $levelRates[] = $this->purchaseCommissionPercentForUser($recipient, $defaultCommissionPercent);
+        }
+
+        return [$levelRates, $this->levelDifferentialWeights($chain, $levelRates)];
+    }
+
+    /**
      * Credit balances from an admin-approved purchase (own or team).
      * Pays the beneficiary and every referrer up the chain (sponsor_id) until there is no referrer.
-     * Each recipient gets gross × their sponsor level commission % (or purchase_approval_commission_percent fallback).
-     * Earning linked on the purchase row is the beneficiary’s record (may be zero if their % is 0).
+     * Each recipient gets gross × their level-differential weight % (gaps between rates up the upline;
+     * level rate from sponsor level or purchase_approval_commission_percent fallback).
+     * Earning linked on the purchase row is the beneficiary’s record (may be zero if their weight is 0).
      *
      * Must be called inside DB::transaction when accepting a purchase (with row lock).
      */
@@ -229,14 +248,16 @@ class EarningService
             $chain = [$beneficiary];
         }
 
+        [$levelRates, $weights] = $this->purchaseCommissionDifferentials($chain, $defaultCommissionPercent);
+
         $primaryEarning = null;
         $baseComment = $purchase->comment
             ? 'Purchase commission: '.$purchase->comment
             : 'Purchase commission (approved)';
 
         foreach ($chain as $index => $recipient) {
-            $recipient->loadMissing('sponsorLevel');
-            $commissionPercent = $this->purchaseCommissionPercentForUser($recipient, $defaultCommissionPercent);
+            $levelPercent = $levelRates[$index];
+            $commissionPercent = $weights[$index];
             $credit = round(max(0, $gross * ($commissionPercent / 100)), 2);
             $isBeneficiary = $recipient->id === $beneficiary->id;
 
@@ -268,6 +289,7 @@ class EarningService
                     'purchase_id' => $purchase->id,
                     'kind' => $purchase->kind,
                     'purchase_gross_amount' => $gross,
+                    'level_commission_percent' => $levelPercent,
                     'commission_percent' => $commissionPercent,
                     'commission_amount' => $credit,
                     'purchase_chain_index' => $index,
@@ -307,6 +329,7 @@ class EarningService
 
         $defaultCommissionPercent = (float) Setting::get('purchase_approval_commission_percent', 0);
         $chainByBeneficiaryId = [];
+        $weightsByBeneficiaryId = [];
         $total = 0.0;
 
         foreach ($purchases as $purchase) {
@@ -323,19 +346,20 @@ class EarningService
                     $chain = [$beneficiary];
                 }
                 $chainByBeneficiaryId[$bid] = $chain;
+                [, $weightsByBeneficiaryId[$bid]] = $this->purchaseCommissionDifferentials($chain, $defaultCommissionPercent);
             } else {
                 $chain = $chainByBeneficiaryId[$bid];
             }
 
+            $weights = $weightsByBeneficiaryId[$bid];
             $gross = (float) $purchase->amount;
 
-            foreach ($chain as $recipient) {
+            foreach ($chain as $index => $recipient) {
                 if ($recipient->id !== $sponsor->id) {
                     continue;
                 }
 
-                $recipient->loadMissing('sponsorLevel');
-                $commissionPercent = $this->purchaseCommissionPercentForUser($recipient, $defaultCommissionPercent);
+                $commissionPercent = $weights[$index];
                 $credit = round(max(0, $gross * ($commissionPercent / 100)), 2);
                 $isBeneficiary = $recipient->id === $beneficiary->id;
 
@@ -362,6 +386,7 @@ class EarningService
     {
         $defaultCommissionPercent = (float) Setting::get('purchase_approval_commission_percent', 0);
         $chainByBeneficiaryId = [];
+        $weightsByBeneficiaryId = [];
         $totals = [];
 
         foreach ($purchases as $purchase) {
@@ -378,15 +403,16 @@ class EarningService
                     $chain = [$beneficiary];
                 }
                 $chainByBeneficiaryId[$bid] = $chain;
+                [, $weightsByBeneficiaryId[$bid]] = $this->purchaseCommissionDifferentials($chain, $defaultCommissionPercent);
             } else {
                 $chain = $chainByBeneficiaryId[$bid];
             }
 
+            $weights = $weightsByBeneficiaryId[$bid];
             $gross = (float) $purchase->amount;
 
-            foreach ($chain as $recipient) {
-                $recipient->loadMissing('sponsorLevel');
-                $commissionPercent = $this->purchaseCommissionPercentForUser($recipient, $defaultCommissionPercent);
+            foreach ($chain as $index => $recipient) {
+                $commissionPercent = $weights[$index];
                 $credit = round(max(0, $gross * ($commissionPercent / 100)), 2);
                 $isBeneficiary = (int) $recipient->id === (int) $beneficiary->id;
 
@@ -403,7 +429,8 @@ class EarningService
     }
 
     /**
-     * Purchase commission % for a user: level rate, or setting fallback; rank 0 with 0% level uses fallback.
+     * Purchase commission % for a user: level rate when assigned; 0% level (any rank) pays nothing.
+     * Setting fallback only when the user has no sponsor level.
      */
     protected function purchaseCommissionPercentForUser(User $user, float $defaultPercent): float
     {
@@ -412,12 +439,7 @@ class EarningService
             return $defaultPercent;
         }
 
-        $pct = (float) $level->commission_percent;
-        if ((int) $level->rank === 0 && $pct <= 0) {
-            return $defaultPercent;
-        }
-
-        return $pct;
+        return max(0.0, (float) $level->commission_percent);
     }
 
     /**

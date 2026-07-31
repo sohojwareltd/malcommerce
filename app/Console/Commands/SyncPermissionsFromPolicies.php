@@ -92,6 +92,10 @@ class SyncPermissionsFromPolicies extends Command
             'SponsorLevelPolicy' => 'sponsorLevels',
             'VideoPolicy' => 'videos',
             'DigitalCoursePolicy' => 'digital_courses',
+            'ExamPolicy' => 'exams',
+            'InstitutePolicy' => 'institutes',
+            'StudentPolicy' => 'students',
+            'StudentCoursePolicy' => 'studentCourses',
             'WithdrawalPolicy' => 'withdrawals',
             'SettingPolicy' => 'settings',
             'DashboardPolicy' => 'dashboard',
@@ -126,7 +130,8 @@ class SyncPermissionsFromPolicies extends Command
     protected function getStandalonePermissions(): array
     {
         return [
-            'products.restore', 'categories.restore', 'orders.restore',
+            'products.restore', 'categories.restore', 'orders.restore', 'exams.restore',
+            'institutes.restore', 'students.restore',
             'videos.restore', 'users.restore', 'sponsors.restore',
             'products.forceDelete', 'categories.forceDelete', 'orders.forceDelete',
             'videos.forceDelete', 'users.forceDelete', 'sponsors.forceDelete',

@@ -110,6 +110,26 @@ class User extends Authenticatable
         return $this->hasMany(DigitalCourseEnrollment::class);
     }
 
+    public function examEnrollments()
+    {
+        return $this->hasMany(ExamEnrollment::class);
+    }
+
+    public function examAttempts()
+    {
+        return $this->hasMany(ExamAttempt::class);
+    }
+
+    public function examCertificates()
+    {
+        return $this->hasMany(ExamCertificate::class);
+    }
+
+    public function examOrders()
+    {
+        return $this->hasMany(ExamOrder::class);
+    }
+
     public function earnings()
     {
         return $this->hasMany(Earning::class, 'sponsor_id');

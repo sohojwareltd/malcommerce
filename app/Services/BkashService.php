@@ -210,6 +210,26 @@ class BkashService
         return null;
     }
 
+    public function resolveExamCallbackUrl(): ?string
+    {
+        $configured = trim((string) config('services.bkash.exam_callback_url', ''));
+        if ($configured !== '') {
+            return $configured;
+        }
+
+        if (Route::has('payment.exam-bkash.callback')) {
+            try {
+                return route('payment.exam-bkash.callback');
+            } catch (\Throwable $e) {
+                Log::warning('Failed to generate exam payment callback route URL', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return null;
+    }
+
     protected function resolveCallbackUrl(): ?string
     {
         $configured = trim((string) config('services.bkash.callback_url', ''));

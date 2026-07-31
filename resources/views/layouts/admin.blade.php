@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full overflow-x-hidden">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,13 +34,13 @@
             sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
             sidebarCollapsed && window.innerWidth >= 1024 ? 'lg:w-20' : 'lg:w-64'
         ]"
-               class="bg-gradient-to-b from-primary to-primary-light shadow-xl border-r border-primary/20 fixed h-full overflow-y-auto z-50 transition-all duration-300 ease-in-out w-64">
-            <div class="p-3 sm:p-4">
+               class="bg-gradient-to-b from-primary to-primary-light shadow-xl border-r border-primary/20 fixed h-full overflow-y-auto overflow-x-hidden z-50 transition-all duration-300 ease-in-out w-64">
+            <div class="p-3 sm:p-4 max-w-full overflow-x-hidden">
                 <div class="flex items-center justify-between mb-4 sm:mb-6">
                     <h2 x-show="!sidebarCollapsed || window.innerWidth < 1024" class="text-lg sm:text-xl font-bold text-white transition-opacity duration-300">Admin Panel</h2>
                     <div class="flex gap-2 items-center">
                         <button @click="sidebarCollapsed = !sidebarCollapsed"
-                                class="hidden lg:flex items-center justify-center w-9 h-9 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 text-white shadow-sm transition group">
+                                class="hidden lg:flex relative items-center justify-center w-9 h-9 rounded-full border border-white/20 bg-white/5 hover:bg-white/15 text-white shadow-sm transition group">
                             <svg x-show="!sidebarCollapsed" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
                             </svg>
@@ -59,7 +59,7 @@
                         </button>
                     </div>
                 </div>
-                <nav class="space-y-4">
+                <nav class="space-y-4 overflow-x-hidden">
                 <!-- General -->
                 <div class="space-y-1">
                     <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-xs font-semibold text-white/50 uppercase tracking-wider">General</p>
@@ -170,6 +170,58 @@
                         <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="transition-opacity duration-300">Orders</span>
                         <span x-show="sidebarCollapsed && window.innerWidth >= 1024" class="absolute left-full ml-2 px-2 py-1 bg-neutral-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Orders</span>
                     </a>
+                </div>
+                @endcan
+
+                @can('exams.viewAny')
+                <div class="space-y-1 bg-white/5 rounded-xl py-2 mb-1 border-l-4 border-emerald-400">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-[11px] font-semibold text-emerald-200 uppercase tracking-wider">Exams</p>
+                    <a href="{{ route('admin.exams.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.exams.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-emerald-500/15' }} transition text-xs sm:text-sm">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024">Exams</span>
+                    </a>
+                    <a href="{{ route('admin.exam-orders.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.exam-orders.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-emerald-500/15' }} transition text-xs sm:text-sm">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024">Exam orders</span>
+                    </a>
+                    <a href="{{ route('admin.exam-enrollments.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.exam-enrollments.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-emerald-500/15' }} transition text-xs sm:text-sm">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024">Enrollments</span>
+                    </a>
+                    <a href="{{ route('admin.exam-attempts.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.exam-attempts.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-emerald-500/15' }} transition text-xs sm:text-sm">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024">Attempts</span>
+                    </a>
+                    <a href="{{ route('admin.exam-certificates.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.exam-certificates.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-emerald-500/15' }} transition text-xs sm:text-sm">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024">Certificates</span>
+                    </a>
+                    <a href="{{ route('admin.exam-code-bans.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.exam-code-bans.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-emerald-500/15' }} transition text-xs sm:text-sm">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024">Code bans</span>
+                    </a>
+                </div>
+                @endcan
+
+                @can('institutes.viewAny')
+                <div class="space-y-1 bg-white/5 rounded-xl py-2 mb-1 border-l-4 border-amber-400">
+                    <p x-show="!sidebarCollapsed || window.innerWidth < 1024" class="px-3 text-[11px] font-semibold text-amber-200 uppercase tracking-wider">Students</p>
+                    <a href="{{ route('admin.institutes.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.institutes.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-amber-500/15' }} transition text-xs sm:text-sm min-w-0">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="truncate">Institutes</span>
+                    </a>
+                    @can('studentCourses.viewAny')
+                    <a href="{{ route('admin.student-courses.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.student-courses.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-amber-500/15' }} transition text-xs sm:text-sm min-w-0">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="truncate">Courses</span>
+                    </a>
+                    @endcan
+                    @can('students.viewAny')
+                    <a href="{{ route('admin.students.index') }}"
+                       class="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg {{ request()->routeIs('admin.students.*') ? 'bg-white text-primary shadow-lg' : 'text-white/90 hover:bg-amber-500/15' }} transition text-xs sm:text-sm min-w-0">
+                        <span x-show="!sidebarCollapsed || window.innerWidth < 1024" class="truncate">Students</span>
+                    </a>
+                    @endcan
                 </div>
                 @endcan
 

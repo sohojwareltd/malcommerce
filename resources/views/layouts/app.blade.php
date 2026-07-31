@@ -239,6 +239,7 @@
                         <div class="flex items-center gap-4">
                             <a href="{{ route('products.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পণ্য</a>
                             <a href="{{ route('courses.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ডিজিটাল কোর্স</a>
+                            <a href="{{ route('exams.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">পরীক্ষা</a>
                             <a href="{{ route('videos.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ভিডিও</a>
                             <a href="{{ route('jobs.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">চাকরি</a>
                             <a href="{{ route('workshops.index') }}" class="hidden lg:inline-block text-gray-700 hover:text-primary transition font-bangla">ওয়ার্কশপ</a>
@@ -306,6 +307,7 @@
                         <a href="{{ route('home') }}" class="block text-gray-700 hover:text-primary font-bangla">হোম</a>
                         <a href="{{ route('products.index') }}" class="block text-gray-700 hover:text-primary font-bangla">পণ্য</a>
                         <a href="{{ route('courses.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ডিজিটাল কোর্স</a>
+                        <a href="{{ route('exams.index') }}" class="block text-gray-700 hover:text-primary font-bangla">পরীক্ষা</a>
                         <a href="{{ route('videos.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ভিডিও</a>
                         <a href="{{ route('jobs.index') }}" class="block text-gray-700 hover:text-primary font-bangla">চাকরি</a>
                         <a href="{{ route('workshops.index') }}" class="block text-gray-700 hover:text-primary font-bangla">ওয়ার্কশপ</a>
@@ -313,6 +315,7 @@
                         <div class="border-t border-gray-200 pt-3 mt-3 space-y-2">
                             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1">অ্যাকাউন্ট</p>
                             <a href="{{ route('my-courses.index') }}" class="block text-gray-700 hover:text-primary font-bangla font-semibold">আমার কেনা কোর্স</a>
+                            <a href="{{ route('my-certificates.index') }}" class="block text-gray-700 hover:text-primary font-bangla">আমার সার্টিফিকেট</a>
                             @if(auth()->user()->isAdmin())
                                 <a href="{{ route('admin.dashboard') }}" class="block text-gray-700 hover:text-primary">Admin</a>
                             @elseif(auth()->user()->isSponsor())
@@ -489,7 +492,7 @@
         href="https://wa.me/8801789079791" 
         target="_blank" 
         rel="noopener noreferrer"
-        class="fixed bottom-8 left-4 md:left-8 z-50 flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-[#25D366] text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200"
+        class="no-print fixed bottom-8 left-4 md:left-8 z-50 flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-[#25D366] text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200"
         aria-label="Chat on WhatsApp"
     >
         <i class="fab fa-whatsapp text-2xl md:text-3xl"></i>
@@ -499,7 +502,7 @@
     <button 
         id="scrollToTopBtn" 
         onclick="window.scrollTo({ top: 0, behavior: 'smooth' });"
-        class="fixed bottom-8 right-4 md:right-8 bg-primary text-white rounded-full p-3 md:p-4 shadow-lg hover:shadow-xl transition-all duration-200 opacity-0 pointer-events-none z-50"
+        class="no-print fixed bottom-8 right-4 md:right-8 bg-primary text-white rounded-full p-3 md:p-4 shadow-lg hover:shadow-xl transition-all duration-200 opacity-0 pointer-events-none z-50"
         style="background-color: var(--color-primary);"
         aria-label="Scroll to top"
     >
